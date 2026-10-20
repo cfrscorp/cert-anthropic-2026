@@ -12,10 +12,15 @@
   // once boot has picked the exam.
   var THEME_KEY = "study-theme";
   var EXAM_KEY = "study-exam";
-  var PROGRESS_KEY, FC_PROGRESS_KEY, QUESTION_SET_KEY, FLASHCARD_SET_KEY;
+  // Progress is v2 since BL-050 (records keyed by pool IDs: q-0001); the v1
+  // keys (exam-prefixed IDs: ccarf-q-1.1-001) are only read, to migrate.
+  var PROGRESS_KEY, FC_PROGRESS_KEY, QUESTION_SET_KEY, FLASHCARD_SET_KEY, V1_PROGRESS_KEY, V1_FC_PROGRESS_KEY;
+  var PROGRESS_VERSION = 2;
   function useExamKeys(slug) {
-    PROGRESS_KEY = "study-" + slug + "-progress-v1";
-    FC_PROGRESS_KEY = "study-" + slug + "-flashcard-progress-v1";
+    PROGRESS_KEY = "study-" + slug + "-progress-v2";
+    FC_PROGRESS_KEY = "study-" + slug + "-flashcard-progress-v2";
+    V1_PROGRESS_KEY = "study-" + slug + "-progress-v1";
+    V1_FC_PROGRESS_KEY = "study-" + slug + "-flashcard-progress-v1";
     QUESTION_SET_KEY = "study-" + slug + "-question-set";
     FLASHCARD_SET_KEY = "study-" + slug + "-flashcard-set";
   }
@@ -81,9 +86,9 @@
   function loadProgress() {
     try {
       var p = JSON.parse(localStorage.getItem(PROGRESS_KEY));
-      if (p && p.version === 1 && p.questions && p.sessions) return p;
+      if (p && p.version === PROGRESS_VERSION && p.questions && p.sessions) return p;
     } catch (e) { /* fall through */ }
-    return { version: 1, questions: {}, sessions: [] };
+    return { version: PROGRESS_VERSION, questions: {}, sessions: [] };
   }
   function saveProgress(p) { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); }
   function recordAnswer(qid, correct) {
@@ -107,9 +112,9 @@
   function loadFcProgress() {
     try {
       var p = JSON.parse(localStorage.getItem(FC_PROGRESS_KEY));
-      if (p && p.version === 1 && p.cards) return p;
+      if (p && p.version === PROGRESS_VERSION && p.cards) return p;
     } catch (e) { /* fall through */ }
-    return { version: 1, cards: {} };
+    return { version: PROGRESS_VERSION, cards: {} };
   }
   function saveFcProgress(p) { localStorage.setItem(FC_PROGRESS_KEY, JSON.stringify(p)); }
   function recordFlashcardAnswer(cid, gotIt) {
@@ -126,10 +131,11 @@
   /* ---- one-time migration from single-exam (pre-BL-045) storage --------- */
   // Before multi-exam support, CCAR-F progress lived under ccaf-study-* keys
   // with unprefixed item IDs (q-1.1-001, fc-1.1-001) and tier-name set IDs.
-  // Copy it into the ccarf namespace once — only while the new key is still
+  // Copy it into the ccarf v1 namespace once — only while that key is still
   // empty — re-keying IDs to the prefixed form. Records saved under both forms
   // (possible from the interim multi-exam branch) are merged. Legacy keys are
-  // left in place so an older checkout still sees its data.
+  // left in place so an older checkout still sees its data. migrateStorage()
+  // then carries v1 on to v2 (pool IDs).
   var LEGACY = {
     exam: "ccarf",
     theme: "ccaf-study-theme",
@@ -137,8 +143,8 @@
     flashcards: "ccaf-study-flashcard-progress-v1",
     questionSet: "ccaf-study-question-set",
     flashcardSet: "ccaf-study-flashcard-set",
-    questionSetIds: { standard: "ccarf-questions-standard", intermediate: "ccarf-questions-intermediate", hard: "ccarf-questions-hard" },
-    flashcardSetIds: { standard: "ccarf-flashcards" },
+    questionSetIds: { standard: "questions-standard", intermediate: "questions-intermediate", hard: "questions-hard" },
+    flashcardSetIds: { standard: "flashcards" },
   };
   function mergeRecord(a, b) {
     if (!a) return b;
@@ -163,17 +169,55 @@
   function migrateLegacyStorage(slug) {
     if (slug !== LEGACY.exam) return;
     var p = readJSON(LEGACY.progress);
-    if (p && p.questions && !localStorage.getItem(PROGRESS_KEY)) {
-      saveProgress({ version: 1, questions: prefixIds(p.questions, slug), sessions: p.sessions || [] });
+    if (p && p.questions && !localStorage.getItem(V1_PROGRESS_KEY) && !localStorage.getItem(PROGRESS_KEY)) {
+      localStorage.setItem(V1_PROGRESS_KEY, JSON.stringify({ version: 1, questions: prefixIds(p.questions, slug), sessions: p.sessions || [] }));
     }
     var fc = readJSON(LEGACY.flashcards);
-    if (fc && fc.cards && !localStorage.getItem(FC_PROGRESS_KEY)) {
-      saveFcProgress({ version: 1, cards: prefixIds(fc.cards, slug) });
+    if (fc && fc.cards && !localStorage.getItem(V1_FC_PROGRESS_KEY) && !localStorage.getItem(FC_PROGRESS_KEY)) {
+      localStorage.setItem(V1_FC_PROGRESS_KEY, JSON.stringify({ version: 1, cards: prefixIds(fc.cards, slug) }));
     }
     [[LEGACY.questionSet, QUESTION_SET_KEY, LEGACY.questionSetIds],
      [LEGACY.flashcardSet, FLASHCARD_SET_KEY, LEGACY.flashcardSetIds]].forEach(function (m) {
       var old = localStorage.getItem(m[0]);
       if (old && !localStorage.getItem(m[1])) localStorage.setItem(m[1], m[2][old] || old);
+    });
+  }
+
+  /* ---- one-time migration to pool IDs (BL-050) ---------------------------- */
+  // Content moved into an exam-neutral pool: ccarf-q-1.1-001 became q-0001 and
+  // set ids lost their exam prefix (ccarf-questions-hard → questions-hard), per
+  // the committed migrations/pool-ids-2026-10.json — fetched only when needed.
+  // v1 progress is re-keyed into the v2 keys once (only while they're empty);
+  // unmapped ids are kept, records landing on one id are merged, and the v1
+  // keys are left in place.
+  var poolIds = null;
+  function fetchPoolIds() {
+    return poolIds || (poolIds = fetchJSON("../migrations/pool-ids-2026-10.json"));
+  }
+  function rekeyRecords(records, ids) {
+    var out = {};
+    Object.keys(records || {}).forEach(function (id) {
+      var key = ids[id] || id;
+      out[key] = mergeRecord(out[key], records[id]);
+    });
+    return out;
+  }
+  function migrateStorage(slug, registry) {
+    migrateLegacyStorage(slug);
+    var p = !localStorage.getItem(PROGRESS_KEY) && readJSON(V1_PROGRESS_KEY);
+    var fc = !localStorage.getItem(FC_PROGRESS_KEY) && readJSON(V1_FC_PROGRESS_KEY);
+    var setKeys = [QUESTION_SET_KEY, FLASHCARD_SET_KEY].filter(function (k) {
+      var v = localStorage.getItem(k);
+      return v && !registry[v]; // names a component that no longer exists
+    });
+    if (!(p && p.questions) && !(fc && fc.cards) && !setKeys.length) return Promise.resolve();
+    return fetchPoolIds().then(function (mig) {
+      if (p && p.questions) saveProgress({ version: PROGRESS_VERSION, questions: rekeyRecords(p.questions, mig.questions), sessions: p.sessions || [] });
+      if (fc && fc.cards) saveFcProgress({ version: PROGRESS_VERSION, cards: rekeyRecords(fc.cards, mig.flashcards) });
+      setKeys.forEach(function (k) {
+        var v = localStorage.getItem(k);
+        if (mig.components[v]) localStorage.setItem(k, mig.components[v]);
+      });
     });
   }
 
@@ -823,15 +867,23 @@
       reader.onload = function () {
         try {
           var obj = JSON.parse(reader.result);
-          if (!obj || obj.version !== 1 || !obj.questions || !obj.sessions) throw new Error("bad shape");
+          if (!obj || (obj.version !== 1 && obj.version !== PROGRESS_VERSION) || !obj.questions || !obj.sessions) throw new Error("bad shape");
           // Exports from before multi-exam support carry no exam tag; they're CCAR-F.
           var from = obj.exam || LEGACY.exam;
           if (from !== DATA.meta.slug) {
             alert("That export is for a different exam (" + from + "). Switch to it in the header, then import.");
             return;
           }
-          saveProgress({ version: 1, questions: prefixIds(obj.questions, from), sessions: obj.sessions });
-          router();
+          if (obj.version === PROGRESS_VERSION) {
+            saveProgress({ version: PROGRESS_VERSION, questions: obj.questions, sessions: obj.sessions });
+            router();
+            return;
+          }
+          // v1 export (pre-pool IDs, possibly pre-multi-exam unprefixed ones).
+          fetchPoolIds().then(function (mig) {
+            saveProgress({ version: PROGRESS_VERSION, questions: rekeyRecords(prefixIds(obj.questions, from), mig.questions), sessions: obj.sessions });
+            router();
+          }).catch(function () { alert("Couldn't load the ID migration map to import that older export."); });
         } catch (err) { alert("That file doesn't look like a " + DATA.meta.code + " progress export."); }
       };
       reader.readAsText(file);
@@ -994,7 +1046,8 @@
   }
   // Content is resolved through manifests: exams/index.json lists exam slugs;
   // exams/<slug>/exam.json holds the exam's domains/tasks and the components
-  // each section pins; content/components.json maps component ids to files.
+  // each section pins; exams/<slug>/map.json picks the pool items the exam
+  // uses and their tasks; content/components.json maps component ids to files.
   // Pin versions are checked by the test suite, not at runtime.
   function resolvePins(pins, registry) {
     return pins.map(function (pin) {
@@ -1007,6 +1060,13 @@
     return Promise.all(entries.map(function (e) { return fetchJSON("../content/" + e.file); }));
   }
   function concatAll(lists) { return [].concat.apply([], lists); }
+  // Pool items carry no exam tags: keep only the items the exam's map lists,
+  // tagged with the map's task and that task's domain.
+  function applyMap(items, mapping, taskDomain) {
+    return items.filter(function (it) { return mapping[it.id]; }).map(function (it) {
+      return Object.assign({}, it, { task_statement: mapping[it.id], domain: taskDomain[mapping[it.id]] });
+    });
+  }
   // Top stripe: segmented exam switcher (a dropdown once there are too many
   // exams to fit). Sub-nav stripe: the active exam's full name. The switcher's
   // links are re-pointed by router() so switching keeps the current view.
@@ -1048,7 +1108,6 @@
         localStorage.setItem(EXAM_KEY, EXAM);
         DATA.meta = exam;
         useExamKeys(exam.slug);
-        migrateLegacyStorage(exam.slug);
         initExamChrome(exam, exams);
         if (exam.config && exam.config.pass_threshold) PASS_THRESHOLD = exam.config.pass_threshold;
         DATA.sets = {
@@ -1060,13 +1119,18 @@
           fetchAll(DATA.sets.flashcards),
           fetchAll(resolvePins(exam.sections.concepts, registry)),
           fetchAll(resolvePins(exam.sections.labs, registry)),
+          fetchJSON("../exams/" + exam.slug + "/map.json"),
+          migrateStorage(exam.slug, registry),
         ]);
       })
       .then(function (loaded) {
-        DATA.concepts = concatAll(loaded[2]); DATA.labs = concatAll(loaded[3]);
+        var map = loaded[4], taskDomain = {};
+        DATA.meta.task_statements.forEach(function (t) { taskDomain[t.id] = t.domain; });
+        DATA.concepts = applyMap(concatAll(loaded[2]), map.concepts, taskDomain);
+        DATA.labs = concatAll(loaded[3]);
         DATA.questionSets = {}; DATA.flashcardSets = {};
-        DATA.sets.questions.forEach(function (e, i) { DATA.questionSets[e.id] = loaded[0][i]; });
-        DATA.sets.flashcards.forEach(function (e, i) { DATA.flashcardSets[e.id] = loaded[1][i]; });
+        DATA.sets.questions.forEach(function (e, i) { DATA.questionSets[e.id] = applyMap(loaded[0][i], map.questions, taskDomain); });
+        DATA.sets.flashcards.forEach(function (e, i) { DATA.flashcardSets[e.id] = applyMap(loaded[1][i], map.flashcards, taskDomain); });
         selectQuestionSet(pickInitialSetId("questions", QUESTION_SET_KEY));
         selectFlashcardSet(pickInitialSetId("flashcards", FLASHCARD_SET_KEY));
 

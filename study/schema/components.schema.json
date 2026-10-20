@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Content component registry",
-  "description": "Every reusable content component (a question tier, a flashcard deck, a concept set, the labs catalog). Exams pin components by id + version range; one copy of each component lives on disk.",
+  "description": "Every shared content-pool component (a question tier, a flashcard deck, a concept set, the labs catalog). Exams pin components by id + version range and pick items through their map.json; one copy of each component lives on disk.",
   "type": "object",
   "additionalProperties": false,
   "required": ["components"],
@@ -12,17 +12,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "kind", "version", "file", "task_scheme"],
+        "required": ["id", "kind", "version", "file"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
           "kind": { "enum": ["questions", "flashcards", "concepts", "labs"] },
           "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-          "file": { "type": "string", "pattern": "^[a-z0-9-]+\\.json$" },
-          "task_scheme": {
-            "description": "Slug of the exam whose task-statement IDs this component's items are tagged with; null for untagged components (labs).",
-            "type": ["string", "null"],
-            "pattern": "^[a-z0-9]+$"
-          }
+          "file": { "type": "string", "pattern": "^[a-z0-9-]+\\.json$" }
         }
       }
     }

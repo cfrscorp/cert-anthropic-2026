@@ -1,18 +1,22 @@
 """Deterministic, offline validation of the study content.
 
-Content is organized as reusable, versioned *components* (study/content/, listed
-in components.json) that *exams* (study/exams/<slug>/exam.json, listed in
-study/exams/index.json) pin per section. Every file is validated against its
-JSON Schema, then cross-checked:
+Content is one exam-neutral *pool* of reusable, versioned *components*
+(study/content/, listed in components.json). *Exams* (study/exams/<slug>/
+exam.json, listed in study/exams/index.json) pin components per section, and
+each exam's map.json picks the pool items it uses and assigns each to one of
+its task statements. Every file is validated against its JSON Schema, then
+cross-checked:
 
 - component integrity (valid answer keys, complete distractor rationales,
-  exam-prefixed globally-unique IDs, real task statements in the component's
-  task_scheme, resolvable lab links) — independent of which exams use them;
-- exam integrity (weights, task statements, guide, lab links) and pin
-  integrity (pinned component exists, is the right kind, satisfies the pin's
-  version range) — parametrized over every exam in the index;
-- coverage per exam (per-task question target, tier minimums, one concept per
-  task statement).
+  neutral globally-unique IDs, resolvable lab links) — independent of which
+  exams use them;
+- exam integrity (weights, task statements, guide, lab links), pin integrity
+  (pinned component exists, is the right kind, satisfies the pin's version
+  range), and map integrity (every mapped item exists in a component the exam
+  pins, every task is real) — parametrized over every exam in the index;
+- coverage per exam, computed through its map (per-task question target, tier
+  minimums, one concept per task statement);
+- the BL-050 ID-migration file stays well-formed.
 
 Mirrors the labs' philosophy: the content cannot silently break the web app.
 """
@@ -40,12 +44,24 @@ KIND_SCHEMA = {
     "concepts": "concepts.schema.json",
     "labs": "labs.schema.json",
 }
-# Item-ID infix per task-tagged kind: <task_scheme>-<infix>-<task>[-NNN].
-ID_INFIX = {"questions": "q", "flashcards": "fc", "concepts": "concept"}
+# Neutral pool-item IDs per mapped kind (also the map.json sections).
+ID_PATTERN = {"questions": r"q-[0-9]{4,}", "flashcards": r"fc-[0-9]{4,}", "concepts": r"concept-[0-9]{4,}"}
+MAPPED_KINDS = list(ID_PATTERN)
+POOL_ID_MIGRATION = STUDY_ROOT / "migrations" / "pool-ids-2026-10.json"
+
+
+def _no_duplicate_keys(pairs):
+    keys = [k for k, _ in pairs]
+    dupes = sorted({k for k in keys if keys.count(k) > 1})
+    if dupes:
+        raise ValueError(f"duplicate keys: {dupes}")
+    return dict(pairs)
 
 
 def _load(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+    # Duplicate object keys are an error, not last-one-wins: in a map.json a
+    # duplicate would silently drop one of an item's task assignments.
+    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_no_duplicate_keys)
 
 
 APP = _load(STUDY_ROOT / "app.json")
@@ -55,6 +71,7 @@ ITEMS = {cid: _load(CONTENT / c["file"]) for cid, c in COMPONENTS.items() if (CO
 EXAM_INDEX = _load(EXAMS_DIR / "index.json")
 EXAM_SLUGS = EXAM_INDEX["exams"]
 EXAMS = {slug: _load(EXAMS_DIR / slug / "exam.json") for slug in EXAM_SLUGS}
+MAPS = {slug: _load(EXAMS_DIR / slug / "map.json") for slug in EXAM_SLUGS}
 
 
 def _of_kind(kind: str) -> list[str]:
@@ -65,16 +82,18 @@ def _task_ids(slug: str) -> set[str]:
     return {ts["id"] for ts in EXAMS[slug]["task_statements"]}
 
 
-def _task_domain(slug: str) -> dict[str, int]:
-    return {ts["id"]: ts["domain"] for ts in EXAMS[slug]["task_statements"]}
-
-
 def _pinned(slug: str, section: str) -> list[str]:
     return [pin["component"] for pin in EXAMS[slug]["sections"][section]]
 
 
 def _all_questions() -> list[dict]:
     return [q for cid in _of_kind("questions") for q in ITEMS[cid]]
+
+
+def _mapped_in(slug: str, cid: str) -> list[tuple[dict, str]]:
+    """(item, task) for each item of component `cid` that exam `slug` maps."""
+    mapping = MAPS[slug][COMPONENTS[cid]["kind"]]
+    return [(item, mapping[item["id"]]) for item in ITEMS[cid] if item["id"] in mapping]
 
 
 def satisfies(version: str, spec: str) -> bool:
@@ -111,6 +130,11 @@ def test_manifest_matches_schema(path, schema_file):
 @pytest.mark.parametrize("slug", EXAM_SLUGS)
 def test_exam_matches_schema(slug):
     jsonschema.validate(instance=EXAMS[slug], schema=_load(SCHEMA / "exam.schema.json"))
+
+
+@pytest.mark.parametrize("slug", EXAM_SLUGS)
+def test_exam_map_matches_schema(slug):
+    jsonschema.validate(instance=MAPS[slug], schema=_load(SCHEMA / "exam-map.schema.json"))
 
 
 @pytest.mark.parametrize("cid", list(COMPONENTS))
@@ -151,35 +175,23 @@ def test_every_content_file_is_registered():
     assert on_disk == listed, f"components.json out of sync with study/content/ — on disk {on_disk}, listed {listed}"
 
 
-def test_component_task_schemes_are_real_exams():
-    for cid, c in COMPONENTS.items():
-        if c["kind"] == "labs":
-            assert c["task_scheme"] is None, f"{cid}: labs components are not task-tagged"
-        else:
-            assert c["task_scheme"] in EXAMS, f"{cid}: task_scheme {c['task_scheme']!r} is not an exam in exams/index.json"
-
-
 # --------------------------------------------------------------------------- #
-# Component items — IDs carry the task_scheme prefix and are globally unique   #
-# per kind (progress history is keyed by item id, across every component);    #
-# task tags are real task statements of the component's task_scheme exam.    #
+# Pool items — neutral IDs, globally unique per kind (progress history is     #
+# keyed by item id, across every component); lab links resolve.               #
 # --------------------------------------------------------------------------- #
-@pytest.mark.parametrize("kind", list(ID_INFIX))
+@pytest.mark.parametrize("kind", MAPPED_KINDS)
 def test_item_ids_globally_unique_per_kind(kind):
     ids = [item["id"] for cid in _of_kind(kind) for item in ITEMS[cid]]
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     assert not dupes, f"duplicate {kind} ids across components: {dupes}"
 
 
-@pytest.mark.parametrize("cid", [cid for cid, c in COMPONENTS.items() if c["kind"] in ID_INFIX])
-def test_item_ids_prefixed_and_tasks_real(cid):
-    comp = COMPONENTS[cid]
-    scheme, infix = comp["task_scheme"], ID_INFIX[comp["kind"]]
-    tasks, task_domain = _task_ids(scheme), _task_domain(scheme)
+@pytest.mark.parametrize("cid", [cid for cid, c in COMPONENTS.items() if c["kind"] in ID_PATTERN])
+def test_item_ids_neutral_and_labs_resolve(cid):
+    pattern = ID_PATTERN[COMPONENTS[cid]["kind"]]
     for item in ITEMS[cid]:
-        assert item["id"].startswith(f"{scheme}-{infix}-{item['task_statement']}"), f"{cid}: {item['id']}"
-        assert item["task_statement"] in tasks, f"{cid}: {item['id']} → unknown task {item['task_statement']}"
-        assert item["domain"] == task_domain[item["task_statement"]], f"{cid}: {item['id']} domain mismatch"
+        assert re.fullmatch(pattern, item["id"]), f"{cid}: {item['id']} isn't a neutral pool id"
+        assert "domain" not in item and "task_statement" not in item, f"{cid}: {item['id']} carries exam tags"
         if item.get("lab"):
             assert (LABS_ROOT / item["lab"]).is_dir(), f"{cid}: {item['id']} → missing lab {item['lab']}"
 
@@ -266,17 +278,40 @@ def test_exam_pins_resolve(slug):
 
 
 @pytest.mark.parametrize("slug", EXAM_SLUGS)
-def test_exam_pins_use_own_task_scheme(slug):
-    # Reusing another exam's component needs a task mapping
-    # (study/exams/<slug>/mappings/<component>.json), designed in BL-048.
-    # Until then, a foreign-scheme pin would silently mis-tag readiness.
-    for section, pins in EXAMS[slug]["sections"].items():
-        for pin in pins:
-            scheme = COMPONENTS[pin["component"]]["task_scheme"]
-            assert scheme in (slug, None), (
-                f"{slug}.{section}: {pin['component']} is tagged with {scheme!r} task IDs; "
-                "cross-exam task mappings aren't supported yet (BL-048)"
-            )
+def test_exam_map_entries_resolve(slug):
+    # Every mapped item exists in a component the exam pins for that kind, and
+    # counts toward a real task statement. This is also what makes deleting an
+    # item an exam still uses fail loudly.
+    tasks = _task_ids(slug)
+    for kind in MAPPED_KINDS:
+        pinned_ids = {item["id"] for cid in _pinned(slug, kind) for item in ITEMS[cid]}
+        for item_id, task in MAPS[slug][kind].items():
+            assert item_id in pinned_ids, f"{slug} map.{kind}: {item_id} isn't in any {kind} component {slug} pins"
+            assert task in tasks, f"{slug} map.{kind}: {item_id} → unknown task {task}"
+
+
+@pytest.mark.parametrize("slug", EXAM_SLUGS)
+def test_every_pinned_component_is_used(slug):
+    # A pin whose component contributes no mapped items is dead weight (and
+    # would show the user an empty set picker entry).
+    for kind in MAPPED_KINDS:
+        for cid in _pinned(slug, kind):
+            assert _mapped_in(slug, cid), f"{slug}: pins {cid} but maps none of its items"
+
+
+def test_pool_id_migration_file_is_well_formed():
+    # Historical (BL-050): old exam-prefixed IDs → neutral pool IDs. Targets
+    # aren't required to still exist (items may be retired later), but the map
+    # must stay one-to-one so no two old records collapse into one.
+    mig = _load(POOL_ID_MIGRATION)
+    old_patterns = {"questions": r"ccarf-q-[0-9]+\.[0-9]+-[0-9]{3}", "flashcards": r"ccarf-fc-[0-9]+\.[0-9]+-[0-9]{3}",
+                    "concepts": r"ccarf-concept-[0-9]+\.[0-9]+"}
+    for kind in MAPPED_KINDS:
+        pairs = mig[kind]
+        assert pairs and len(set(pairs.values())) == len(pairs), f"{kind}: migration map isn't one-to-one"
+        for old, new in pairs.items():
+            assert re.fullmatch(old_patterns[kind], old) and re.fullmatch(ID_PATTERN[kind], new), (old, new)
+    assert len(set(mig["components"].values())) == len(mig["components"])
 
 
 # --------------------------------------------------------------------------- #
@@ -284,7 +319,8 @@ def test_exam_pins_use_own_task_scheme(slug):
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("slug", EXAM_SLUGS)
 def test_each_question_tier_meets_minimum(slug):
-    shortfalls = {cid: len(ITEMS[cid]) for cid in _pinned(slug, "questions") if len(ITEMS[cid]) < MIN_QUESTIONS_PER_TIER}
+    counts = {cid: len(_mapped_in(slug, cid)) for cid in _pinned(slug, "questions")}
+    shortfalls = {cid: n for cid, n in counts.items() if n < MIN_QUESTIONS_PER_TIER}
     assert not shortfalls, f"{slug}: tiers below the {MIN_QUESTIONS_PER_TIER}-question minimum: {shortfalls}"
 
 
@@ -296,8 +332,8 @@ def test_question_coverage_meets_target(slug):
     config = EXAMS[slug]["config"]
     assert config["coverage_component"] in _pinned(slug, "questions"), f"{slug}: coverage_component isn't pinned"
     counts = {tid: 0 for tid in _task_ids(slug)}
-    for q in ITEMS[config["coverage_component"]]:
-        counts[q["task_statement"]] += 1
+    for _, task in _mapped_in(slug, config["coverage_component"]):
+        counts[task] += 1
     target = config["questions_per_task_target"]
     shortfalls = {tid: n for tid, n in counts.items() if n < target}
     assert not shortfalls, f"{slug}: task statements below target {target}: {shortfalls}"
@@ -305,7 +341,7 @@ def test_question_coverage_meets_target(slug):
 
 @pytest.mark.parametrize("slug", EXAM_SLUGS)
 def test_exactly_one_concept_per_task_statement(slug):
-    seen = [c["task_statement"] for cid in _pinned(slug, "concepts") for c in ITEMS[cid]]
+    seen = [task for cid in _pinned(slug, "concepts") for _, task in _mapped_in(slug, cid)]
     assert len(seen) == len(set(seen)), f"{slug}: more than one concept per task statement"
     missing = _task_ids(slug) - set(seen)
     assert not missing, f"{slug}: missing concept explainers for: {sorted(missing)}"

@@ -1,15 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Flashcard component",
+  "title": "Flashcard pool component",
+  "description": "Exam-neutral pool items: no domain/task tags — each exam's map.json assigns the items it uses to its own task statements.",
   "type": "array",
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["id", "domain", "task_statement", "front", "back"],
+    "required": ["id", "front", "back"],
     "properties": {
-      "id": { "type": "string", "pattern": "^[a-z0-9]+-fc-[0-9]+\\.[0-9]+-[0-9]{3}$" },
-      "domain": { "type": "integer", "minimum": 1 },
-      "task_statement": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+      "id": { "description": "Opaque, stable pool ID; the task it counts toward is per exam (exams/<slug>/map.json).", "type": "string", "pattern": "^fc-[0-9]{4,}$" },
       "front": { "type": "string", "minLength": 1 },
       "back": { "type": "string", "minLength": 1 },
       "tags": { "type": "array", "items": { "type": "string" } }

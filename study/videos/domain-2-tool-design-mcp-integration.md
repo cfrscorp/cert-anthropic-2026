@@ -1,6 +1,6 @@
 # D2 · Tool Design & MCP Integration — Video Resources
 
-Videos that explain or demonstrate the [Concept Explainers](../content/ccarf-concepts.json) for
+Videos that explain or demonstrate the [Concept Explainers](../content/concepts.json) for
 Domain 2. See [`README.md`](README.md) for scope and how these were sourced.
 
 ### 2.1 Tool descriptions as the primary tool-selection mechanism

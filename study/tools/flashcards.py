@@ -7,7 +7,8 @@
 
 By default it reviews a flashcard set pinned by an exam (--exam, --set), or
 reads explicit JSON files matching study/schema/flashcards.schema.json
-(front, back, domain, task_statement, tags), runs an interactive self-graded
+(front, back, tags; pool cards get their domain/task from the exam's
+map.json, while a personal file may carry its own domain + task_statement), runs an interactive self-graded
 review session in the terminal ("Got it" / "Missed it"), and tracks personal
 recall results across sessions in a small local JSON history file so you can
 see progress over time and re-drill whatever you've missed.
@@ -26,7 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # exam_manifest.py lives alongside this script (shared with quiz.py).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -35,7 +36,7 @@ import exam_manifest as em  # noqa: E402
 # Deliberately a *separate* history file from quiz.py's — self-graded recall
 # isn't exam-question mastery. -> .working/flashcards_history_<exam>.json
 HISTORY_KIND = "flashcards"
-HISTORY_SCHEMA_VERSION = 1
+HISTORY_SCHEMA_VERSION = em.HISTORY_VERSION  # 2: records keyed by pool IDs (BL-050)
 EXAM_CODE = ""  # set by resolve_exam(); shown in the banner
 
 
@@ -122,9 +123,11 @@ class Flashcard:
     tags: list = field(default_factory=list)
 
 
-def load_flashcards(paths):
+def load_flashcards(paths, item_tasks=None):
     """Load and merge one or more flashcards.json-schema files, tagging each
-    card with the basename of the file it came from."""
+    card with the basename of the file it came from. Pool items take their
+    domain/task from the exam's map (`item_tasks`, from em.item_tasks); ones the
+    map doesn't list aren't part of the exam and are skipped."""
     cards = []
     seen_ids = {}
     for path in paths:
@@ -136,10 +139,13 @@ def load_flashcards(paths):
             raise SystemExit(f"error: {path} does not contain a JSON array of flashcards")
         for item in raw:
             try:
+                tags = em.exam_tags(item, item_tasks)
+                if tags is None:
+                    continue
                 card = Flashcard(
                     id=item["id"],
-                    domain=item["domain"],
-                    task_statement=item["task_statement"],
+                    domain=tags[0],
+                    task_statement=tags[1],
                     front=item["front"],
                     back=item["back"],
                     source=path.name,
@@ -531,7 +537,7 @@ def main(argv=None):
     if missing:
         parser.error(f"file(s) not found: {', '.join(str(p) for p in missing)}")
 
-    cards = load_flashcards(args.files)
+    cards = load_flashcards(args.files, args.item_tasks)
     if not cards:
         raise SystemExit("error: no flashcards loaded from the given file(s)")
 

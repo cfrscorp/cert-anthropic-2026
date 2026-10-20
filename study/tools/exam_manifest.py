@@ -3,11 +3,13 @@
 A library module (imported by quiz.py and flashcards.py, and through them by
 the TUI variants) — not a runnable script. It reads the same manifests as the
 Web UI: study/exams/index.json (exam slugs, first = default),
-study/exams/<slug>/exam.json (the components each section pins), and
-study/content/components.json (component id -> file).
+study/exams/<slug>/exam.json (the components each section pins),
+study/exams/<slug>/map.json (which pool items the exam uses, and the task each
+counts toward), and study/content/components.json (component id -> file).
 
-It also owns per-exam history paths and the one-time migration of the
-single-exam (pre-BL-046) history files into them.
+It also owns per-exam history paths and the one-time history migrations: the
+single-exam (pre-BL-046) files into per-exam ones, and exam-prefixed item IDs
+to neutral pool IDs (BL-050).
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ from pathlib import Path
 STUDY = Path(__file__).resolve().parents[1]
 CONTENT = STUDY / "content"
 EXAMS_DIR = STUDY / "exams"
+POOL_ID_MIGRATION = STUDY / "migrations" / "pool-ids-2026-10.json"
 # Personal progress is scratch state, not project content, so it lives in the
 # repo's gitignored .working/ directory rather than next to the tracked tools.
 WORKING = STUDY.parent / ".working"
@@ -77,6 +80,23 @@ def select_set_files(exam: dict, section: str, wanted: list[str] | None) -> list
     return chosen
 
 
+def item_tasks(exam: dict, section: str) -> dict[str, tuple[int, str]]:
+    """The exam's map for one section: pool item id -> (domain, task). Pool
+    items carry no exam tags; items the map doesn't list aren't in the exam."""
+    mapping = _load(EXAMS_DIR / exam["slug"] / "map.json")[section]
+    domain_of = {ts["id"]: ts["domain"] for ts in exam["task_statements"]}
+    return {item_id: (domain_of[task], task) for item_id, task in mapping.items()}
+
+
+def exam_tags(item: dict, item_tasks: dict | None) -> tuple[int, str] | None:
+    """(domain, task) for a loaded item: its own tags if it has them (personal
+    question/flashcard files may), else the exam map's; None if the item is a
+    pool item this exam doesn't use."""
+    if "task_statement" in item:
+        return item["domain"], item["task_statement"]
+    return (item_tasks or {}).get(item["id"])
+
+
 def describe_sets(exam: dict, section: str) -> str:
     return ", ".join(s["label"].lower() for s in section_sets(exam, section))
 
@@ -105,7 +125,8 @@ def add_exam_arguments(parser, section: str, noun: str) -> None:
 
 def resolve_exam(parser, args, *, kind: str, section: str, records_key: str, c, Color) -> dict:
     """Apply --exam: per-exam default history (migrating the legacy single-exam
-    file on first use) and, unless files were given, the --set files."""
+    file on first use, then any pre-pool history to pool IDs), the exam's item
+    map (args.item_tasks), and, unless files were given, the --set files."""
     exam = load_exam(args.exam)
     if args.files and args.sets:
         parser.error(f"give {section} files or --set, not both")
@@ -115,6 +136,11 @@ def resolve_exam(parser, args, *, kind: str, section: str, records_key: str, c, 
             notice = migrate_legacy_history(kind, records_key, exam["slug"], args.history)
             if notice:
                 print(c(f"note: {notice}", Color.DIM), file=sys.stderr)
+    if not args.reset_history:
+        notice = migrate_pool_ids(args.history, records_key, section)
+        if notice:
+            print(c(f"note: {notice}", Color.DIM), file=sys.stderr)
+    args.item_tasks = item_tasks(exam, section)
     if not args.files and not args.reset_history:
         args.files = select_set_files(exam, section, args.sets)
     return exam
@@ -135,12 +161,16 @@ def reset_history(args, exam: dict, *, kind: str, records_key: str, c, Color) ->
             return 0
     if keep_empty:
         args.history.parent.mkdir(parents=True, exist_ok=True)
-        args.history.write_text(json.dumps({"version": 1, records_key: {}, "sessions": []}, indent=2) + "\n", encoding="utf-8")
+        args.history.write_text(json.dumps({"version": HISTORY_VERSION, records_key: {}, "sessions": []}, indent=2) + "\n", encoding="utf-8")
         print(c(f"Cleared {args.history} (kept as an empty file so the legacy history isn't re-imported).", Color.GREEN))
     else:
         args.history.unlink()
         print(c(f"Deleted {args.history}.", Color.GREEN))
     return 0
+
+
+# History files are version 2 once their records use pool IDs (BL-050).
+HISTORY_VERSION = 2
 
 
 def history_path(kind: str, slug: str) -> Path:
@@ -227,3 +257,50 @@ def migrate_legacy_history(kind: str, records_key: str, slug: str, path: Path) -
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(migrated, indent=2) + "\n", encoding="utf-8")
     return f"migrated {len(migrated[records_key])} record(s) from {legacy.name} → {path.name} (original left in place)"
+
+
+# --------------------------------------------------------------------------
+# One-time migration to pool IDs (BL-050)
+# --------------------------------------------------------------------------
+# Content moved into an exam-neutral pool: ccarf-q-1.1-001 became q-0001 and
+# ccarf-questions-standard.json became questions-standard.json (the committed
+# map is study/migrations/pool-ids-2026-10.json). Any version-1 history file a
+# tool opens — the per-exam default or an explicit --history — is re-keyed in
+# place once: mapped IDs and file names are renamed (records landing on the
+# same new ID are merged), anything unmapped (e.g. a personal question file's
+# own IDs) is kept as-is, and the original is backed up beside it as
+# <name>.v1.json.
+
+def migrate_pool_ids(path: Path, records_key: str, section: str) -> str | None:
+    """Re-key a version-1 history file to pool IDs. Returns a one-line notice
+    when it did, else None."""
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None  # the tool's own loader warns about it
+    if not isinstance(data, dict) or data.get("version", 1) >= HISTORY_VERSION:
+        return None
+    migration = _load(POOL_ID_MIGRATION)
+    ids = migration[section]
+    files = {f"{old}.json": f"{new}.json" for old, new in migration["components"].items()}
+    records: dict[str, dict] = {}
+    for item_id, entry in data.get(records_key, {}).items():
+        entry = dict(entry)
+        if entry.get("source") in files:
+            entry["source"] = files[entry["source"]]
+        new_id = ids.get(item_id, item_id)
+        records[new_id] = _merge(records.get(new_id), entry)
+    sessions = []
+    for session in data.get("sessions", []):
+        session = dict(session)
+        session["source_files"] = [files.get(f, f) for f in session.get("source_files", [])]
+        sessions.append(session)
+    backup = path.with_name(f"{path.stem}.v1{path.suffix}")
+    if not backup.exists():
+        shutil.copyfile(path, backup)
+    renamed = sum(1 for item_id in data.get(records_key, {}) if item_id in ids)
+    path.write_text(json.dumps({**data, "version": HISTORY_VERSION, records_key: records, "sessions": sessions}, indent=2) + "\n",
+                    encoding="utf-8")
+    return f"re-keyed {renamed} record(s) in {path.name} to pool IDs (original kept as {backup.name})"

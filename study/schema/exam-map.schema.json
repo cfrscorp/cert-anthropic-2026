@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Exam item map",
+  "description": "exams/<slug>/map.json: every pool item the exam uses, per kind, and the exam task statement it counts toward. Items not listed aren't part of the exam. The single source of truth for loading and for the dependency report (tools/content_map.py).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "questions",
+    "flashcards",
+    "concepts"
+  ],
+  "properties": {
+    "questions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^q-[0-9]{4,}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9]+\\.[0-9]+$"
+      }
+    },
+    "flashcards": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^fc-[0-9]{4,}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9]+\\.[0-9]+$"
+      }
+    },
+    "concepts": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^concept-[0-9]{4,}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9]+\\.[0-9]+$"
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@
   "guide": "anthropic-ccarf-exam-guide-2026-07.md",
   "config": {
     "questions_per_task_target": 8,
-    "coverage_component": "ccarf-questions-standard",
+    "coverage_component": "questions-standard",
     "pass_threshold": 72
   },
   "domains": [
@@ -297,31 +297,31 @@
   "sections": {
     "questions": [
       {
-        "component": "ccarf-questions-standard",
+        "component": "questions-standard",
         "version": "^1.0",
         "label": "Standard"
       },
       {
-        "component": "ccarf-questions-intermediate",
+        "component": "questions-intermediate",
         "version": "^1.0",
         "label": "Intermediate"
       },
       {
-        "component": "ccarf-questions-hard",
+        "component": "questions-hard",
         "version": "^1.0",
         "label": "Hard"
       }
     ],
     "flashcards": [
       {
-        "component": "ccarf-flashcards",
+        "component": "flashcards",
         "version": "^1.0",
         "label": "Standard"
       }
     ],
     "concepts": [
       {
-        "component": "ccarf-concepts",
+        "component": "concepts",
         "version": "^1.0"
       }
     ],

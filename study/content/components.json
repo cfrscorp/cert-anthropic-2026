@@ -1,46 +1,40 @@
 {
   "components": [
     {
-      "id": "ccarf-questions-standard",
+      "id": "questions-standard",
       "kind": "questions",
       "version": "1.0.0",
-      "file": "ccarf-questions-standard.json",
-      "task_scheme": "ccarf"
+      "file": "questions-standard.json"
     },
     {
-      "id": "ccarf-questions-intermediate",
+      "id": "questions-intermediate",
       "kind": "questions",
       "version": "1.0.0",
-      "file": "ccarf-questions-intermediate.json",
-      "task_scheme": "ccarf"
+      "file": "questions-intermediate.json"
     },
     {
-      "id": "ccarf-questions-hard",
+      "id": "questions-hard",
       "kind": "questions",
       "version": "1.0.0",
-      "file": "ccarf-questions-hard.json",
-      "task_scheme": "ccarf"
+      "file": "questions-hard.json"
     },
     {
-      "id": "ccarf-flashcards",
+      "id": "flashcards",
       "kind": "flashcards",
       "version": "1.0.0",
-      "file": "ccarf-flashcards.json",
-      "task_scheme": "ccarf"
+      "file": "flashcards.json"
     },
     {
-      "id": "ccarf-concepts",
+      "id": "concepts",
       "kind": "concepts",
       "version": "1.0.0",
-      "file": "ccarf-concepts.json",
-      "task_scheme": "ccarf"
+      "file": "concepts.json"
     },
     {
       "id": "labs",
       "kind": "labs",
       "version": "1.0.0",
-      "file": "labs.json",
-      "task_scheme": null
+      "file": "labs.json"
     }
   ]
 }

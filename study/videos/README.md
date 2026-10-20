@@ -1,6 +1,6 @@
 # CCAR-F Video Resources
 
-Supplementary video links for the 30 [Concept Explainers](../content/ccarf-concepts.json) in the
+Supplementary video links for the 30 [Concept Explainers](../content/concepts.json) in the
 study app — one Markdown file per exam domain, each with 1–3 videos per task statement
 (1.1–5.6) that explain or demonstrate the concept.
 

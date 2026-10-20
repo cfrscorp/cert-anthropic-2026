@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import quiz as core  # noqa: E402
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 # --------------------------------------------------------------------------
@@ -380,7 +380,7 @@ def main(argv=None):
     if missing:
         parser.error(f"file(s) not found: {', '.join(str(p) for p in missing)}")
 
-    questions = core.load_questions(args.files)
+    questions = core.load_questions(args.files, args.item_tasks)
     if not questions:
         raise SystemExit("error: no questions loaded from the given file(s)")
 

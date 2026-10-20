@@ -27,7 +27,7 @@ import threading
 import webbrowser
 from pathlib import Path
 
-__version__ = "2.1.0"
+__version__ = "3.0.0"
 
 STUDY_ROOT = Path(__file__).resolve().parent
 
@@ -85,11 +85,18 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+class _Server(http.server.ThreadingHTTPServer):
+    # The stdlib's listen backlog is 5, but the app's boot fires ~10 parallel
+    # fetches; on macOS an overflowing backlog resets connections, which showed
+    # up as an occasional "Could not load study data" (ERR_CONNECTION_RESET).
+    request_queue_size = 128
+
+
 def _serve(host: str, port: int, handler) -> http.server.ThreadingHTTPServer:
     # ThreadingHTTPServer sets allow_reuse_address=True, so it binds cleanly even
     # when the port is briefly in TIME_WAIT from a previous run. We bind the real
     # server directly (no throwaway probe socket, which would be more pessimistic).
-    return http.server.ThreadingHTTPServer((host, port), handler)
+    return _Server((host, port), handler)
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -1,15 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Concept-explainer component",
+  "title": "Concept-explainer pool component",
+  "description": "Exam-neutral pool items: no domain/task tags — each exam's map.json assigns the items it uses to its own task statements.",
   "type": "array",
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["id", "task_statement", "domain", "title", "concept", "why_it_matters", "common_trap"],
+    "required": ["id", "title", "concept", "why_it_matters", "common_trap"],
     "properties": {
-      "id": { "type": "string", "pattern": "^[a-z0-9]+-concept-[0-9]+\\.[0-9]+$" },
-      "task_statement": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
-      "domain": { "type": "integer", "minimum": 1 },
+      "id": { "description": "Opaque, stable pool ID; the task it counts toward is per exam (exams/<slug>/map.json).", "type": "string", "pattern": "^concept-[0-9]{4,}$" },
       "title": { "type": "string", "minLength": 1 },
       "concept": { "type": "string", "minLength": 1 },
       "why_it_matters": { "type": "string", "minLength": 1 },

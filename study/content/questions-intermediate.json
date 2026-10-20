@@ -1,8 +1,6 @@
 [
   {
-    "id": "ccarf-q-1.1-009",
-    "domain": 1,
-    "task_statement": "1.1",
+    "id": "q-0241",
     "scenario": "An engineer wants a supervisory script that flags any completed session whose last recorded response has a stop_reason other than a clean finish, so a human can review incomplete or truncated runs.",
     "stem": "Which stop_reason values should the script treat as needing review rather than a clean completion?",
     "options": [
@@ -41,9 +39,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.1-010",
-    "domain": 1,
-    "task_statement": "1.1",
+    "id": "q-0242",
     "scenario": "Your loop's next request must include the assistant's prior response. That prior response contained both an explanatory text block ('Let me check the current inventory level.') and a `tool_use` block requesting `check_inventory`.",
     "stem": "How should the assistant turn be constructed in the next request's message history?",
     "options": [
@@ -82,9 +78,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.1-011",
-    "domain": 1,
-    "task_statement": "1.1",
+    "id": "q-0243",
     "scenario": "A developer new to the Claude API writes a loop that checks `response.tool_calls` to decide whether to execute tools, based on patterns they've used with other providers' APIs.",
     "stem": "What is wrong with this check?",
     "options": [
@@ -123,9 +117,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.1-012",
-    "domain": 1,
-    "task_statement": "1.1",
+    "id": "q-0244",
     "scenario": "Your loop's stop-condition check only branches on two values: continue on `\"tool_use\"`, return the response on `\"end_turn\"`. In production, a request occasionally comes back with `stop_reason: \"stop_sequence\"` because a custom stop sequence you configured was matched, and your loop currently falls through with no matching branch and crashes.",
     "stem": "How should the loop handle `\"stop_sequence\"`?",
     "options": [
@@ -164,9 +156,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.2-009",
-    "domain": 1,
-    "task_statement": "1.2",
+    "id": "q-0245",
     "scenario": "A coordinator agent is supposed to delegate to search, document-analysis, synthesis, and report subagents, but it never delegates — it attempts every step itself.",
     "stem": "What is the most likely configuration problem?",
     "options": [
@@ -205,9 +195,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.2-010",
-    "domain": 1,
-    "task_statement": "1.2",
+    "id": "q-0246",
     "scenario": "A coordinator's iterative refinement loop has already run three re-delegation rounds on a market-research report, and each round still finds a subtopic that could be slightly deeper.",
     "stem": "What should determine when the coordinator stops iterating rather than continuing indefinitely?",
     "options": [
@@ -246,9 +234,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.2-011",
-    "domain": 1,
-    "task_statement": "1.2",
+    "id": "q-0247",
     "scenario": "A coordinator's system prompt is 3,000 words long, containing detailed domain knowledge about tax law, refund policy edge cases, and product specifications — the same material already duplicated across each subagent's own system prompt.",
     "stem": "What is the most maintainable way to organize this?",
     "options": [
@@ -287,9 +273,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.2-012",
-    "domain": 1,
-    "task_statement": "1.2",
+    "id": "q-0248",
     "scenario": "For a straightforward task — 'summarize this quarter's three sales reports' — a coordinator spawns nine subagents: one per report per aspect (revenue, trends, outliers), reasoning that finer-grained subagents will each produce cleaner output.",
     "stem": "What is the problem with this approach?",
     "options": [
@@ -328,9 +312,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.3-009",
-    "domain": 1,
-    "task_statement": "1.3",
+    "id": "q-0249",
     "scenario": "Your system has three registered subagent types: `web-researcher` (broad web search), `document-analyzer` (structured extraction from provided documents), and `fact-checker` (narrow, single-claim verification). The coordinator receives a request to verify one specific statistic against an already-provided report.",
     "stem": "Which subagent type should the coordinator invoke, and why?",
     "options": [
@@ -369,9 +351,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.3-010",
-    "domain": 1,
-    "task_statement": "1.3",
+    "id": "q-0250",
     "scenario": "A coordinator needs a synthesis subagent to combine findings, but synthesis can only meaningfully begin once the search and document-analysis subagents have both completed their work on the same topic.",
     "stem": "How should the coordinator sequence these three subagent invocations?",
     "options": [
@@ -410,9 +390,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.3-011",
-    "domain": 1,
-    "task_statement": "1.3",
+    "id": "q-0251",
     "scenario": "You need to analyze five different vendor contracts for the same three risk factors. A single `contract-analyzer` subagent type is registered.",
     "stem": "How should the coordinator use this one subagent type to analyze all five contracts?",
     "options": [
@@ -451,9 +429,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.3-012",
-    "domain": 1,
-    "task_statement": "1.3",
+    "id": "q-0252",
     "scenario": "A coordinator spawns three parallel `document-analyzer` subagents, one per report, each with a prompt describing only what to look for. Each returns findings in its own ad hoc structure — one as prose paragraphs, one as a bulleted list, one as a table — and the synthesis subagent that consumes all three struggles to combine them consistently.",
     "stem": "What should be added to each subagent's invocation to fix this?",
     "options": [
@@ -492,9 +468,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.4-009",
-    "domain": 1,
-    "task_statement": "1.4",
+    "id": "q-0253",
     "scenario": "A support agent's prerequisite gate blocks process_refund until get_customer returns a verified ID. The team is now adding a new process_exchange tool that has the same identity-verification requirement.",
     "stem": "What is the most maintainable way to extend the enforcement to the new tool?",
     "options": [
@@ -533,9 +507,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.4-010",
-    "domain": 1,
-    "task_statement": "1.4",
+    "id": "q-0254",
     "scenario": "Refund approval thresholds differ by customer tier: standard customers need approval above $500, while premium customers are approved automatically up to $2,000.",
     "stem": "How should this tiered threshold be enforced?",
     "options": [
@@ -574,9 +546,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.4-011",
-    "domain": 1,
-    "task_statement": "1.4",
+    "id": "q-0255",
     "scenario": "A support agent escalates and hands off a summary containing the customer ID, root cause, and refund amount, but no recommended action.",
     "stem": "What is the most likely consequence of omitting the recommended action, and what should be added?",
     "options": [
@@ -615,9 +585,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.4-012",
-    "domain": 1,
-    "task_statement": "1.4",
+    "id": "q-0256",
     "scenario": "A hook blocks a $1,200 refund (over the $500 auto-approval limit) and redirects the case to human escalation. The escalation queue currently just receives the generic message: 'Action blocked: refund exceeds policy limit.'",
     "stem": "What is missing from this redirect?",
     "options": [
@@ -656,9 +624,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.5-009",
-    "domain": 1,
-    "task_statement": "1.5",
+    "id": "q-0257",
     "scenario": "A `process_refund` tool call is missing the `currency` parameter, which the model consistently omits even though your account only ever processes refunds in USD. Manually re-prompting the model each time to include it is unreliable.",
     "stem": "What is the most robust fix?",
     "options": [
@@ -697,9 +663,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.5-010",
-    "domain": 1,
-    "task_statement": "1.5",
+    "id": "q-0258",
     "scenario": "Company policy limits each customer to 2 refunds per rolling 24-hour period, regardless of amount. A single call's arguments never reveal how many refunds that customer has already received today.",
     "stem": "What must the enforcement hook do differently from a simple per-call limit check?",
     "options": [
@@ -738,9 +702,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.5-011",
-    "domain": 1,
-    "task_statement": "1.5",
+    "id": "q-0259",
     "scenario": "Two PreToolUse hooks are both registered for `process_refund`: one verifies the customer's identity has been confirmed, and one checks the refund amount against the $500 limit. A refund with an unverified identity AND an amount of $800 comes through.",
     "stem": "What is the correct behavior?",
     "options": [
@@ -779,9 +741,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.5-012",
-    "domain": 1,
-    "task_statement": "1.5",
+    "id": "q-0260",
     "scenario": "A PreToolUse hook intended to redact PII from `lookup_order` results was registered globally (for all tools) instead of scoped to just `lookup_order`. It now also fires on unrelated tools like `get_shipping_rates`, adding latency and occasionally stripping legitimate numeric fields it mistakes for PII.",
     "stem": "What is the correct fix?",
     "options": [
@@ -820,9 +780,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.6-009",
-    "domain": 1,
-    "task_statement": "1.6",
+    "id": "q-0261",
     "scenario": "A single customer message to the support agent contains three distinct issues: a refund request, a wrong shipping address, and a coupon that failed to apply.",
     "stem": "What is the best way to handle it?",
     "options": [
@@ -860,9 +818,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.6-010",
-    "domain": 1,
-    "task_statement": "1.6",
+    "id": "q-0262",
     "scenario": "Researching ‘the state of renewable energy,’ every subagent in a research pipeline succeeds, yet the final reports cover only solar. The coordinator's logs show it decomposed the topic into ‘solar panel efficiency,’ ‘solar farm economics,’ and ‘residential solar,’ omitting wind, hydro, and geothermal.",
     "stem": "What is the root cause?",
     "options": [
@@ -900,9 +856,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.6-011",
-    "domain": 1,
-    "task_statement": "1.6",
+    "id": "q-0263",
     "scenario": "Midway through a fixed, pre-planned 5-step migration (steps decided upfront based on an initial audit), you discover the codebase has 3 additional call sites the original audit missed, in a module nobody expected to be affected.",
     "stem": "What should happen to the plan?",
     "options": [
@@ -941,9 +895,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.6-012",
-    "domain": 1,
-    "task_statement": "1.6",
+    "id": "q-0264",
     "scenario": "A reviewer decomposes a 200-file review into 200 separate single-file passes, reasoning that maximum granularity guarantees maximum consistency. Coordination overhead balloons, and the reviewer still misses several bugs that only become visible when comparing groups of 4-5 related files that interact tightly (e.g., a model class and its four call sites).",
     "stem": "What is the actual problem with this decomposition?",
     "options": [
@@ -982,9 +934,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.7-009",
-    "domain": 1,
-    "task_statement": "1.7",
+    "id": "q-0265",
     "scenario": "A developer investigated a large codebase in a named session, then made substantial code changes, so the file contents captured in that session's tool results are now stale.",
     "stem": "What is the most reliable way to continue the work?",
     "options": [
@@ -1023,9 +973,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.7-010",
-    "domain": 1,
-    "task_statement": "1.7",
+    "id": "q-0266",
     "scenario": "A session's accumulated context is still entirely valid and directly relevant — nothing is stale — but after three days of deep exploration it has grown so large that you're near the context window limit, and the next request risks truncating older, still-important findings.",
     "stem": "What is the best way to proceed?",
     "options": [
@@ -1064,9 +1012,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.7-011",
-    "domain": 1,
-    "task_statement": "1.7",
+    "id": "q-0267",
     "scenario": "A team of five engineers all resume Claude Code sessions by whatever name they happened to type when starting them ('test', 'fix', 'session2'), making it impossible for anyone to find or resume a teammate's prior investigation of a specific bug or feature.",
     "stem": "What convention would most directly fix this?",
     "options": [
@@ -1105,9 +1051,7 @@
     ]
   },
   {
-    "id": "ccarf-q-1.7-012",
-    "domain": 1,
-    "task_statement": "1.7",
+    "id": "q-0268",
     "scenario": "You have a session with a solid, validated understanding of a payment service's architecture. You're about to try a risky, exploratory refactor and want to preserve the validated baseline exactly as-is in case the exploration goes badly, while still building on top of everything already learned.",
     "stem": "What is the best way to proceed?",
     "options": [
@@ -1146,9 +1090,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.1-009",
-    "domain": 2,
-    "task_statement": "2.1",
+    "id": "q-0269",
     "scenario": "After enriching two similar tools' descriptions with formats, examples, and disambiguating guidance, the agent still occasionally calls the wrong one for genuinely ambiguous requests.",
     "stem": "What is the appropriate next step, given the first-step remedy (better descriptions) hasn't fully resolved it?",
     "options": [
@@ -1186,9 +1128,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.1-011",
-    "domain": 2,
-    "task_statement": "2.1",
+    "id": "q-0270",
     "scenario": "A coding agent keeps using the built-in Grep tool instead of a team's more capable MCP code-search tool.",
     "stem": "What is the best fix?",
     "options": [
@@ -1227,9 +1167,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.1-012",
-    "domain": 2,
-    "task_statement": "2.1",
+    "id": "q-0271",
     "scenario": "A `send_email` tool's description has grown to 400 words covering every edge case, historical context, and internal implementation detail the team has ever debated, in addition to its actual purpose and usage.",
     "stem": "What is the most likely effect on tool selection, and what should you do?",
     "options": [
@@ -1268,9 +1206,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.1-013",
-    "domain": 2,
-    "task_statement": "2.1",
+    "id": "q-0272",
     "scenario": "Your platform has five `get_*` tools (`get_user`, `get_order`, `get_invoice`, `get_shipment`, `get_refund`). Four follow the pattern \"Retrieves a <noun> by ID and returns <fields>\"; the fifth, `get_refund`, instead says \"Refund lookup utility.\"",
     "stem": "What is the most likely consequence of this inconsistency, and the best fix?",
     "options": [
@@ -1309,9 +1245,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.2-009",
-    "domain": 2,
-    "task_statement": "2.2",
+    "id": "q-0273",
     "scenario": "A `bulk_update_inventory` MCP tool processes a batch of 50 SKU updates in one call. 47 succeed; 3 fail because those SKUs don't exist in the catalog.",
     "stem": "How should the tool report this back to the calling agent?",
     "options": [
@@ -1350,9 +1284,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.2-010",
-    "domain": 2,
-    "task_statement": "2.2",
+    "id": "q-0274",
     "scenario": "A `send_notification` MCP tool starts returning failures once a client exceeds 100 calls per minute against the notification provider's API.",
     "stem": "How should this failure be categorized and communicated so the agent handles it well?",
     "options": [
@@ -1391,9 +1323,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.2-011",
-    "domain": 2,
-    "task_statement": "2.2",
+    "id": "q-0275",
     "scenario": "A `delete_repository` MCP tool fails because the calling user's token lacks the required admin scope. This is different from the tool being temporarily unreachable, and different from a business-rule rejection like 'repository has open PRs.'",
     "stem": "How should this failure be categorized, and what should the agent do with it?",
     "options": [
@@ -1432,9 +1362,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.2-012",
-    "domain": 2,
-    "task_statement": "2.2",
+    "id": "q-0276",
     "scenario": "A `charge_card` MCP tool sends a charge request, but the network connection drops before the response arrives. The tool cannot tell whether the charge actually completed on the payment provider's side before the connection failed.",
     "stem": "How should the tool respond, and what should the agent do?",
     "options": [
@@ -1473,9 +1401,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.3-009",
-    "domain": 2,
-    "task_statement": "2.3",
+    "id": "q-0277",
     "scenario": "An agent legitimately needs access to most of an 18-tool platform across different request types, but selection reliability suffers whenever all 18 are available at once.",
     "stem": "What design best preserves broad capability while restoring selection reliability?",
     "options": [
@@ -1514,9 +1440,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.3-010",
-    "domain": 2,
-    "task_statement": "2.3",
+    "id": "q-0278",
     "scenario": "For a specific diagnostic turn, you want the model to respond with a plain-text explanation only, guaranteed not to call any tool, even though several tools are configured and available.",
     "stem": "Which `tool_choice` setting achieves this?",
     "options": [
@@ -1555,9 +1479,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.3-011",
-    "domain": 2,
-    "task_statement": "2.3",
+    "id": "q-0279",
     "scenario": "A team forces `tool_choice: {\"type\": \"tool\", \"name\": \"extract_metadata\"}` on every single turn of a multi-turn coding-assistant conversation, reasoning that 'forcing a tool guarantees structured, reliable behavior.' Users now report the assistant tries to extract metadata even when they ask an unrelated question like 'explain this error message.'",
     "stem": "What is the mistake in this design, and what should change?",
     "options": [
@@ -1596,9 +1518,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.3-012",
-    "domain": 2,
-    "task_statement": "2.3",
+    "id": "q-0280",
     "scenario": "An agent with `search_flights` and `search_hotels` tools is asked to look up both flight and hotel options for a trip in one request. You want both searches to run together rather than one after the other, and today's behavior is inconsistent — sometimes parallel, sometimes sequential.",
     "stem": "What is the most direct way to make simultaneous tool calls the reliable default here?",
     "options": [
@@ -1637,9 +1557,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.4-009",
-    "domain": 2,
-    "task_statement": "2.4",
+    "id": "q-0281",
     "scenario": "You're designing an MCP server for a wiki. Some data is quasi-static reference material (the page index, category taxonomy) that rarely changes; other functionality requires the agent to actively search page content by keyword, or create and update pages.",
     "stem": "How should you split this between MCP resources and MCP tools?",
     "options": [
@@ -1677,9 +1595,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.4-010",
-    "domain": 2,
-    "task_statement": "2.4",
+    "id": "q-0282",
     "scenario": "A well-known community MCP server for your CRM hasn't been updated in two years, has several open security issues, and doesn't support your CRM's newer API version, which your team needs.",
     "stem": "Given the general guidance to prefer community servers for standard integrations, what should you do here?",
     "options": [
@@ -1718,9 +1634,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.4-011",
-    "domain": 2,
-    "task_statement": "2.4",
+    "id": "q-0283",
     "scenario": "A project's `.mcp.json` configures a GitHub MCP server and a Postgres MCP server. Today, the Postgres server's host is down for maintenance. A developer starts a session needing only the GitHub tools.",
     "stem": "What should happen, ideally?",
     "options": [
@@ -1759,9 +1673,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.4-012",
-    "domain": 2,
-    "task_statement": "2.4",
+    "id": "q-0284",
     "scenario": "Your project configures two MCP servers, each of which happens to expose a tool literally named `search`: one searches internal documentation, the other searches a customer database. Both are connected in the same session.",
     "stem": "What is the most direct way to avoid the agent confusing the two `search` tools?",
     "options": [
@@ -1800,9 +1712,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.5-009",
-    "domain": 2,
-    "task_statement": "2.5",
+    "id": "q-0285",
     "scenario": "You want to find every `TODO` comment left in the codebase before a release, regardless of which file or language they're in.",
     "stem": "Which built-in tool is the right choice?",
     "options": [
@@ -1841,9 +1751,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.5-010",
-    "domain": 2,
-    "task_statement": "2.5",
+    "id": "q-0286",
     "scenario": "You need to find every `Dockerfile` in a monorepo containing dozens of services, regardless of how deeply nested each service's directory is.",
     "stem": "Which built-in tool fits best?",
     "options": [
@@ -1882,9 +1790,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.5-011",
-    "domain": 2,
-    "task_statement": "2.5",
+    "id": "q-0287",
     "scenario": "You need to run the project's existing test suite (`npm test`) and view the output to confirm a fix works.",
     "stem": "Which built-in tool is appropriate here?",
     "options": [
@@ -1923,9 +1829,7 @@
     ]
   },
   {
-    "id": "ccarf-q-2.5-012",
-    "domain": 2,
-    "task_statement": "2.5",
+    "id": "q-0288",
     "scenario": "You need to create a brand-new configuration file, `config/feature-flags.json`, that doesn't exist yet in the repository.",
     "stem": "Which built-in tool is the right choice?",
     "options": [
@@ -1964,9 +1868,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.1-009",
-    "domain": 3,
-    "task_statement": "3.1",
+    "id": "q-0289",
     "scenario": "A team's root CLAUDE.md documents a shared testing convention. One engineer also has a personal ~/.claude/CLAUDE.md with unrelated formatting preferences. A new teammate reports that Claude follows the testing convention but seems unaware of an unwritten 'always confirm before deleting files' habit the original engineer has relied on.",
     "stem": "What is the most likely explanation for the missing 'confirm before deleting' behavior?",
     "options": [
@@ -2005,9 +1907,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.1-010",
-    "domain": 3,
-    "task_statement": "3.1",
+    "id": "q-0290",
     "scenario": "CI-generated tests are low-value and ignore a project's established fixtures and testing standards.",
     "stem": "What most improves generation quality?",
     "options": [
@@ -2046,9 +1946,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.1-011",
-    "domain": 3,
-    "task_statement": "3.1",
+    "id": "q-0291",
     "scenario": "A project's root CLAUDE.md still instructs Claude Code to 'use the legacy /api/v1 endpoints for all HTTP calls,' but the team fully migrated to /api/v2 six months ago and removed v1 entirely.",
     "stem": "What is the most direct problem this causes, and the correct fix?",
     "options": [
@@ -2087,9 +1985,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.1-012",
-    "domain": 3,
-    "task_statement": "3.1",
+    "id": "q-0292",
     "scenario": "A monorepo has a root CLAUDE.md, a `services/CLAUDE.md`, and a `services/payments/CLAUDE.md`. All three say something about logging: root says 'use structured JSON logs,' `services/CLAUDE.md` says 'include a request_id field,' and `services/payments/CLAUDE.md` says 'also include a masked account_id field.'",
     "stem": "When editing a file inside `services/payments/`, which logging guidance applies?",
     "options": [
@@ -2128,9 +2024,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.2-009",
-    "domain": 3,
-    "task_statement": "3.2",
+    "id": "q-0293",
     "scenario": "A team's shared /deploy command in .claude/commands/ works for everyone, but one engineer wants to add a few personal extra safety checks on top of it for their own local runs, without changing the shared version teammates rely on.",
     "stem": "What is the recommended way to layer a personal variant on top of a shared command?",
     "options": [
@@ -2169,9 +2063,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.2-010",
-    "domain": 3,
-    "task_statement": "3.2",
+    "id": "q-0294",
     "scenario": "You want a `security-scan` skill to run automatically whenever Claude judges that a change touches security-sensitive code, without anyone needing to remember to invoke it by name.",
     "stem": "What determines whether Claude invokes this skill automatically?",
     "options": [
@@ -2210,9 +2102,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.2-011",
-    "domain": 3,
-    "task_statement": "3.2",
+    "id": "q-0295",
     "scenario": "A `/deploy` slash command needs to accept an environment name at invocation time, e.g. `/deploy staging`, and use that value inside the command's own instructions.",
     "stem": "What is the correct mechanism for this?",
     "options": [
@@ -2251,9 +2141,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.2-012",
-    "domain": 3,
-    "task_statement": "3.2",
+    "id": "q-0296",
     "scenario": "A `full-audit` skill needs to run a lengthy, verbose codebase scan (best isolated in its own context) and then hand a concise summary to the main conversation for the developer to act on.",
     "stem": "Which configuration best fits this?",
     "options": [
@@ -2292,9 +2180,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.3-009",
-    "domain": 3,
-    "task_statement": "3.3",
+    "id": "q-0297",
     "scenario": "Configuration files matching *.config.ts are scattered across many packages in a repository, and the team wants Claude to automatically apply one convention to all of them regardless of directory.",
     "stem": "What is the most maintainable approach?",
     "options": [
@@ -2332,9 +2218,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.3-010",
-    "domain": 3,
-    "task_statement": "3.3",
+    "id": "q-0298",
     "scenario": "`.claude/rules/general-style.md` (`paths: [\"**/*.ts\"]`) says 'always use `async/await`, never raw Promises.' `.claude/rules/legacy-adapter.md` (`paths: [\"src/adapters/legacy/**/*.ts\"]`) says 'this directory intentionally uses raw `.then()` chains for compatibility with an older build target — do not convert to async/await here.'",
     "stem": "When editing a file inside `src/adapters/legacy/`, what should happen?",
     "options": [
@@ -2373,9 +2257,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.3-011",
-    "domain": 3,
-    "task_statement": "3.3",
+    "id": "q-0299",
     "scenario": "A team wants a rule to apply to every TypeScript file in the repository except those under `src/generated/`, which is auto-generated code no one should hand-edit or apply style conventions to.",
     "stem": "What is the most direct way to express this scope in the rule's frontmatter?",
     "options": [
@@ -2414,9 +2296,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.3-012",
-    "domain": 3,
-    "task_statement": "3.3",
+    "id": "q-0300",
     "scenario": "A `.claude/rules/security-baseline.md` file has no `paths` field in its frontmatter at all, while every other rule in the project specifies one.",
     "stem": "When does this rule load into context?",
     "options": [
@@ -2455,9 +2335,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.4-009",
-    "domain": 3,
-    "task_statement": "3.4",
+    "id": "q-0301",
     "scenario": "A stack trace points to a single function, and the proposed fix is a one-line guard clause. However, the same function is called from three different call sites, each of which needs a different fallback value when the guard triggers.",
     "stem": "Does this remain a direct-execution case, or does it warrant plan mode?",
     "options": [
@@ -2496,9 +2374,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.4-010",
-    "domain": 3,
-    "task_statement": "3.4",
+    "id": "q-0302",
     "scenario": "A migration touches 45 files across three distinct modules, each with different usage patterns of the deprecated library.",
     "stem": "What is the most effective way to structure the planning itself?",
     "options": [
@@ -2536,9 +2412,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.4-011",
-    "domain": 3,
-    "task_statement": "3.4",
+    "id": "q-0303",
     "scenario": "You enter plan mode to investigate what looked like a broad refactor touching 30 files. Ten minutes into the investigation, it becomes clear that 28 of those files just need an identical one-line import path update, and the remaining 2 need no changes at all — there's no real architectural decision left to make.",
     "stem": "What should you do?",
     "options": [
@@ -2577,9 +2451,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.4-012",
-    "domain": 3,
-    "task_statement": "3.4",
+    "id": "q-0304",
     "scenario": "You begin direct execution on what looked like a single-file bug fix. Partway through, you discover the root cause actually requires changing a shared interface used by 12 other call sites, each with different, non-obvious compatibility requirements.",
     "stem": "What should you do?",
     "options": [
@@ -2618,9 +2490,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.5-009",
-    "domain": 3,
-    "task_statement": "3.5",
+    "id": "q-0305",
     "scenario": "You provided two clear input/output examples for a normalize_address helper, and Claude's output now matches both examples exactly. On a third, unseen input with a format neither example covered, the transformation is unpredictable.",
     "stem": "What should you do next?",
     "options": [
@@ -2659,9 +2529,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.5-010",
-    "domain": 3,
-    "task_statement": "3.5",
+    "id": "q-0306",
     "scenario": "A developer already has a fairly detailed written spec for a caching layer, covering invalidation and cache-stampede handling, but is unsure whether anything domain-specific is still missing.",
     "stem": "Is the interview pattern still the right technique here, given the spec is already fairly thorough?",
     "options": [
@@ -2700,9 +2568,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.5-011",
-    "domain": 3,
-    "task_statement": "3.5",
+    "id": "q-0307",
     "scenario": "A review surfaces three issues in a data pipeline: (1) a retry count that's hard-coded instead of configurable, (2) a race condition where two issues — a shared counter increment and a missing lock — jointly cause corrupted totals, and (3) the missing lock also independently causes a rare deadlock unrelated to the counter.",
     "stem": "How should these be grouped for the fix instructions?",
     "options": [
@@ -2740,9 +2606,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.5-012",
-    "domain": 3,
-    "task_statement": "3.5",
+    "id": "q-0308",
     "scenario": "You're building a `normalize_phone_number` helper. Two problems have come up: (1) Claude's output format for the country code varies inconsistently across runs on the same kind of input, and (2) you're not sure what edge cases exist for numbers from countries with unusual formatting rules you're unfamiliar with.",
     "stem": "Which combination of techniques best addresses both problems?",
     "options": [
@@ -2781,9 +2645,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.6-009",
-    "domain": 3,
-    "task_statement": "3.6",
+    "id": "q-0309",
     "scenario": "A CI job already runs claude -p \"Review this PR\", yet the job still occasionally hangs on certain PRs.",
     "stem": "Given that -p is already correctly used, what is the most likely remaining cause of the hang?",
     "options": [
@@ -2822,9 +2684,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.6-010",
-    "domain": 3,
-    "task_statement": "3.6",
+    "id": "q-0310",
     "scenario": "A CI review currently posts inline comments using --output-format json and --json-schema. The team wants to add a new confidence field to every finding without breaking the existing downstream parser that only recognizes the original fields.",
     "stem": "What is the safest way to introduce the new field?",
     "options": [
@@ -2863,9 +2723,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.6-011",
-    "domain": 3,
-    "task_statement": "3.6",
+    "id": "q-0311",
     "scenario": "A CI review already avoids repeating unaddressed prior findings by passing them into context. Developers now report the reviewer still occasionally re-flags an issue that was, in fact, already fixed in the latest commit.",
     "stem": "What refinement addresses this remaining gap?",
     "options": [
@@ -2904,9 +2762,7 @@
     ]
   },
   {
-    "id": "ccarf-q-3.6-012",
-    "domain": 3,
-    "task_statement": "3.6",
+    "id": "q-0312",
     "scenario": "A CI-invoked Claude Code review step currently only posts PR comments and always exits 0 (success), even when it finds a critical security issue. The team wants critical findings to actually block the merge, not just be visible as a comment someone might miss.",
     "stem": "What is the most direct way to make critical findings block the merge?",
     "options": [
@@ -2945,9 +2801,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.1-009",
-    "domain": 4,
-    "task_statement": "4.1",
+    "id": "q-0313",
     "scenario": "A review criterion reads: 'Flag a comment whenever the code near it was changed in this PR.' This is explicit and unambiguous, yet the false-positive rate remains high.",
     "stem": "What is the actual problem with this criterion?",
     "options": [
@@ -2985,9 +2839,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.1-010",
-    "domain": 4,
-    "task_statement": "4.1",
+    "id": "q-0314",
     "scenario": "A style-suggestions category was temporarily disabled for a 60% false-positive rate. After adding explicit criteria, a two-week trial on historical PRs shows a 12% false-positive rate.",
     "stem": "What should determine whether it's safe to re-enable the category now?",
     "options": [
@@ -3026,9 +2878,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.1-011",
-    "domain": 4,
-    "task_statement": "4.1",
+    "id": "q-0315",
     "scenario": "A security-review criterion says 'flag any use of `eval()`.' The codebase later adds a sandboxed template-rendering library that internally calls a safely-scoped `eval()` as an implementation detail, and the criterion now flags every template render as a security issue.",
     "stem": "What is the most direct way to fix this without abandoning the useful parts of the criterion?",
     "options": [
@@ -3067,9 +2917,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.1-012",
-    "domain": 4,
-    "task_statement": "4.1",
+    "id": "q-0316",
     "scenario": "A 'no hard-coded secrets' criterion was written and tuned six months ago. Since then, the team adopted a new config-templating pattern where placeholder strings like `{{DB_PASSWORD}}` appear throughout the codebase — literal template syntax, never an actual secret. The criterion increasingly flags these placeholders as hard-coded secrets.",
     "stem": "What does this situation call for, and why?",
     "options": [
@@ -3108,9 +2956,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.2-009",
-    "domain": 4,
-    "task_statement": "4.2",
+    "id": "q-0317",
     "scenario": "You add five few-shot examples to a classification prompt, all drawn from the exact same product category (electronics returns). After deployment, the model classifies electronics returns very accurately but performs poorly on furniture and clothing returns — categories it handled reasonably well before the examples were added.",
     "stem": "What is the most likely cause, and the fix?",
     "options": [
@@ -3149,9 +2995,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.2-010",
-    "domain": 4,
-    "task_statement": "4.2",
+    "id": "q-0318",
     "scenario": "A customer-support agent's replies are technically correct but read as curt and impersonal; the team wants a warmer, more empathetic tone without changing what information is actually communicated.",
     "stem": "What is the most effective way to establish this tone consistently?",
     "options": [
@@ -3190,9 +3034,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.2-011",
-    "domain": 4,
-    "task_statement": "4.2",
+    "id": "q-0319",
     "scenario": "You've added eight well-chosen few-shot examples to a document-classification prompt, spanning the range of document types. Accuracy on genuinely ambiguous documents is still poor, and you suspect the issue isn't the prompt at all, but that the task requires domain knowledge (obscure regulatory terminology) the model simply doesn't reliably have.",
     "stem": "What does this situation suggest about few-shot prompting's role here?",
     "options": [
@@ -3231,9 +3073,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.2-012",
-    "domain": 4,
-    "task_statement": "4.2",
+    "id": "q-0320",
     "scenario": "You're writing few-shot examples to teach an agent when to escalate a support ticket to a human versus handle it directly. All four examples you drafted are clear-cut 'definitely escalate' cases; none show a case that's handled directly, and none show a borderline case near the actual decision boundary.",
     "stem": "What is the most likely shortcoming of this example set, and the fix?",
     "options": [
@@ -3272,9 +3112,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.3-009",
-    "domain": 4,
-    "task_statement": "4.3",
+    "id": "q-0321",
     "scenario": "A pipeline uses tool_use with a JSON schema requiring line_items to be a non-empty array of {sku, quantity} objects. Extractions are always syntactically valid JSON conforming to that shape, yet some invoices come back with zero line items even though the source document clearly lists several.",
     "stem": "What does this indicate, and is it addressed by tool_use's schema guarantee?",
     "options": [
@@ -3313,9 +3151,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.3-010",
-    "domain": 4,
-    "task_statement": "4.3",
+    "id": "q-0322",
     "scenario": "An invoice_number field is present on most invoices but genuinely absent on a minority of internal transfer documents. When present, it must always match the pattern INV-\\d{6}.",
     "stem": "How should the schema be designed to prevent both fabrication and format drift?",
     "options": [
@@ -3354,9 +3190,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.3-011",
-    "domain": 4,
-    "task_statement": "4.3",
+    "id": "q-0323",
     "scenario": "Beyond document_type (five known values plus new/ambiguous cases), each document also needs a sub_category whose valid values depend on which document_type was assigned, and new sub-categories appear even more often than new document types.",
     "stem": "How should the schema handle the dependent, even-more-volatile sub_category field?",
     "options": [
@@ -3395,9 +3229,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.3-012",
-    "domain": 4,
-    "task_statement": "4.3",
+    "id": "q-0324",
     "scenario": "A payment-extraction schema needs a `payment_method` object whose actual shape differs by type: a credit card needs `last_four` and `expiry`; a bank transfer needs `routing_number` and `account_last_four`; digital wallets need just a `provider_name`.",
     "stem": "What is the most robust way to model this in the schema?",
     "options": [
@@ -3436,9 +3268,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.4-009",
-    "domain": 4,
-    "task_statement": "4.4",
+    "id": "q-0325",
     "scenario": "Your extraction schema defines `invoice_total` as a number, but the model sometimes returns it as the string \"$1,240.00\" instead of the numeric value 1240.00, even though the surrounding fields validate fine.",
     "stem": "What is the most reliable fix?",
     "options": [
@@ -3477,9 +3307,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.4-010",
-    "domain": 4,
-    "task_statement": "4.4",
+    "id": "q-0326",
     "scenario": "An extraction attempt fails validation for two independent reasons at once: a malformed date and a missing required field that genuinely is present in the source document.",
     "stem": "How should the retry-with-error-feedback request be constructed?",
     "options": [
@@ -3517,9 +3345,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.4-011",
-    "domain": 4,
-    "task_statement": "4.4",
+    "id": "q-0327",
     "scenario": "An extraction pipeline processes only page 1 of a multi-page contract PDF. The governing_law field is required and comes back null, but the clause actually appears on page 3.",
     "stem": "Is this the same 'retry won't help' situation as information that is genuinely absent from the source, or something else?",
     "options": [
@@ -3558,9 +3384,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.4-012",
-    "domain": 4,
-    "task_statement": "4.4",
+    "id": "q-0328",
     "scenario": "An extraction pipeline retries with error feedback on validation failures. For one particularly messy scanned document, the model has now failed validation on three consecutive attempts, each time producing a different but still-invalid result.",
     "stem": "What should happen at this point?",
     "options": [
@@ -3599,9 +3423,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.5-009",
-    "domain": 4,
-    "task_statement": "4.5",
+    "id": "q-0329",
     "scenario": "A third workflow generates a weekly summary digest emailed to stakeholders every Monday morning; the job currently starts Sunday night and nobody is waiting on it in real time, but stakeholders do expect it delivered reliably by a specific hour.",
     "stem": "Is this workflow a good fit for the Message Batches API, alongside the already-agreed overnight report?",
     "options": [
@@ -3640,9 +3462,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.5-010",
-    "domain": 4,
-    "task_statement": "4.5",
+    "id": "q-0330",
     "scenario": "In a batch of 500 jobs, 12 fail due to oversized documents (fixable by chunking) and 3 fail because the source PDF is corrupted and won't open at all.",
     "stem": "How should the recovery differ between these two failure groups?",
     "options": [
@@ -3681,9 +3501,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.5-011",
-    "domain": 4,
-    "task_statement": "4.5",
+    "id": "q-0331",
     "scenario": "You submit a single Message Batch containing 1,000 requests. You need the results for 20 specific, urgent requests within that batch back faster than the rest, but the whole batch is one submission.",
     "stem": "What does the Message Batches API let you do here?",
     "options": [
@@ -3722,9 +3540,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.5-012",
-    "domain": 4,
-    "task_statement": "4.5",
+    "id": "q-0332",
     "scenario": "A team processes 50 documents a day through a synchronous pipeline. Someone proposes switching to the Message Batches API for its 50% cost savings, even though the workload has no latency tolerance — results are needed within seconds for an interactive tool.",
     "stem": "Is this a good use of the Message Batches API?",
     "options": [
@@ -3763,9 +3579,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.6-009",
-    "domain": 4,
-    "task_statement": "4.6",
+    "id": "q-0333",
     "scenario": "A team's code-review prompt for self-review already says, in bold, 'Be maximally critical and assume there are bugs, even if the code looks correct to you.' The same session still misses the same class of bugs it introduced.",
     "stem": "Why does strengthening the self-review instruction not fix this?",
     "options": [
@@ -3803,9 +3617,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.6-010",
-    "domain": 4,
-    "task_statement": "4.6",
+    "id": "q-0334",
     "scenario": "A team added a cross-file integration pass on top of their per-file passes, but it still misses a bug where one file's function signature change silently breaks a caller in another file, because the integration pass is currently just re-running the same per-file prompt across all files at once.",
     "stem": "What is missing from the integration pass as currently implemented?",
     "options": [
@@ -3844,9 +3656,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.6-011",
-    "domain": 4,
-    "task_statement": "4.6",
+    "id": "q-0335",
     "scenario": "A team already runs three review passes (per-file, cross-file integration, and independent-instance verification) and is considering adding a fourth: a dedicated 'style consistency' pass on top. Review turnaround time is already a common developer complaint.",
     "stem": "What should the team weigh before adding a fourth pass?",
     "options": [
@@ -3885,9 +3695,7 @@
     ]
   },
   {
-    "id": "ccarf-q-4.6-012",
-    "domain": 4,
-    "task_statement": "4.6",
+    "id": "q-0336",
     "scenario": "A team runs a per-file review pass and a cross-file integration pass. Currently, the integration pass runs first, before any per-file findings exist, and it has to re-derive basic per-file context from scratch to do its cross-file analysis.",
     "stem": "What is the most likely improvement from reordering these two passes?",
     "options": [
@@ -3926,9 +3734,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.1-009",
-    "domain": 5,
-    "task_statement": "5.1",
+    "id": "q-0337",
     "scenario": "A case-facts block correctly preserves exact amounts, dates, and order numbers across a long conversation, but after many issues accumulate in one extended case, the block itself has grown large enough to consume a meaningful share of the context budget.",
     "stem": "What is the appropriate way to keep the case-facts block itself from becoming a new context problem?",
     "options": [
@@ -3967,9 +3773,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.1-010",
-    "domain": 5,
-    "task_statement": "5.1",
+    "id": "q-0338",
     "scenario": "A single agent process handles support conversations for many customers concurrently. A bug causes one customer's case-facts (order number, amount) to appear in a different customer's conversation history.",
     "stem": "What is the most direct fix?",
     "options": [
@@ -4008,9 +3812,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.1-011",
-    "domain": 5,
-    "task_statement": "5.1",
+    "id": "q-0339",
     "scenario": "A support agent's context window has a hard 8,000-token budget for conversation history. A very long, multi-issue case has accumulated 15,000 tokens of raw history and is about to exceed the budget.",
     "stem": "What is the most effective way to stay within budget without losing what matters?",
     "options": [
@@ -4049,9 +3851,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.1-012",
-    "domain": 5,
-    "task_statement": "5.1",
+    "id": "q-0340",
     "scenario": "A customer starts a support conversation in live chat, then the case is handed off to a phone agent (a different system) who has no access to the chat transcript, only whatever gets explicitly passed along.",
     "stem": "What should be passed to the phone agent to preserve context across this channel switch?",
     "options": [
@@ -4090,9 +3890,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.2-009",
-    "domain": 5,
-    "task_statement": "5.2",
+    "id": "q-0341",
     "scenario": "A customer's message reads: 'I want to talk to a person, not a bot — also, can you tell me the status of order #4471 while I wait?'",
     "stem": "How should the agent interpret the second half of the message?",
     "options": [
@@ -4131,9 +3929,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.2-010",
-    "domain": 5,
-    "task_statement": "5.2",
+    "id": "q-0342",
     "scenario": "The agent acknowledges a customer's frustration about a damaged order and offers to process a reshipment now. The customer replies: 'Fine, but this had better not happen a fourth time,' without asking for a human.",
     "stem": "What should the agent do at this point?",
     "options": [
@@ -4172,9 +3968,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.2-011",
-    "domain": 5,
-    "task_statement": "5.2",
+    "id": "q-0343",
     "scenario": "After a name-only lookup returns three matches, the agent asks for an order number. The customer provides one, but it still matches two of the three original accounts (a shared/family order).",
     "stem": "What should the agent do now that one additional identifier didn't fully disambiguate?",
     "options": [
@@ -4212,9 +4006,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.2-012",
-    "domain": 5,
-    "task_statement": "5.2",
+    "id": "q-0344",
     "scenario": "A customer writes: 'This company's return policy is honestly kind of confusing, but whatever, I still need to return a $30 item within your normal 30-day window and I have my receipt.' The request is a completely standard return the agent is fully authorized to process, and the customer has not asked for a human or indicated a desire to stop working with the agent.",
     "stem": "Should the agent escalate this to a human?",
     "options": [
@@ -4253,9 +4045,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.3-009",
-    "domain": 5,
-    "task_statement": "5.3",
+    "id": "q-0345",
     "scenario": "A coordinator delegates to subagent B, which itself delegates a sub-task to subagent C. Subagent C fails with a structured error (failure type, attempted query, partial results). Subagent B currently catches C's failure and reports back to the coordinator only a bare 'sub-task failed' string, discarding C's structured detail.",
     "stem": "What is the problem, and the fix?",
     "options": [
@@ -4294,9 +4084,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.3-010",
-    "domain": 5,
-    "task_statement": "5.3",
+    "id": "q-0346",
     "scenario": "A document-processing subagent's internal work has three steps: fetch the document, extract structured fields, and validate the extraction. On one run, fetch and extract succeed, but validation fails.",
     "stem": "How should the subagent report this to the coordinator?",
     "options": [
@@ -4335,9 +4123,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.3-011",
-    "domain": 5,
-    "task_statement": "5.3",
+    "id": "q-0347",
     "scenario": "A coordinator retries a subagent call after a transient timeout. The retry also times out, with an identical failure type and query. The subagent reports this second timeout as a completely fresh, unrelated failure event, with no reference to the fact that this is the second consecutive occurrence of the same failure on the same request.",
     "stem": "What is missing, and why does it matter?",
     "options": [
@@ -4376,9 +4162,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.3-012",
-    "domain": 5,
-    "task_statement": "5.3",
+    "id": "q-0348",
     "scenario": "A subagent's structured error report shows: failure_type is 'permission_denied' — the credentials the agent was given don't have access to a data source it needs. This isn't something a different query, a retry, or an alternative subagent approach can work around; the actual permission grant itself needs to change.",
     "stem": "What should the coordinator do with this error?",
     "options": [
@@ -4417,9 +4201,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.4-009",
-    "domain": 5,
-    "task_statement": "5.4",
+    "id": "q-0349",
     "scenario": "A developer needs to build an accurate mental model of a large, unfamiliar codebase before making changes.",
     "stem": "What is the best strategy for building understanding of a large, unfamiliar codebase?",
     "options": [
@@ -4458,9 +4240,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.4-010",
-    "domain": 5,
-    "task_statement": "5.4",
+    "id": "q-0350",
     "scenario": "Ten minutes into a brand-new session with almost no prior exploration yet, an agent answers a question about a specific class by describing 'typical patterns for this kind of service' instead of the actual class.",
     "stem": "Is this the same context-degradation signature described elsewhere, and does a scratchpad file fix it?",
     "options": [
@@ -4499,9 +4279,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.4-011",
-    "domain": 5,
-    "task_statement": "5.4",
+    "id": "q-0351",
     "scenario": "You're deep into exploring a large codebase and your context window is filling with useful discovery output. You're deciding between running `/compact` now versus ending the session and starting fresh with an injected summary of key findings.",
     "stem": "What should determine which approach you take?",
     "options": [
@@ -4540,9 +4318,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.4-012",
-    "domain": 5,
-    "task_statement": "5.4",
+    "id": "q-0352",
     "scenario": "Before starting a large codebase exploration, you have a fixed overall context budget for the whole task: exploration plus the actual work that follows it. You haven't set any limit on how much of that budget exploration itself may consume.",
     "stem": "What is the risk of not budgeting exploration separately, and the better approach?",
     "options": [
@@ -4581,9 +4357,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.5-009",
-    "domain": 5,
-    "task_statement": "5.5",
+    "id": "q-0353",
     "scenario": "A team is ready to segment their 97%-aggregate extraction accuracy figure but is unsure which breakdowns are worth computing first, given limited analysis time.",
     "stem": "Which breakdowns are most likely to reveal a masked problem, and why?",
     "options": [
@@ -4621,9 +4395,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.5-010",
-    "domain": 5,
-    "task_statement": "5.5",
+    "id": "q-0354",
     "scenario": "A team wants to calibrate field-level confidence scores against labeled data to drive review routing, but only has 200 labeled examples so far, far fewer than they'd like.",
     "stem": "What is the most reasonable way to proceed given the limited labeled set?",
     "options": [
@@ -4662,9 +4434,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.5-011",
-    "domain": 5,
-    "task_statement": "5.5",
+    "id": "q-0355",
     "scenario": "For six months, human reviewers have been correcting a meaningful share of low-confidence extractions, but those corrections are only ever used to approve the individual document in front of the reviewer — the underlying extraction prompt has never been updated based on what reviewers keep fixing.",
     "stem": "What is the missed opportunity here, and the fix?",
     "options": [
@@ -4703,9 +4473,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.5-012",
-    "domain": 5,
-    "task_statement": "5.5",
+    "id": "q-0356",
     "scenario": "Two human reviewers independently check the same sample of extractions as part of a calibration exercise. On 15% of documents, they disagree with each other about whether the model's extraction was correct.",
     "stem": "What does this level of reviewer disagreement imply for the calibration effort?",
     "options": [
@@ -4744,9 +4512,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.6-009",
-    "domain": 5,
-    "task_statement": "5.6",
+    "id": "q-0357",
     "scenario": "A research system's claim-source mappings correctly preserve attribution through synthesis. Weeks later, one cited source is discovered to have been retracted by its publisher after the report was generated.",
     "stem": "What does the existing claim-source mapping design let the team do that a report without structured attribution would not?",
     "options": [
@@ -4785,9 +4551,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.6-010",
-    "domain": 5,
-    "task_statement": "5.6",
+    "id": "q-0358",
     "scenario": "Three credible sources report a metric: two report figures within 2% of each other, and a third reports a figure 40% higher than the other two.",
     "stem": "Does the two-source agreement change how the synthesis agent should handle the outlier, compared to a simple two-source disagreement?",
     "options": [
@@ -4826,9 +4590,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.6-011",
-    "domain": 5,
-    "task_statement": "5.6",
+    "id": "q-0359",
     "scenario": "Subagent outputs already include collection dates in their structured fields. Despite this, a synthesis report still flags two same-metric figures from 2022 and 2024 as 'contradictory' without noting the year difference.",
     "stem": "Given that dates are already captured, what is the correct next fix?",
     "options": [
@@ -4867,9 +4629,7 @@
     ]
   },
   {
-    "id": "ccarf-q-5.6-012",
-    "domain": 5,
-    "task_statement": "5.6",
+    "id": "q-0360",
     "scenario": "A synthesis agent combines three subagent findings, each individually well-sourced but each only weakly suggestive on its own, to arrive at an overall conclusion ('the market is likely shifting toward subscription models'). No individual source states this conclusion directly — it's an inference the synthesis agent is drawing by connecting the three findings.",
     "stem": "How should the synthesis output represent this conclusion?",
     "options": [

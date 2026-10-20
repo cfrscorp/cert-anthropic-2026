@@ -154,43 +154,65 @@ or move your progress, or **Reset** to start over.
 
 ## Content Model (`content/` + `exams/`)
 
-Content is split into **components** (a question tier, a flashcard deck, a concept
-set, the labs catalog) and **exams** that pin the components each of their sections
-uses, so components can be reused and versioned independently of any one exam.
+All content lives in one exam-neutral **pool** of **components** (a question tier, a
+flashcard deck, a concept set, the labs catalog). No exam owns content: each
+**exam** pins the components its sections draw from, and its `map.json` picks
+exactly which pool items it uses and which of its task statements each counts
+toward. One item can serve several exams, each under its own task.
 
 | File | What |
 |------|------|
 | `app.json` | Engine metadata: `app_version` (shown in the Web UI footer; kept in lockstep with `pyproject.toml` and `serve.py`). |
 | `exams/index.json` | The available exams, by slug (the first is the default). |
-| `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (per-task question target, pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"ccarf-questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
+| `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (per-task question target, pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
+| `exams/ccarf/map.json` | The CCAR-F item map: per kind (`questions`, `flashcards`, `concepts`), each pool item CCAR-F uses → its task statement (e.g. `"q-0001": "1.1"`). Items not listed aren't part of the exam. |
 | `exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` | The CCAR-F exam guide — source of truth for its content (`-2026-06` is the prior edition). |
-| `content/components.json` | Registry of every component: `{id, kind, version, file, task_scheme}`. `task_scheme` names the exam whose task-statement IDs the component's items use. |
-| `content/ccarf-questions-standard.json` (240), `content/ccarf-questions-intermediate.json` (120), `content/ccarf-questions-hard.json` (75, incl. 10 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
-| `content/ccarf-flashcards.json` | Front/back fact-recall cards (135), each testing a single concept. |
-| `content/ccarf-concepts.json` | One explainer per task statement (30). |
+| `content/components.json` | Registry of every pool component: `{id, kind, version, file}`. |
+| `content/questions-standard.json` (240), `content/questions-intermediate.json` (120), `content/questions-hard.json` (75, incl. 10 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
+| `content/flashcards.json` | Front/back fact-recall cards (135), each testing a single concept. |
+| `content/concepts.json` | Concept explainers (30; CCAR-F maps one to each task statement). |
 | `content/labs.json` | The labs catalog, generated from `../labs/` by `tools/build_labs.py`. |
-| `schema/*.schema.json` | JSON Schemas; every manifest and component is validated against these. |
+| `migrations/pool-ids-2026-10.json` | Historical: the old exam-prefixed IDs (`ccarf-q-1.1-001`) → pool IDs, used once to re-key saved progress, exports, and CLI/TUI history. Never edited. |
+| `schema/*.schema.json` | JSON Schemas; every manifest, map, and component is validated against these. |
 
-Item IDs are prefixed with their exam slug and globally unique (`ccarf-q-1.1-001`,
-`ccarf-fc-1.1-001`, `ccarf-concept-1.1`), since progress is keyed by them.
+Pool item IDs are opaque, stable, and globally unique per kind (`q-0001`, `fc-0001`,
+`concept-0001`), since progress is keyed by them; pool items carry no domain or task
+tags — those come from each exam's map.
 
 ### Adding or Editing Content
 
-Edit a component in `content/`; to add one, also register it in
-`content/components.json` and pin it in the exam's `sections`. Bump the component's
-`version` (major for breaking changes such as re-keyed IDs or changed task tags, and
-the exam's pin to match). Then validate:
+Edit a component in `content/`; to add an item, give it the next free ID and map it
+in every exam that should use it (`exams/<slug>/map.json`). To add a component, also
+register it in `content/components.json` and pin it in each exam's `sections`. Bump
+the component's `version` (major for breaking changes such as removed or re-keyed
+items, and the exams' pins to match). Then validate:
 
 ```bash
 cd study && uv run pytest
 ```
 
 The tests check schema validity; component integrity (valid answer keys, complete
-distractor rationales, prefixed and unique IDs, real task statements, resolvable lab
-links, the registry staying in sync with the files on disk); exam integrity (weights
-summing to 100, the guide existing, every pin resolving to a component of the right
-kind and version); and coverage per exam (question count per task statement, per-tier
-minimums, one concept per task statement).
+distractor rationales, neutral unique IDs, resolvable lab links, the registry staying
+in sync with the files on disk); exam integrity (weights summing to 100, the guide
+existing, every pin resolving to a component of the right kind and version); map
+integrity (every mapped item exists in a component the exam pins and counts toward a
+real task statement; no item listed twice; no pinned component left unused); and
+coverage per exam, through its map (question count per task statement, per-tier
+minimums, one concept per task statement). Deleting an item an exam still maps fails
+the tests.
+
+### What Uses What (`tools/content_map.py`)
+
+The maps double as a dependency map. `content_map.py` reports the reverse view —
+which exams pin each component and how many of its items each maps, where a given
+item is used, and what's orphaned (items no exam maps, components no exam pins) —
+so it's safe to cull or rework content:
+
+```bash
+uv run study/tools/content_map.py                 # summary
+uv run study/tools/content_map.py --orphans       # unused items/components
+uv run study/tools/content_map.py --item q-0001   # where one item is used
+```
 
 ## Command-Line & TUI Tools (`tools/`)
 
@@ -205,8 +227,10 @@ in place of `--set`.
 Progress history is kept per exam in `.working/` (gitignored):
 `quiz_history_<exam>.json` and `flashcards_history_<exam>.json`. On first run, a
 pre-multi-exam `.working/quiz_history.json` / `flashcards_history.json` is migrated
-into the CCAR-F file (IDs re-keyed to the `ccarf-` form; the original is left in
-place). Each pair shares one "core" module (`quiz_tui.py` and `flashcards_tui.py`
+into the CCAR-F file (the original is left in place), and any history file still
+using the pre-pool `ccarf-q-…` IDs is re-keyed to pool IDs once (the original is
+kept beside it as `<name>.v1.json`). Pool items take their domain/task from the
+exam's map; a personal question file can carry its own `domain` + `task_statement`. Each pair shares one "core" module (`quiz_tui.py` and `flashcards_tui.py`
 just add a fixed-layout, full-screen rendering mode — same flags, same history
 file), and all four share `exam_manifest.py` for exam/set resolution.
 

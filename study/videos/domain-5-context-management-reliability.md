@@ -1,6 +1,6 @@
 # D5 · Context Management & Reliability — Video Resources
 
-Videos that explain or demonstrate the [Concept Explainers](../content/ccarf-concepts.json) for
+Videos that explain or demonstrate the [Concept Explainers](../content/concepts.json) for
 Domain 5. See [`README.md`](README.md) for scope and how these were sourced.
 
 ### 5.1 Managing conversation context to preserve critical information across long interactions

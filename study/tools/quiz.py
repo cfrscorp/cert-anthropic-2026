@@ -7,8 +7,9 @@
 
 By default it quizzes on a question set pinned by an exam (--exam, --set), or
 reads explicit JSON files matching study/schema/questions.schema.json
-(scenario, stem, four options, correct key, rationale, domain, task_statement,
-difficulty, tags), runs an interactive multiple-choice session in the
+(scenario, stem, four options, correct key, rationale, difficulty, tags; pool
+items get their domain/task from the exam's map.json, while a personal file may
+carry its own domain + task_statement), runs an interactive multiple-choice session in the
 terminal, and tracks personal correct/incorrect results across sessions in a
 small local JSON history file so you can see progress over time and re-drill
 whatever you've missed.
@@ -23,14 +24,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # exam_manifest.py lives alongside this script (shared with flashcards.py).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import exam_manifest as em  # noqa: E402
 
 HISTORY_KIND = "quiz"  # -> .working/quiz_history_<exam>.json (em.history_path)
-HISTORY_SCHEMA_VERSION = 1
+HISTORY_SCHEMA_VERSION = em.HISTORY_VERSION  # 2: records keyed by pool IDs (BL-050)
 EXAM_CODE = ""  # set by resolve_exam(); shown in the banner
 
 
@@ -124,9 +125,11 @@ class Question:
     tags: list = field(default_factory=list)
 
 
-def load_questions(paths):
+def load_questions(paths, item_tasks=None):
     """Load and merge one or more questions.json-schema files, tagging each
-    question with the basename of the file it came from."""
+    question with the basename of the file it came from. Pool items take their
+    domain/task from the exam's map (`item_tasks`, from em.item_tasks); ones the
+    map doesn't list aren't part of the exam and are skipped."""
     questions = []
     seen_ids = {}
     for path in paths:
@@ -138,10 +141,13 @@ def load_questions(paths):
             raise SystemExit(f"error: {path} does not contain a JSON array of questions")
         for item in raw:
             try:
+                tags = em.exam_tags(item, item_tasks)
+                if tags is None:
+                    continue
                 q = Question(
                     id=item["id"],
-                    domain=item["domain"],
-                    task_statement=item["task_statement"],
+                    domain=tags[0],
+                    task_statement=tags[1],
                     stem=item["stem"],
                     options=item["options"],
                     correct=item["correct"],
@@ -523,7 +529,7 @@ Examples (run from the repo root):
   uv run study/tools/quiz.py --tag hooks
 
   # Quiz on explicit files instead, e.g. a component plus your own question set
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json .working/my-questions.json --shuffle
+  uv run study/tools/quiz.py study/content/questions-standard.json .working/my-questions.json --shuffle
 
   # Re-drill only the questions you've gotten wrong before
   uv run study/tools/quiz.py --set all --review-missed
@@ -603,7 +609,7 @@ def main(argv=None):
     if missing:
         parser.error(f"file(s) not found: {', '.join(str(p) for p in missing)}")
 
-    questions = load_questions(args.files)
+    questions = load_questions(args.files, args.item_tasks)
     if not questions:
         raise SystemExit("error: no questions loaded from the given file(s)")
 

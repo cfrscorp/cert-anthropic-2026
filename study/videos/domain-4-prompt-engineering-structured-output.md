@@ -1,6 +1,6 @@
 # D4 · Prompt Engineering & Structured Output — Video Resources
 
-Videos that explain or demonstrate the [Concept Explainers](../content/ccarf-concepts.json) for
+Videos that explain or demonstrate the [Concept Explainers](../content/concepts.json) for
 Domain 4. See [`README.md`](README.md) for scope and how these were sourced.
 
 ### 4.1 Explicit criteria and severity rubrics to improve precision and reduce false positives

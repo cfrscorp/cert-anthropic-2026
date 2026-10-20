@@ -1,8 +1,6 @@
 [
   {
-    "id": "ccarf-concept-1.1",
-    "task_statement": "1.1",
-    "domain": 1,
+    "id": "concept-0001",
     "title": "The Agentic Loop and stop_reason",
     "concept": "An agentic loop repeatedly sends requests to Claude and inspects the API's `stop_reason`. While `stop_reason` is `\"tool_use\"`, the loop executes the requested tools and appends their `tool_result` blocks to the conversation history so the model can reason about the next action; when `stop_reason` is `\"end_turn\"`, the loop terminates and returns the final response. Tool selection is model-driven: Claude decides the next tool from the evolving context rather than following a pre-configured decision tree or fixed sequence.",
     "why_it_matters": "Building control flow on the structured `stop_reason` signal makes agents adaptive and reliable, letting Claude dynamically choose tools instead of being locked into a brittle, hard-coded script.",
@@ -27,9 +25,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-1.2",
-    "task_statement": "1.2",
-    "domain": 1,
+    "id": "concept-0002",
     "title": "Coordinator-subagent orchestration in hub-and-spoke multi-agent systems",
     "concept": "A hub-and-spoke multi-agent system centers on a coordinator (the hub) that owns orchestration: it decomposes the query, delegates subtasks to specialized subagents (the spokes), routes all inter-subagent communication and error handling through itself, and aggregates results. Subagents run with isolated context, so they do not inherit the coordinator's history or each other's findings; needed context must be passed explicitly in their prompts. A capable coordinator analyzes query complexity to dynamically select which subagents to invoke instead of always running the full pipeline, partitions research scope across subagents (distinct subtopics or source types) to minimize duplication, and runs iterative refinement loops: evaluate the synthesis output for gaps, re-delegate targeted queries to search and analysis subagents, and re-invoke synthesis until coverage is sufficient.",
     "why_it_matters": "The exam repeatedly tests whether you can locate a failure at the orchestration layer rather than blaming a subagent that executed its assigned scope correctly. Understanding isolated context, centralized routing, dynamic selection, scope partitioning, and refinement loops lets you diagnose coverage gaps, latency, and reliability problems and choose proportionate fixes (e.g., broadening decomposition or adding a scoped tool) instead of over-provisioning agents.",
@@ -47,9 +43,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-1.3",
-    "task_statement": "1.3",
-    "domain": 1,
+    "id": "concept-0003",
     "title": "Subagent invocation, context passing, and spawning",
     "concept": "Coordinators spawn subagents through the Task tool, which requires `\"Task\"` in the coordinator's `allowedTools`. Each subagent type is configured by an `AgentDefinition` (description, system prompt, tool restrictions). Subagents run with ISOLATED context: they do not inherit the coordinator's history or share memory, so all needed context, including complete prior findings, must be provided explicitly in the subagent's prompt, ideally as structured data that separates content from metadata (source URLs, document names, page numbers, dates) to preserve attribution. Parallel subagents are launched by emitting multiple Task calls in a single response; fork-based session management lets you explore divergent approaches from a shared analysis baseline. Coordinator prompts should state goals and quality criteria, not step-by-step procedures.",
     "why_it_matters": "These are the exact mechanics that make multi-agent systems work or fail. Forgetting `\"Task\"` silently disables delegation; assuming context inheritance produces subagents that ignore prior findings; sequential spawning wastes latency that parallel Task calls would recover; and unstructured context passing corrupts citations during synthesis.",
@@ -79,9 +73,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-1.4",
-    "task_statement": "1.4",
-    "domain": 1,
+    "id": "concept-0004",
     "title": "Enforcement and handoff patterns in multi-step workflows",
     "concept": "Multi-step agent workflows can order steps two ways. Prompt-based guidance (system-prompt rules, few-shot examples) influences the model probabilistically. Programmatic enforcement (hooks and prerequisite gates) intercepts tool calls and blocks a downstream action until a prerequisite has demonstrably completed—for example, blocking process_refund until get_customer has returned a verified customer ID. Enforcement pairs with two other skills: decomposing multi-concern requests into distinct items investigated in parallel over shared context before a unified resolution, and compiling structured handoff summaries (customer ID, root cause, amount, recommended action) when escalating to humans who lack the transcript.",
     "why_it_matters": "Prompt instructions alone have a non-zero failure rate. When a specific sequence is safety- or money-critical (identity verification before financial operations), that residual failure rate causes misidentified accounts and incorrect refunds. A prerequisite gate converts a probabilistic hope into a deterministic guarantee, which is what compliance-critical business logic requires.",
@@ -102,9 +94,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-1.5",
-    "task_statement": "1.5",
-    "domain": 1,
+    "id": "concept-0005",
     "title": "Agent SDK Hooks for Tool Interception and Data Normalization",
     "concept": "Agent SDK hooks let you insert deterministic code around tool execution. A PostToolUse hook intercepts a tool's returned result and transforms it (for example, normalizing Unix timestamps, ISO 8601 strings, and numeric status codes from different MCP tools into one canonical format) before the model processes it. An outgoing tool-call interception hook inspects the tool call the model requested before it executes, allowing you to enforce compliance rules such as blocking refunds above $500 and redirecting the action to a human-escalation workflow.",
     "why_it_matters": "Prompt instructions only make compliance probabilistic; the model may still violate a rule some fraction of the time. Hooks run in code every time, providing deterministic guarantees. When a rule protects money, privacy, or safety, that certainty is essential, and normalizing data at the hook layer keeps the model from misreading heterogeneous tool outputs.",
@@ -134,9 +124,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-1.6",
-    "task_statement": "1.6",
-    "domain": 1,
+    "id": "concept-0006",
     "title": "Task decomposition strategies: prompt chaining vs. dynamic adaptive decomposition",
     "concept": "Complex workflows are decomposed one of two ways. A fixed sequential pipeline (prompt chaining) hard-wires a known set of subtasks in a known order—for example, reviewing each file individually for local issues, then running a separate cross-file integration pass. Dynamic adaptive decomposition instead generates subtasks from what each step discovers, revising the plan as new dependencies surface—for example, mapping a legacy codebase's structure, finding high-impact areas, then building a prioritized test plan that adapts.",
     "why_it_matters": "Matching the pattern to the workflow drives reliability. Predictable, multi-aspect work runs best on a fixed chain, which is repeatable and cheap to reason about. Open-ended investigation needs adaptation because its subtasks are unknowable in advance. Splitting large reviews into per-file passes plus an integration pass also defeats attention dilution—the cause of shallow, inconsistent, and contradictory single-pass feedback.",
@@ -154,9 +142,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-1.7",
-    "task_statement": "1.7",
-    "domain": 1,
+    "id": "concept-0007",
     "title": "Managing session state: resumption, forking, and knowing when context is stale",
     "concept": "Claude Code sessions accumulate context and tool results over time. You can continue a specific named conversation with `--resume <session-name>`, and you can use `fork_session` to spin off independent branches from a shared analysis baseline to explore divergent approaches (e.g., two refactoring or testing strategies) without cross-contamination. When resuming after code has changed, you inform the agent about the specific files that were modified so it performs targeted re-analysis instead of full re-exploration. When prior tool results have gone stale, starting a new session and injecting a structured summary of the still-valid conclusions is more reliable than resuming with outdated observations.",
     "why_it_matters": "Long-running investigations and multi-approach experiments depend on preserving hard-won context efficiently. Choosing resume vs. fresh-with-summary correctly saves re-exploration cost while keeping the agent's reasoning grounded in accurate, current information.",
@@ -186,9 +172,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-2.1",
-    "task_statement": "2.1",
-    "domain": 2,
+    "id": "concept-0008",
     "title": "Tool descriptions as the primary tool-selection mechanism",
     "concept": "An LLM chooses which tool to call primarily from the tool descriptions, so descriptions are the highest-leverage part of a tool interface. Effective descriptions differentiate each tool by stating its purpose, the input formats it accepts, example queries, edge cases, and boundaries explaining when to use it versus similar alternatives. Minimal or near-identical descriptions (the classic `analyze_content` vs `analyze_document` case) leave the model without a basis to choose and cause misrouting. The proportionate first fix is almost always to expand or clarify descriptions. When overlap is structural, rename and rescope tools to eliminate it (e.g., `analyze_content` becomes `extract_web_results`) or split a generic tool into purpose-specific tools with defined input/output contracts (e.g., `analyze_document` becomes `extract_data_points`, `summarize_content`, and `verify_claim_against_source`). Descriptions are not the only signal: keyword-sensitive system prompt wording can create unintended tool associations that override even well-written descriptions, so system prompts must be reviewed too.",
     "why_it_matters": "Tool selection reliability is a recurring exam theme. Recognizing that descriptions drive selection lets you pick the low-effort, high-leverage remedy (better descriptions) over heavier or misdirected alternatives such as few-shot examples, external routing layers, or tool consolidation, and to know when renaming, rescoping, or splitting is warranted. It also trains you to look past the tools to the system prompt when descriptions are already sound.",
@@ -218,9 +202,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-2.2",
-    "task_statement": "2.2",
-    "domain": 2,
+    "id": "concept-0009",
     "title": "Structured Error Responses for MCP Tools",
     "concept": "MCP tools communicate failures back to the agent by returning a result with the `isError` flag set to `true` alongside descriptive content, keeping failures inside the tool-result channel the model can reason over. Effective error responses classify the failure — transient (timeouts, service unavailability), validation (invalid input), business (policy violations), or permission (insufficient access) — and attach structured metadata: an `errorCategory`, an `isRetryable`/`retriable` boolean, and a human-readable message. Retryable failures (transient) are worth retrying; non-retryable ones (validation, business, permission) are deterministic and will fail identically, so the metadata stops the agent from wasting retries. Subagents should recover transient failures locally and propagate to the coordinator only what they cannot resolve, including partial results and what was attempted. A valid empty result (a successful query with no matches) must be returned as a normal successful response, never conflated with an access failure that needs a retry decision.",
     "why_it_matters": "Structured, categorized error metadata is what lets an agent make appropriate recovery decisions — retry, correct input, escalate, or explain to a user — instead of blindly looping or failing prematurely. It also lets business-rule violations be surfaced to customers with clear, friendly explanations rather than opaque codes.",
@@ -246,9 +228,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-2.3",
-    "task_statement": "2.3",
-    "domain": 2,
+    "id": "concept-0010",
     "title": "Distributing tools across agents and configuring tool_choice",
     "concept": "Reliable multi-agent systems apply least privilege to tools. Giving one agent too many tools (e.g., 18 instead of a focused 4-5) increases decision complexity and degrades tool selection; agents holding tools outside their specialization tend to misuse them (a synthesis agent running its own web searches). The remedy is scoped tool access: each agent gets only the tools its role needs, with narrowly scoped cross-role tools for specific high-frequency needs (e.g., a `verify_fact` tool on the synthesis agent for simple fact-checks, while complex verification still routes through the coordinator). Prefer constrained tools over generic ones (replace `fetch_url` with a `load_document` tool that validates document URLs). Independently, `tool_choice` controls invocation: `\"auto\"` lets the model choose whether to call a tool or reply in text; `\"any\"` guarantees the model calls some tool rather than returning conversational text; and forced selection `{\"type\": \"tool\", \"name\": \"...\"}` guarantees a specific tool is called first (e.g., forcing `extract_metadata` before enrichment), with later steps handled in follow-up turns.",
     "why_it_matters": "The exam tests whether you can diagnose degraded tool selection and cross-role misuse as tool-distribution problems and apply proportionate fixes (scope tools, constrain generic tools, add a narrow cross-role tool) instead of over-provisioning. It also tests precise mapping of the three tool_choice modes to requirements: mixed text/action (auto), guaranteed structured tool output (any), and guaranteed ordering or a required first tool (forced).",
@@ -273,9 +253,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-2.4",
-    "task_statement": "2.4",
-    "domain": 2,
+    "id": "concept-0011",
     "title": "Integrating MCP servers: scoping, secrets, simultaneous tools, and resources",
     "concept": "MCP servers are registered in one of two scopes. Project-level `.mcp.json`, committed to the repository, is for shared team tooling: everyone who clones the repo automatically inherits the same servers. User-level `~/.claude.json` is for personal or experimental servers that apply only to you and are never shared via version control. Because `.mcp.json` is committed, secrets are supplied through environment-variable expansion (e.g., `${GITHUB_TOKEN}`): the file holds only a placeholder while the real value lives in each developer's environment. When Claude Code starts, it connects to every configured server (project and user scope alike) and discovers their tools at connection time; tools from all connected servers are available to the agent simultaneously, with no switching or per-session enabling. Beyond tools, MCP resources expose content catalogs, such as issue summaries, documentation hierarchies, and database schemas, giving the agent up-front visibility into available data so it does not burn latency and tokens on exploratory tool calls. Because agents pick tools from their descriptions, MCP tool descriptions should detail capabilities, appropriate use cases, and outputs so the agent prefers a more capable MCP tool over a built-in like Grep. For standard integrations (e.g., Jira), prefer a mature community server; reserve custom servers for genuinely team-specific workflows.",
     "why_it_matters": "The exam tests whether you can match a requirement to the correct scope (shared vs. personal), keep credentials out of committed config via env expansion, and reason about tool availability. Misplacing a server breaks either team sharing or teammate isolation; committing a literal token leaks a secret; and misunderstanding discovery leads to wrong diagnoses when tools are missing (usually a failed connection from an unset env var, not a scope-priority rule). Knowing resources exist lets you cut exploratory-call overhead instead of raising iteration budgets.",
@@ -304,9 +282,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-2.5",
-    "task_statement": "2.5",
-    "domain": 2,
+    "id": "concept-0012",
     "title": "Selecting and applying built-in tools (Read, Write, Edit, Grep, Glob)",
     "concept": "Each built-in tool answers a distinct question. Grep searches file CONTENTS for a pattern and is the right choice for locating callers of a function, error messages, or import statements across a codebase. Glob matches file PATHS by name/extension pattern (e.g., `**/*.test.tsx`) and enumerates files by naming convention. Read loads a full file and Write replaces its full contents, while Edit makes a targeted modification anchored on unique text. When Edit's anchor text is not unique (or when only one of several identical occurrences should change), the reliable fallback is Read the full file then Write it back with just the intended change. Understanding an unfamiliar codebase is done incrementally: Grep to a concrete entry point, then Read and follow imports along the actual call path rather than reading every file upfront; to trace a wrapper module, Read it to enumerate exported names, then Grep each name for its consumers.",
     "why_it_matters": "Choosing the wrong tool wastes context and produces wrong answers: Glob cannot find callers (it ignores contents), Grep cannot modify files (it is read-only), and reading everything upfront buries the signal. Knowing the Edit-to-Read+Write fallback prevents both failed edits on non-unique anchors and accidental multi-match overwrites, which is exactly the precision the exam probes.",
@@ -336,9 +312,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-3.1",
-    "task_statement": "3.1",
-    "domain": 3,
+    "id": "concept-0013",
     "title": "CLAUDE.md Hierarchy, Scoping, and Modular Organization",
     "concept": "Claude Code loads configuration from a three-level hierarchy: user-level (`~/.claude/CLAUDE.md`, personal to the individual and never shared via version control), project-level (root `CLAUDE.md` or `.claude/CLAUDE.md`, committed and shared with the team), and directory-level (subdirectory `CLAUDE.md` files that add scope for their subtree). Files are additive and load based on the file being worked on; where guidance conflicts, the more specific file closer to the edited file takes precedence. To keep configuration maintainable, `@import` references external files (e.g., a package imports only the shared standards relevant to its domain, single-sourcing them), and a `.claude/rules/` directory splits a monolithic CLAUDE.md into focused topic files such as `testing.md`, `api-conventions.md`, and `deployment.md`. The `/memory` command lists which memory files are currently loaded.",
     "why_it_matters": "Placing instructions at the right level determines whether teammates actually receive them: shared standards must be project-level and committed, while personal preferences belong in user-level config. Modular `@import` and `.claude/rules/` keep guidance focused and single-sourced, and `/memory` lets you verify what is loaded when behavior is inconsistent.",
@@ -372,9 +346,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-3.2",
-    "task_statement": "3.2",
-    "domain": 3,
+    "id": "concept-0014",
     "title": "Custom slash commands and skills: scope, SKILL.md frontmatter, and skills vs CLAUDE.md",
     "concept": "Custom slash commands are defined as files in a `commands/` directory. Project-scoped commands live in the repo's `.claude/commands/` and, being version-controlled, are automatically available to everyone who clones or pulls the repository; user-scoped commands live in `~/.claude/commands/` and are personal to one developer across their projects. There is no `.claude/config.json` `commands` array, and CLAUDE.md does not define commands. Skills live in `.claude/skills/` as directories containing a `SKILL.md` whose frontmatter supports three key fields: `context: fork` runs the skill in an isolated sub-agent context so verbose (e.g., codebase analysis) or exploratory (e.g., brainstorming) output does not pollute the main conversation; `allowed-tools` restricts which tools the skill may call (e.g., limiting to file writes to prevent destructive actions); and `argument-hint` prompts the developer for required parameters when the skill is invoked without arguments. Personal skill variants belong in `~/.claude/skills/` under a different name so teammates are unaffected. Choose skills for on-demand, task-specific workflows and CLAUDE.md for always-loaded universal standards.",
     "why_it_matters": "The exam repeatedly tests whether you place shareable automation in the right location and pick the right mechanism. Putting a team command in `~/.claude/commands/` silently denies it to teammates; putting an occasional workflow in CLAUDE.md wastes always-loaded context; and confusing `context: fork`, `allowed-tools`, and `argument-hint` leads to leaked context, unrestricted destructive tools, or stalled invocations.",
@@ -403,9 +375,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-3.3",
-    "task_statement": "3.3",
-    "domain": 3,
+    "id": "concept-0015",
     "title": "Path-Specific Rules for Conditional Convention Loading",
     "concept": "Files under `.claude/rules/` carry YAML frontmatter with a `paths` field containing glob patterns (e.g., `paths: [\"terraform/**/*\"]` or `paths: [\"**/*.test.tsx\"]`). A rule loads into context only when the file being edited matches one of its glob patterns, so conventions activate conditionally rather than always being present. Because globs match by file type and can use `**` to span any directory depth, one rule can apply a convention to files scattered throughout the codebase regardless of location. This is the key advantage over a directory-bound CLAUDE.md: a CLAUDE.md only governs its own directory, so covering files spread across many folders would mean duplicating it everywhere.",
     "why_it_matters": "Conditional, path-triggered loading keeps only relevant conventions in context, reducing irrelevant tokens, and gives deterministic automatic application by file type. It is the maintainable answer when conventions must span directories, such as test files colocated with the code they test (Sample Question 6).",
@@ -426,9 +396,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-3.4",
-    "task_statement": "3.4",
-    "domain": 3,
+    "id": "concept-0016",
     "title": "Plan mode vs. direct execution, and the Explore subagent",
     "concept": "Plan mode and direct execution are matched to task complexity. Plan mode is designed for complex work—large-scale changes, multiple valid approaches, architectural decisions, and multi-file modifications—because it enables safe codebase exploration and design before committing to changes, preventing costly rework. Direct execution suits simple, well-scoped changes such as a single-file bug fix with a clear stack trace or adding one validation conditional. The Explore subagent isolates verbose discovery output (large reads and searches) and returns a concise summary to the main conversation, preserving context during multi-phase tasks. A powerful combination is using plan mode for investigation and then direct execution for the implementation the plan defines.",
     "why_it_matters": "Choosing the mode by actual complexity is the skill the exam tests. Under-planning a large architectural or multi-file change causes late-discovered dependencies and rework; over-planning a trivial fix wastes effort. Recognizing that stated complexity justifies plan mode immediately—rather than 'switching later'—and that detailed upfront prompts cannot replace exploration are the distinctions that separate correct answers from plausible traps.",
@@ -450,9 +418,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-3.5",
-    "task_statement": "3.5",
-    "domain": 3,
+    "id": "concept-0017",
     "title": "Iterative refinement techniques: examples, test-driven iteration, the interview pattern, and batching interacting issues",
     "concept": "Iterative refinement offers four situational techniques. (1) Concrete input/output examples are the most effective way to communicate an expected transformation when a prose description is interpreted inconsistently; 2-3 representative examples (including edge cases such as null values in a migration) pin down behavior that rewording cannot. (2) Test-driven iteration means writing a test suite covering expected behavior, edge cases, and performance FIRST, then iterating by sharing the specific test failures—exact input, expected, and actual—so each round has a precise, verifiable target. (3) The interview pattern has Claude ask clarifying questions before implementing, surfacing considerations the developer did not anticipate (cache invalidation strategy, acceptable staleness, failure modes), which is especially valuable in unfamiliar domains. (4) Provide all issues in a single detailed message when the fixes INTERACT (a coherent solution must reconcile them together) versus fixing them sequentially when the problems are INDEPENDENT and share no code path or state.",
     "why_it_matters": "Choosing the right technique for the situation is what converts vague, non-converging back-and-forth into measurable, progressive improvement. Examples resolve genuine underspecification; shared test failures make correctness objective; the interview pattern catches unknown unknowns before they are baked into code; and batching interacting fixes prevents patches that undo one another, while sequential handling keeps independent fixes small and individually verifiable.",
@@ -481,9 +447,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-3.6",
-    "task_statement": "3.6",
-    "domain": 3,
+    "id": "concept-0018",
     "title": "Running Claude Code non-interactively in CI/CD with structured, deduplicated, independent review",
     "concept": "To integrate Claude Code into a pipeline, run it non-interactively with the `-p` (or `--print`) flag, which processes the prompt, writes to stdout, and exits instead of waiting for interactive input. Emit machine-parseable findings by combining `--output-format json` with `--json-schema`, so a downstream script can post each finding as an inline PR comment on the right file and line. Supply project context (testing standards, fixture conventions, accepted patterns, review criteria) through a committed CLAUDE.md, which the CI-invoked instance reads automatically. Prefer an independent Claude Code instance for review over the session that generated the code: session context isolation means the author-session carries its own assumptions and is biased toward approving its work, while a fresh instance reviews the diff objectively. On re-runs after new commits, include the prior review's findings in context and instruct Claude to report only new or still-unaddressed issues to avoid duplicate comments; likewise, provide existing test files so test generation targets real coverage gaps rather than duplicating scenarios.",
     "why_it_matters": "CI integration fails in predictable ways: jobs hang without `-p`, brittle prose parsing breaks automated commenting, self-review misses defects, and naive re-runs spam duplicate comments that erode developer trust. Knowing the specific mechanism for each requirement lets you build a review step that runs unattended, posts clean structured findings, and adds signal on every commit instead of noise.",
@@ -512,9 +476,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-4.1",
-    "task_statement": "4.1",
-    "domain": 4,
+    "id": "concept-0019",
     "title": "Explicit criteria and severity rubrics to improve precision and reduce false positives",
     "concept": "Precision in review-style agents comes from explicit, categorical criteria that state exactly which conditions qualify a finding, not from vague instructions or confidence dials. Compare \"flag a comment only when its claimed behavior contradicts what the code actually does\" (checkable, categorical) against \"check that comments are accurate\" (vague, subjective). General instructions such as \"be conservative\" or \"only report high-confidence findings\" fail to improve precision because they never define which issues count; the model keeps applying its own fuzzy standard, so the false-positive mix barely changes. The concrete skills are: writing report/skip criteria (report genuine bugs and security vulnerabilities; skip minor style and established local patterns) instead of confidence filtering; defining explicit severity criteria with a concrete code example for each level so classification is consistent across runs and reviewers; and, when a category is too noisy, temporarily disabling it to restore trust while its prompt is rewritten with explicit criteria, re-enabling only after its false-positive rate is verified low.",
     "why_it_matters": "False-positive rates directly determine whether developers act on an agent's output. High false-positive categories undermine confidence in the accurate categories too, so a single noisy category (e.g., style) can cause developers to ignore trustworthy security findings. Fixing precision with explicit criteria and severity rubrics, rather than generic calibration language, is what keeps the tool trusted and used.",
@@ -544,9 +506,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-4.2",
-    "task_statement": "4.2",
-    "domain": 4,
+    "id": "concept-0020",
     "title": "Few-shot prompting for output consistency and quality",
     "concept": "Few-shot prompting supplies concrete input/output examples in the prompt and is the most effective technique for achieving consistently formatted, actionable output when detailed instructions alone produce inconsistent results. For ambiguous scenarios, create 2-4 targeted examples that show the reasoning for why one action was chosen over plausible alternatives (e.g., which tool to select for an underspecified request). Examples that demonstrate the specific desired output format (location, issue, severity, suggested fix) enforce structural consistency, and examples that distinguish acceptable patterns from genuine issues reduce false positives. Crucially, well-constructed examples let the model generalize its judgment to novel patterns rather than matching only the pre-specified cases. In extraction tasks, few-shot examples reduce hallucination and empty/null extraction of required fields by demonstrating correct handling of informal measurements and varied document structures (inline citations vs bibliographies, dedicated methodology sections vs details embedded in prose).",
     "why_it_matters": "The exam repeatedly presents situations where prose instructions have already failed to produce consistent formatting, correct ambiguous-case handling, or faithful extraction. Recognizing that a small set of targeted, reasoning-bearing examples outperforms longer instructions, more determinism tweaks, or task decomposition is the decision the questions test, along with knowing that examples must cover the varied cases and demonstrate the full desired format.",
@@ -571,9 +531,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-4.3",
-    "task_statement": "4.3",
-    "domain": 4,
+    "id": "concept-0021",
     "title": "Enforcing structured output with tool use and JSON schemas",
     "concept": "Tool use with JSON schemas is the most reliable way to obtain guaranteed schema-compliant structured output: Claude emits a `tool_use` block whose `input` conforms to the tool's declared schema, so the result is always valid, well-shaped JSON and you read structured data directly from that block instead of parsing free text. The `tool_choice` parameter controls the guarantee: `\"auto\"` lets the model return text OR call a tool; `\"any\"` forces some tool call while letting the model pick which schema (ideal when several extraction tools exist and the document type is unknown); and forced selection `{\"type\":\"tool\",\"name\":\"extract_metadata\"}` requires a specific named tool, which is how you ensure a particular extraction runs (e.g., before enrichment steps). Critically, strict schemas eliminate SYNTAX errors but not SEMANTIC errors: a schema cannot enforce that line items sum to the stated total or that values land in the right field, so semantic validation remains a separate concern. Schema design prevents downstream problems: mark fields optional/nullable when a source may not contain the information (so the model returns `null` rather than fabricating a value to satisfy a required field), use enums with an `\"other\"` value plus a detail string for extensible categories (and `\"unclear\"` for ambiguity), and pair the strict schema with prompt-level normalization rules to handle inconsistent source formatting (dates to ISO 8601, stripping currency symbols).",
     "why_it_matters": "The exam tests whether you reach for tool-use schemas instead of prompt-and-parse hacks, and whether you can match the right `tool_choice` mode to the requirement (guarantee output at all vs. guarantee a specific tool). It also probes the syntax-vs-semantic distinction, since believing a strict schema catches arithmetic or field-placement mistakes leads to shipping wrong-but-well-formed data. Correct schema design (nullable fields, enum+other) is the proportionate fix for fabrication and taxonomy drift.",
@@ -607,9 +565,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-4.4",
-    "task_statement": "4.4",
-    "domain": 4,
+    "id": "concept-0022",
     "title": "Validation, retry, and feedback loops for extraction quality",
     "concept": "Robust extraction pairs validation with targeted correction. Retry-with-error-feedback resends the original document, the failed extraction, and the specific validation errors so the model can self-correct; this works for format and structural/output errors but is futile when the required information is absent from the source (the fix there is to supply the missing data). Distinguish schema syntax errors (malformed or non-conformant output), which tool use with a defined schema eliminates, from semantic validation errors (values that don't sum, wrong field placement, contradictory sources), which remain your responsibility. Design self-correction into the output shape: extract a `calculated_total` alongside `stated_total` to flag discrepancies, add a `conflict_detected` boolean for inconsistent source data, and record a `detected_pattern` on each finding so dismissed false positives can be aggregated and analyzed by triggering construct.",
     "why_it_matters": "The exam tests whether you can route each failure to a proportionate fix rather than applying a blanket retry policy. Blind identical resubmission wastes calls and risks hallucination on missing-data cases; appending specific errors converts many structural failures into cheap successes. Knowing which errors tool use already prevents (syntax) versus which need explicit checks (semantic) keeps validation effort where it actually pays off.",
@@ -639,9 +595,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-4.5",
-    "task_statement": "4.5",
-    "domain": 4,
+    "id": "concept-0023",
     "title": "Designing efficient batch processing strategies with the Message Batches API",
     "concept": "The Message Batches API trades latency for cost: it delivers 50% cost savings and processes requests within a window of up to 24 hours, but offers NO guaranteed latency SLA. That makes it the right tool for non-blocking, latency-tolerant workloads (overnight technical debt reports, weekly audits, nightly test generation) and the wrong tool for blocking workflows where someone waits on the result (pre-merge checks, real-time interactions), which belong on the synchronous API. Each request carries a unique `custom_id` that the API echoes on the matching result, so responses correlate to requests regardless of completion order. A batch request is processed non-interactively and therefore cannot do multi-turn tool calling within a single request (it cannot pause to run a tool and feed the result back mid-request). Sound strategy also includes: refining the prompt on a small sample before processing large volumes to maximize first-pass success and reduce resubmission cost; on failure, resubmitting only the failed items (by `custom_id`) with fixes such as chunking oversized documents; and computing submission cadence from the SLA, where total time = wait-until-next-batch + up to 24h processing (e.g., a 6-hour submission interval keeps work inside a 30-hour SLA).",
     "why_it_matters": "The exam repeatedly forces a choice between cost savings and latency guarantees. Choosing batch for a blocking workflow, or 'poll-and-hope' / timeout-fallback hybrids, either stalls people who are waiting or adds needless complexity while forfeiting the savings. Knowing that batching has no latency SLA, that `custom_id` handles correlation, and that batches cannot run interactive tool loops lets you match each workload to the correct API and design failure handling and submission cadence that actually meet the SLA.",
@@ -667,9 +621,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-4.6",
-    "task_statement": "4.6",
-    "domain": 4,
+    "id": "concept-0024",
     "title": "Multi-instance and multi-pass review architectures",
     "concept": "Effective review of AI-generated code separates the reviewer from the generator and separates local from cross-file analysis. Self-review is weak because a model that just generated code retains its reasoning context and is biased toward defending its own decisions in the same session; an independent instance with no prior context catches subtle issues more effectively than either self-review instructions or extended thinking. For large multi-file reviews, a single pass over everything dilutes attention, producing inconsistent depth, missed bugs, and contradictory findings (approving a pattern in one file while flagging identical code in another). The fix is multi-pass review: focused per-file local passes for within-file issues, plus a separate cross-file integration pass that examines data flow and contracts between files. A verification pass in which the model self-reports confidence alongside each finding enables calibrated routing, sending uncertain or high-severity findings to humans while fast-tracking confident low-risk ones.",
     "why_it_matters": "Review is the last line of defense against defects in generated code, and the naive designs fail in specific, testable ways. Trusting self-review lets generation bias hide real bugs; loading a whole PR into one pass dilutes attention; upgrading to a bigger context window fixes fit but not attention quality; and requiring consensus across multiple full-PR runs suppresses subtle bugs that only surface intermittently. Matching each mechanism (independence, per-file passes, integration pass, confidence-tagged verification) to the failure it addresses is exactly what the exam probes.",
@@ -703,9 +655,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-5.1",
-    "task_statement": "5.1",
-    "domain": 5,
+    "id": "concept-0025",
     "title": "Managing conversation context to preserve critical information across long interactions",
     "concept": "Long agent interactions face three distinct context pressures. First, progressive summarization condenses exact numerical values, percentages, dates, and customer-stated expectations into vague approximations; the countermeasure is to extract transactional facts (amounts, dates, order numbers, statuses) into a persistent \"case facts\" block, and for multi-issue sessions a separate structured issue-data layer, that is included verbatim in each prompt outside the summarized history. Second, the \"lost in the middle\" effect means models attend to the beginning and end of long inputs reliably but omit middle content; mitigate it by placing a key-findings summary at the beginning and organizing detailed results with explicit section headers. Third, tool results accumulate and consume tokens disproportionately to their relevance (40+ fields when only 5 matter), so trim verbose outputs to only the relevant fields before they enter history, and have upstream agents return structured data (key facts, citations, relevance scores, and metadata such as dates and source locations) instead of verbose content and reasoning chains when downstream agents have limited budgets. Because the API is stateless per request, complete conversation history must still be passed each turn; these techniques control its size without discarding it.",
     "why_it_matters": "In support and multi-agent workflows, silently dropping a dollar amount, a date, or a middle finding produces confidently wrong actions: refunding the wrong amount, missing an escalation window, or synthesizing a report that omits whole topics. Structural fixes (persistent facts, front-loaded summaries with headers, trimmed and structured outputs) preserve fidelity where a bigger context window or longer prose summaries only delay the failure.",
@@ -735,9 +685,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-5.2",
-    "task_statement": "5.2",
-    "domain": 5,
+    "id": "concept-0026",
     "title": "Escalation Triggers and Ambiguity Resolution",
     "concept": "Effective escalation is driven by explicit, observable criteria rather than emotional or self-assessed signals. There are three legitimate triggers: an explicit customer request for a human (escalate immediately, without first investigating), a policy exception, gap, or silence on the customer's specific request (e.g., competitor price matching when policy only covers own-site adjustments), and an inability to make meaningful progress (stop looping and hand off). When the issue is straightforward and within the agent's capability, the agent should acknowledge any frustration while offering to resolve, escalating only if the customer reiterates a preference for a human. When a tool returns multiple customer matches, the agent asks for an additional identifier to disambiguate rather than selecting a record heuristically. The reliable way to teach these boundaries is to add explicit escalation criteria plus few-shot examples of escalate-versus-resolve cases to the system prompt.",
     "why_it_matters": "Miscalibrated escalation is what keeps first-contact resolution below target: agents escalate easy cases and attempt hard ones. Grounding the decision in explicit criteria and few-shot examples corrects the boundaries proportionately, before reaching for a trained classifier or other heavy infrastructure, and it protects customers by never acting on the wrong account or inventing policy the agent has no authority to create.",
@@ -758,9 +706,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-5.3",
-    "task_statement": "5.3",
-    "domain": 5,
+    "id": "concept-0027",
     "title": "Error propagation strategies across multi-agent systems",
     "concept": "When a subagent hits a failure, how it reports that failure determines whether the coordinator can recover. The strong pattern is structured error context: failure type, the attempted query, any partial results, and potential alternative approaches. This lets the coordinator make an intelligent choice, retry with a modified query, reroute to an alternative source, or proceed with partial results and annotate the gap. Reporting must distinguish access failures (e.g., timeouts that may warrant a retry decision) from valid empty results (successful queries with no matches), because the appropriate response differs. Subagents implement local recovery for transient failures (such as a quick retry on a connection reset) and only propagate errors they cannot resolve, always including what was attempted and any partial results. Finally, the synthesis agent structures output with coverage annotations that separate well-supported findings from topic areas left incomplete because a source was unavailable.",
     "why_it_matters": "The exam tests whether you can keep a multi-agent workflow both honest and resilient under partial failure. Generic statuses like \"search unavailable\" hide the context the coordinator needs, so recovery collapses into blind retries or nothing. The two mirror-image anti-patterns are equally damaging: silently suppressing errors (returning empty results as success) ships incomplete work that looks complete, while terminating the whole workflow on a single failure throws away every other subagent's results. Structured error context plus coverage annotations is what lets the system degrade gracefully and report its own limits.",
@@ -794,9 +740,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-5.4",
-    "task_statement": "5.4",
-    "domain": 5,
+    "id": "concept-0028",
     "title": "Managing context in large codebase exploration",
     "concept": "Long exploration sessions suffer context degradation: as the window fills, the model gives inconsistent answers and references 'typical patterns' rather than the specific classes and files it discovered earlier. Four complementary techniques counteract this. (1) Scratchpad files persist key findings to disk so specifics survive across context boundaries and can be re-read for later questions. (2) Subagent delegation isolates verbose exploration output (e.g., 'find all test files,' 'trace refund flow dependencies') inside a subagent that returns only a concise result, while the main agent coordinates high-level understanding; summarizing each phase's findings and injecting them into the next phase's subagents carries knowledge forward compactly. (3) Structured state persistence enables crash recovery: each agent exports state to a known location, and on resume the coordinator loads a manifest of those exports and injects the recovered state into agent prompts. (4) /compact reduces context usage in place when the window fills with verbose discovery output.",
     "why_it_matters": "In real large-codebase work, the most valuable early discoveries are exactly what a saturated context loses first, turning a precise agent into one that hand-waves about 'typical' designs and contradicts itself. Externalizing findings (scratchpads, exported state manifests) and offloading verbosity (subagents, /compact) are what keep an extended, possibly multi-day, exploration accurate and resumable after crashes.",
@@ -814,9 +758,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-5.5",
-    "task_statement": "5.5",
-    "domain": 5,
+    "id": "concept-0029",
     "title": "Human review workflows and confidence calibration: seeing past aggregate accuracy",
     "concept": "A single aggregate accuracy metric (e.g., 97% overall) is a volume-weighted average that can mask systematically poor performance on specific document types or fields, so before automating high-confidence extractions you must validate accuracy broken out by document type and field segment and confirm it is consistently acceptable across every segment. Field-level confidence scores are not inherently calibrated probabilities: a raw 0.90 may correspond to very different true accuracies per field, so you calibrate scores against a labeled validation set to learn the real accuracy of each score band and set evidence-based auto-approval thresholds. Routing then directs extractions with low model confidence or ambiguous/contradictory source documents to human review while auto-approving the well-calibrated high-confidence remainder, concentrating limited reviewer capacity where errors are most likely. After launch, continuous stratified random sampling of high-confidence, auto-approved extractions, with error rates tracked per segment over time, keeps measuring the true error rate and surfaces novel error patterns and drift that an aggregate would dilute away.",
     "why_it_matters": "Turning off human review based on a headline accuracy number is how confidently-wrong extractions reach production undetected: a rare but critical segment (scanned international invoices, handwritten forms, a changed vendor template) can fail almost completely while the aggregate barely moves. Validating by segment, calibrating confidence against labeled data, routing by risk, and sampling continuously lets you reduce review cost without silently degrading accuracy on the segments that matter.",
@@ -837,9 +779,7 @@
     ]
   },
   {
-    "id": "ccarf-concept-5.6",
-    "task_statement": "5.6",
-    "domain": 5,
+    "id": "concept-0030",
     "title": "Preserving provenance and handling uncertainty in multi-source synthesis",
     "concept": "In multi-agent research systems, source attribution is lost when subagent findings are compressed into free-text summaries that do not preserve which source supports which claim. The fix is structured claim-source mappings: each subagent pairs every claim with its source (URL/document name) and a relevant excerpt, and the synthesis agent preserves and merges these mappings so corroborated claims retain all their sources. Conflicting statistics from credible sources are annotated with source attribution and methodological context, not arbitrarily selected, averaged, or dropped; analysis subagents pass both values forward and let the coordinator reconcile before synthesis. Temporal data must carry publication/collection dates in structured outputs so time-separated measurements are interpreted as trends rather than contradictions. Finally, synthesis outputs render each content type appropriately, financial data as tables, news as prose, technical findings as structured lists, and separate well-established findings from contested ones rather than flattening everything into one uniform format.",
     "why_it_matters": "The exam tests whether you can locate and fix provenance and uncertainty failures in the synthesis layer. Recognizing that attribution decays at summarization, that conflicts must be surfaced not resolved arbitrarily, that missing dates create false contradictions, and that content type drives rendering lets you design pipelines whose final reports remain traceable, honest about disagreement, and readable.",

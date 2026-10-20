@@ -32,7 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import flashcards as core  # noqa: E402
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 # --------------------------------------------------------------------------
@@ -324,7 +324,7 @@ def main(argv=None):
     if missing:
         parser.error(f"file(s) not found: {', '.join(str(p) for p in missing)}")
 
-    cards = core.load_flashcards(args.files)
+    cards = core.load_flashcards(args.files, args.item_tasks)
     if not cards:
         raise SystemExit("error: no flashcards loaded from the given file(s)")
 
