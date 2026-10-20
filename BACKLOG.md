@@ -5,7 +5,15 @@ Usage:
 - Two sections exist: **Open**, for incomplete/outstanding items; and **Completed**, for those resolved — by completion, descoping, tabling, etc. When resolving, move the item to Completed with a one-line note on how.
 - Open items are generally resolved per-section, top-down (Fixes, then Changes, then Additions). This is a guideline, not a hard rule — items may be completed out of order when dependencies or priorities require it (see Sequencing).
 
-Sequencing note: BL-001 adds a **Labs** nav entry that does not exist until BL-003 ships, so the recommended order is **BL-002 → BL-003 → BL-001** (a deliberate deviation from strict top-down).
+Sequencing note: the multi-exam refactor (BL-043 → BL-048) is sequential — each item depends on the one before it. BL-043 is first; BL-044–BL-047 refactor the app around CCAR-F as the *only* exam (no visible behavior change beyond naming); BL-048 then adds CCDV-F as mostly content work.
+
+Multi-exam design (applies to BL-044–BL-048):
+- **Exam codes / slugs:** official codes from the exam guides — **CCAR-F** (Claude Certified Architect – Foundations) and **CCDV-F** (Claude Certified Developer – Foundations) — in user-facing text; lowercase, no hyphen slugs **`ccarf`** / **`ccdvf`** in every file name, directory, ID, storage key, and CLI flag value.
+- **Components:** each content set (a question tier, a flashcard deck, a concept set, the labs index) becomes a standalone, versioned *component* registered in `study/content/components.json` as `{id, kind, version, file, task_scheme}`. `task_scheme` names the exam whose task-statement IDs the component's items are tagged with. Item IDs are globally unique and slug-prefixed (`ccarf-q-1.1-001`) so components can be shared across exams without collisions.
+- **Exams:** `study/exams/<slug>/exam.json` holds the exam's code, name, guide, domains + weights, task statements, scenarios, task→lab map, and per-section component pins — e.g. `"questions": [{"component": "ccarf-questions-standard", "version": "^1.0", "label": "Standard"}]`. `study/exams/index.json` lists the available exams.
+- **Versions are compatibility assertions, not stored copies:** only one copy of each component lives on disk (git history is the archive). Tests fail if an exam's pin doesn't match the component's `version`. A component that must diverge for one exam is forked under a new ID, not kept as parallel versions. Bump the major version on any breaking change (re-keyed IDs, changed task tags).
+- **Cross-exam reuse:** an exam reuses a component from another `task_scheme` through an exam-side task mapping (`study/exams/<slug>/mappings/<component>.json`, foreign task ID → this exam's task ID). This is designed with real data in BL-048; BL-044 only reserves the shape.
+- **Engine version** (`app_version`, pyproject, serve.py) remains separate from component versions.
 
 ## Open
 
@@ -15,11 +23,15 @@ None.
 
 ### Changes
 
-None.
+- [ ] BL-043 - Repo: rename `cert-anthropic-ccaf-2026` → `cert-anthropic-2026` on GitHub (both `craigforr` and `cfrscorp`); repoint every local clone's remotes (`origin` fetch + both push URLs, `mirror`); update in-repo references to the old name (`README.md` clone instructions, project memory). Optionally rename the local clone folders — moving the Claude Code project-memory dir to match.
+- [ ] BL-044 - Data: restructure `study/data/` into reusable versioned components (`study/content/`) + per-exam manifests (`study/exams/ccarf/exam.json`, `study/exams/index.json`), per the multi-exam design above. Move `meta.json`'s exam-specific domains/tasks/lab map into the CCAR-F exam manifest; evolve `sets.json` into `components.json`; slug-prefix all item IDs (`q-…` → `ccarf-q-…`, likewise flashcards/concepts); move the exam guides to `exams/ccarf/` (`anthropic-ccarf-exam-guide-2026-0{6,7}.md`). Add schemas for `exam.json`/`components.json`; parametrize `study/tests` over every exam in the index, including pin↔version compatibility and component-file existence. `build_labs.py` writes the labs component. `cd study && uv run pytest` green.
+- [ ] BL-045 - Web UI: make `study/web/app.js` exam-aware — load `exams/index.json`, add an exam picker (hidden while there's only one exam), resolve each section's sets from the exam's component pins, and namespace localStorage keys per exam (`study-ccarf-progress-v1`, etc.). One-time migration of the existing `ccaf-study-*` keys and old (unprefixed) question/flashcard IDs into the new keys, so existing progress carries over. Export/import files are tagged with the exam slug. Verify in a real browser.
+- [ ] BL-046 - CLI/TUI: add `--exam ccarf` (default while it's the only exam) to `quiz.py`/`quiz_tui.py`/`flashcards.py`/`flashcards_tui.py` so they resolve component files through the exam manifest (explicit file paths still work); per-exam history files in `.working/` with a migration of the existing history (including ID re-keying); update the `--help` Examples; bump each tool's `__version__`.
+- [ ] BL-047 - Naming sweep + docs: replace remaining "CCAF"/`ccaf` with CCAR-F/`ccarf` across UI text, `serve.py` output, labs READMEs/SOLUTIONs/tests, `README.md`, `study/README.md`, `labs/README.md`, `.claude/CLAUDE.md`, and the project memory; reframe the root README as a multi-exam repo; bump `app_version` (lockstep with pyproject + `serve.py`) for the release. `git grep -i ccaf` should come back empty, apart from Completed backlog notes and the migration code that reads the old keys.
 
 ### Additions
 
-None.
+- [ ] BL-048 - Exam: add CCDV-F (Claude Certified Developer – Foundations). Add its exam guide under `exams/ccdvf/`; author `study/exams/ccdvf/exam.json`; map CCAR-F components (and labs) it can reuse through `mappings/`, and finalize that mapping design against real task statements; author CCDV-F-native components (question tiers, flashcards, concepts) and any new labs to cover its task statements. Enable the exam picker. Blocked on obtaining the CCDV-F exam guide.
 
 ## Completed
 
