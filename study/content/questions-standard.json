@@ -3001,7 +3001,7 @@
     ],
     "correct": "D",
     "rationale": {
-      "correct": "`tool_choice: \"any\"` guarantees the model calls a tool rather than producing conversational text, while still letting it decide which tool best fits the input — exactly the requirement here.",
+      "correct": "`tool_choice: \"any\"` guarantees the model calls a tool rather than producing conversational text, while still letting it decide which tool best fits the input — exactly the requirement here. Model support: forced tool use (`\"any\"` or a named tool) works on most Claude models, but the newest ones (e.g. Claude Opus 5.5 and Sonnet 5.5) reject it with a 400. There, get the same guarantee with `\"auto\"` plus a prompt instruction naming the tool and `strict: true` on its schema, or with structured outputs (`output_config.format`).",
       "distractors": {
         "A": "`\"auto\"` lets the model decide whether to call a tool or reply with text, so it does not guarantee a tool call and would still allow the conversational replies that break the pipeline.",
         "B": "Forcing a single named tool does guarantee a tool call, but it removes the model's ability to choose among tools; the scenario only requires that some tool be called, so this is more restrictive than needed.",
@@ -3040,7 +3040,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Forced tool selection, `{\"type\": \"tool\", \"name\": \"extract_metadata\"}`, guarantees that specific tool is called first. You then process subsequent steps in follow-up turns (for example switching to `\"auto\"`) so enrichment proceeds after metadata exists.",
+      "correct": "Forced tool selection, `{\"type\": \"tool\", \"name\": \"extract_metadata\"}`, guarantees that specific tool is called first. You then process subsequent steps in follow-up turns (for example switching to `\"auto\"`) so enrichment proceeds after metadata exists. Model support: forced tool use (`\"any\"` or a named tool) works on most Claude models, but the newest ones (e.g. Claude Opus 5.5 and Sonnet 5.5) reject it with a 400. There, get the same guarantee with `\"auto\"` plus a prompt instruction naming the tool and `strict: true` on its schema, or with structured outputs (`output_config.format`).",
       "distractors": {
         "B": "`\"any\"` guarantees only that some tool is called, not which one, so the model could still call an enrichment tool before `extract_metadata`.",
         "C": "`\"auto\"` plus a prompt instruction is a soft ordering hint the model can skip; it does not guarantee metadata extraction runs first.",
@@ -6334,7 +6334,7 @@
     ],
     "correct": "C",
     "rationale": {
-      "correct": "Forced tool selection with `{\"type\": \"tool\", \"name\": \"extract_invoice\"}` requires the model to call that specific named tool, which is the guarantee you want when exactly one extraction must always run.",
+      "correct": "Forced tool selection with `{\"type\": \"tool\", \"name\": \"extract_invoice\"}` requires the model to call that specific named tool, which is the guarantee you want when exactly one extraction must always run. Model support: forced tool use (`\"any\"` or a named tool) works on most Claude models, but the newest ones (e.g. Claude Opus 5.5 and Sonnet 5.5) reject it with a 400. There, get the same guarantee with `\"auto\"` plus a prompt instruction naming the tool and `strict: true` on its schema, or with structured outputs (`output_config.format`).",
       "distractors": {
         "A": "`\"auto\"` lets the model decide whether to call a tool at all, so it may return plain text instead of the structured extraction.",
         "B": "`\"any\"` guarantees the model calls some tool but lets it choose which one; with a single tool it happens to work, but the setting that expresses \"this exact tool\" is forced selection, and the intent-precise answer is C.",
@@ -6373,7 +6373,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "`\"any\"` guarantees the model calls a tool (so you always get structured output) while letting it select the schema that matches the detected document type. This is the canonical fit when multiple extraction schemas exist and the type is unknown.",
+      "correct": "`\"any\"` guarantees the model calls a tool (so you always get structured output) while letting it select the schema that matches the detected document type. This is the canonical fit when multiple extraction schemas exist and the type is unknown. Model support: forced tool use (`\"any\"` or a named tool) works on most Claude models, but the newest ones (e.g. Claude Opus 5.5 and Sonnet 5.5) reject it with a 400. There, get the same guarantee with `\"auto\"` plus a prompt instruction naming the tool and `strict: true` on its schema, or with structured outputs (`output_config.format`).",
       "distractors": {
         "B": "Forcing `extract_invoice` misapplies the invoice schema to receipts, contracts, and purchase orders, corrupting extraction for every non-invoice document.",
         "C": "`\"auto\"` permits a plain-text reply, defeating the requirement to always receive structured output.",
@@ -6529,7 +6529,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Forcing the specific tool with `{\"type\": \"tool\", \"name\": \"extract_metadata\"}` on the first request deterministically runs that extraction before enrichment; you then switch to `\"auto\"` (or `\"any\"`) once the prerequisite has completed.",
+      "correct": "Forcing the specific tool with `{\"type\": \"tool\", \"name\": \"extract_metadata\"}` on the first request deterministically runs that extraction before enrichment; you then switch to `\"auto\"` (or `\"any\"`) once the prerequisite has completed. Model support: forced tool use (`\"any\"` or a named tool) works on most Claude models, but the newest ones (e.g. Claude Opus 5.5 and Sonnet 5.5) reject it with a 400. There, get the same guarantee with `\"auto\"` plus a prompt instruction naming the tool and `strict: true` on its schema, or with structured outputs (`output_config.format`).",
       "distractors": {
         "B": "`\"any\"` guarantees some tool call but not which one, so the model may run an enrichment tool before metadata exists.",
         "C": "Tool array ordering does not dictate call order; the model selects tools from descriptions and context, not list position.",

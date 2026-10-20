@@ -364,7 +364,7 @@
   {
     "id": "fc-0041",
     "front": "What are the three `tool_choice` modes and when do you use each?",
-    "back": "`\"auto\"`: model decides per turn whether to call a tool or reply with text (mixed conversational/action agents). `\"any\"`: model must call some tool but chooses which (guarantee structured tool output over free text). Forced `{\"type\":\"tool\",\"name\":\"...\"}`: guarantee a specific tool runs (e.g., `extract_metadata` first), then continue in follow-up turns.",
+    "back": "`\"auto\"`: model decides per turn whether to call a tool or reply with text (mixed conversational/action agents). `\"any\"`: model must call some tool but chooses which (guarantee structured tool output over free text). Forced `{\"type\":\"tool\",\"name\":\"...\"}`: guarantee a specific tool runs (e.g., `extract_metadata` first), then continue in follow-up turns. (Forced modes — `\"any\"` and a named tool — are rejected with a 400 on the newest models, e.g. Claude Opus 5.5 / Sonnet 5.5; there use `\"auto\"` + `strict: true`, or structured outputs.)",
     "tags": [
       "tool_choice",
       "auto",
@@ -811,7 +811,7 @@
   {
     "id": "fc-0090",
     "front": "What do the three `tool_choice` modes each guarantee: `\"auto\"`, `\"any\"`, and `{\"type\":\"tool\",\"name\":...}`?",
-    "back": "`\"auto\"`: the model MAY call a tool or return plain text. `\"any\"`: the model MUST call some tool but chooses which one (use when multiple extraction schemas exist and the doc type is unknown). Forced `{\"type\":\"tool\",\"name\":...}`: the model MUST call that specific named tool (use to guarantee a particular extraction runs, e.g., before enrichment).",
+    "back": "`\"auto\"`: the model MAY call a tool or return plain text. `\"any\"`: the model MUST call some tool but chooses which one (use when multiple extraction schemas exist and the doc type is unknown). Forced `{\"type\":\"tool\",\"name\":...}`: the model MUST call that specific named tool (use to guarantee a particular extraction runs, e.g., before enrichment). (Forced modes — `\"any\"` and a named tool — are rejected with a 400 on the newest models, e.g. Claude Opus 5.5 / Sonnet 5.5; there use `\"auto\"` + `strict: true`, or structured outputs.)",
     "tags": [
       "tool_choice",
       "structured-output"
@@ -1227,7 +1227,7 @@
   {
     "id": "fc-0138",
     "front": "PreToolUse vs. PostToolUse hooks: when does each fire, and what is each for?",
-    "back": "PreToolUse fires before a tool runs and can deny it, ask for approval, or modify its input, so use it for deterministic policy enforcement. PostToolUse fires after the tool has run: use it to log or audit the call, give the model feedback or extra context, or (for MCP tools) replace the output. It cannot prevent the action."
+    "back": "PreToolUse fires before a tool runs and can deny it, ask for approval, or modify its input, so use it for deterministic policy enforcement. PostToolUse fires after the tool has run: use it to log or audit the call, give the model feedback or extra context, or replace the tool's output before the model sees it (`updatedToolOutput`). It cannot prevent the action."
   },
   {
     "id": "fc-0139",

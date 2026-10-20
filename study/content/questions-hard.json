@@ -1869,7 +1869,7 @@
     ],
     "correct": "D",
     "rationale": {
-      "correct": "`\"any\"` is exactly this case: it guarantees a tool call rather than conversational text, while leaving the choice among the four schemas to the model. That matches a pipeline where the document type is unknown but some extraction must always occur.",
+      "correct": "`\"any\"` is exactly this case: it guarantees a tool call rather than conversational text, while leaving the choice among the four schemas to the model. That matches a pipeline where the document type is unknown but some extraction must always occur. Model support: forced tool use (`\"any\"` or a named tool) works on most Claude models, but the newest ones (e.g. Claude Opus 5.5 and Sonnet 5.5) reject it with a 400. There, get the same guarantee with `\"auto\"` plus a prompt instruction naming the tool and `strict: true` on its schema, or with structured outputs (`output_config.format`).",
       "distractors": {
         "A": "Classify-then-force is a legitimate architecture and gives the strongest guarantee about which schema runs, so it is a defensible design. It adds a step and a round trip, and the scenario states no reliable classifier exists — so you would be building the missing component to solve a problem `\"any\"` already handles.",
         "B": "`\"auto\"` is the current permissive behavior and is what allows the conversational replies. Adding a prompt instruction makes compliance more likely but not guaranteed, which leaves the pipeline breaking intermittently.",
