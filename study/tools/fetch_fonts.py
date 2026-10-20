@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Self-host Google Fonts for the CCAF study app (keeps it fully offline).
+"""Self-host Google Fonts for the Claude certification study app (keeps it fully offline).
 
 Fetches the Google Fonts CSS2 stylesheet (with a browser User-Agent so Google
 serves modern woff2), downloads only the `latin` subset for each requested

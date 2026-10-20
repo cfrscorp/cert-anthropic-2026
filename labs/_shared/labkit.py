@@ -1,4 +1,4 @@
-"""Shared helpers for CCAF lab tests.
+"""Shared helpers for CCAR-F lab tests.
 
 The important one is `lab_module`: it imports the module under test from either
 the learner's `starter/` directory (default) or the reference `solution/`

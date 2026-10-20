@@ -1,6 +1,6 @@
 """Reference implementation: workflow-mode and refinement decision helpers.
 
-This module encodes the judgment calls from CCAF Task Statements 3.4 and 3.5 as
+This module encodes the judgment calls from CCAR-F Task Statements 3.4 and 3.5 as
 three small, pure functions so they can be exercised deterministically:
 
     choose_mode(task)          -> "plan" | "direct"

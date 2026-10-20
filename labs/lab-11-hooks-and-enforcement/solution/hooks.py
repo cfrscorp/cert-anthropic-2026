@@ -2,7 +2,7 @@
 
 This module implements the four programmatic-enforcement primitives from Task
 Statements 1.5 (hooks for interception and normalization) and 1.4 (prerequisite
-gates and structured handoffs) of the CCAF exam guide:
+gates and structured handoffs) of the CCAR-F exam guide:
 
 - ``post_tool_use_normalize`` — a ``PostToolUse``-style hook that rewrites a raw
   tool result into one canonical shape *before the model ever sees it*, so the

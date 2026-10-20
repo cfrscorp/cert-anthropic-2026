@@ -10,7 +10,7 @@ Public API (must match solution/):
 These functions build *prompts*; none of them call Claude, so there is no client
 to inject.
 
-Grounding (CCAF exam guide, Domain 4):
+Grounding (CCAR-F exam guide, Domain 4):
   * Task Statement 4.1 — explicit categorical criteria beat vague instructions;
     false positives erode trust across every category; define severity with
     concrete code examples.

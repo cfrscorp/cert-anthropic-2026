@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Serve the CCAF study app locally.
+"""Serve the Claude certification study app locally.
 
 Runs a tiny standard-library HTTP server rooted at this ``study/`` directory so
 the browser can ``fetch()`` the JSON data files (which it cannot do from a raw
@@ -27,7 +27,7 @@ import threading
 import webbrowser
 from pathlib import Path
 
-__version__ = "1.1.0"
+__version__ = "2.0.0"
 
 STUDY_ROOT = Path(__file__).resolve().parent
 
@@ -52,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="serve.py",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Serve the CCAF study app on http://localhost and open it in your browser.",
+        description="Serve the Claude certification study app on http://localhost and open it in your browser.",
         epilog=(
             "Examples:\n"
             "  # Start the app (auto-opens the browser at /web/):\n"
@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     port = httpd.server_address[1]
     url = f"http://{args.host}:{port}/web/"
     with httpd:
-        print(f"CCAF study app serving {STUDY_ROOT}")
+        print(f"Claude certification study app serving {STUDY_ROOT}")
         print(f"  → {url}")
         print("Press Ctrl+C to stop.")
         if not args.no_browser:

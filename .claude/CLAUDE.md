@@ -2,14 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# CCAF exam-prep repository
+# Claude certification exam-prep repository
 
-Study materials for the **Claude Certified Architect – Foundations (CCAF)** exam.
+Study materials for Anthropic's Claude certification exams, built to hold any number of exams. Current: **CCAR-F** (Claude Certified Architect – Foundations) — complete. Planned: **CCDV-F** (Claude Certified Developer – Foundations; BL-048). Use the official codes (CCAR-F, CCDV-F) in user-facing text and the lowercase, hyphen-free slugs (`ccarf`, `ccdvf`) in file/dir names, IDs, storage keys, and CLI values.
 
 ## Layout
 
 - `study/exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` — the CCAR-F exam guide (5 domains, 30 task statements 1.1–5.6, 6 scenarios S1–S6). **Source of truth for all CCAR-F content.** (`-2026-06.md` is the superseded prior edition.) Each exam's guide lives in its `study/exams/<slug>/` dir.
-- `labs/` — 25 hands-on labs + a shared offline test harness (`labs/_shared/`). See `labs/README.md`.
+- `labs/` — 25 hands-on CCAR-F labs + a shared offline test harness (`labs/_shared/`). See `labs/README.md`. The labs catalog is a shared component (`labs`); each exam's task statements pick the labs that drill them.
 - `study/` — a local, offline, single-user study app (practice quiz, flashcards, concept explainers, browsable labs, readiness dashboard) plus CLI/TUI tools. See `study/README.md`.
 - `BACKLOG.md` — the running task backlog (see below).
 - `.working/` — gitignored scratch (reference PDFs, CLI/TUI quiz history). Not content.

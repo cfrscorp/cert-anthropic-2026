@@ -1,10 +1,14 @@
-# CCAF Study App
+# Claude Certification Study App
 
-A **local, offline, single-user** study app for the Claude Certified Architect –
-Foundations (CCAF) exam: a **3-tier practice-question bank** (435 questions —
+A **local, offline, single-user**, **multi-exam** study app for Claude certification
+exams. It currently covers the **Claude Certified Architect – Foundations (CCAR-F)**
+exam (the **Claude Certified Developer – Foundations (CCDV-F)** exam is planned —
+see `BACKLOG.md`): a **3-tier practice-question bank** (435 questions —
 Standard/Intermediate/Hard, including real multi-response "Select N" items),
 **flashcards** (135 cards, with self-graded recall tracking), **concept
 explainers**, and a **readiness dashboard** that tracks your progress over time.
+When more than one exam is available, an exam picker appears in the header, and
+each exam keeps its own progress.
 No cloud, no accounts, no backend — everything runs on your machine and your
 progress lives in your browser (or in a local history file for the CLI/TUI tools).
 
@@ -83,7 +87,7 @@ stays in their own browser).
 3. **Allow the port on the Private profile only.** Open **PowerShell as Administrator**
    and run:
    ```powershell
-   New-NetFirewallRule -DisplayName "CCAF Study (LAN only)" -Direction Inbound `
+   New-NetFirewallRule -DisplayName "Claude Cert Study (LAN only)" -Direction Inbound `
      -Action Allow -Protocol TCP -LocalPort 8000 -Profile Private
    ```
    This permits inbound TCP 8000 on Private networks only — never on Public.
@@ -91,7 +95,7 @@ stays in their own browser).
 5. From another device on the same network, open `http://<IPv4-from-step-2>:8000/web/`.
 6. **When done**, stop the server (Ctrl+C) and remove the rule:
    ```powershell
-   Remove-NetFirewallRule -DisplayName "CCAF Study (LAN only)"
+   Remove-NetFirewallRule -DisplayName "Claude Cert Study (LAN only)"
    ```
 
 ### macOS 26+

@@ -1,6 +1,6 @@
 """Starter scaffold: workflow-mode and refinement decision helpers.
 
-Implement three pure functions that encode the judgment calls from CCAF Task
+Implement three pure functions that encode the judgment calls from CCAR-F Task
 Statements 3.4 (plan vs direct execution, and the Explore subagent) and 3.5
 (iterative refinement). Each takes a plain dict / list of dicts describing the
 work and returns the choice the exam guide prescribes.

@@ -1,20 +1,27 @@
-# Claude Certified Architect – Foundations (CCAF) Exam Prep
+# Claude Certification Exam Prep (Anthropic, 2026)
 
-![The CCAF study app — the Concepts view with a syntax-highlighted code sample](docs/study-app.png)
+![The study app — the CCAR-F Concepts view with a syntax-highlighted code sample](docs/study-app.png)
 
-Study materials and a hands-on lab program for the **Claude Certified Architect –
-Foundations (CCAF)** certification. The exam validates practical judgment about
-building production applications with **Claude Code, the Claude Agent SDK, the
-Claude API, and the Model Context Protocol (MCP)**.
+Study materials, hands-on labs, and a fully offline study app for Anthropic's Claude
+certifications. The repo is built to hold **any number of exams**: content lives in
+reusable, versioned components that each exam pins, and the study app, CLI, and TUI
+switch between exams.
 
-This repo pairs the official exam guide with two ways to prepare: a buildable,
-testable **lab curriculum** and a polished, fully offline **study app** (a
+| Exam | Code | Status |
+|------|------|--------|
+| Claude Certified Architect – Foundations | **CCAR-F** | Complete — guide, 25 labs, full study content |
+| Claude Certified Developer – Foundations | **CCDV-F** | Planned (BL-048, pending its exam guide) |
+
+**CCAR-F** validates practical judgment about building production applications with
+**Claude Code, the Claude Agent SDK, the Claude API, and the Model Context Protocol
+(MCP)**. This repo pairs its official exam guide with two ways to prepare: a
+buildable, testable **lab curriculum** and a polished, fully offline **study app** (a
 three-tier practice quiz with real "Select N" multi-response items, flashcards,
 concept explainers, browsable labs, and a readiness dashboard) — so you gain
 hands-on experience with *every* feature, concept, and topic the exam covers,
 not just read about them.
 
-## By the Numbers
+## By the Numbers (CCAR-F)
 
 | Practice Questions | Flashcards | Concept Explainers | Hands-On Labs |
 |:--:|:--:|:--:|:--:|
@@ -22,8 +29,8 @@ not just read about them.
 
 Questions span three difficulty tiers — **Standard** (240), **Intermediate** (120),
 and **Hard** (75, including 10 multi-response "Select N" items calibrated to the
-real exam's format) — dynamically selectable in the Web UI, or passed as any
-combination of files to the CLI/TUI. Covering all **5 exam domains** and **30 task
+real exam's format) — dynamically selectable in the Web UI, or chosen with
+`--set` (any combination) in the CLI/TUI. Covering all **5 exam domains** and **30 task
 statements**, with **40** syntax-highlighted code samples across the concept
 explainers — and every question and concept links to the lab that drills it. The
 whole study app runs locally and offline, with zero runtime dependencies.
@@ -32,11 +39,11 @@ whole study app runs locally and offline, with zero runtime dependencies.
 
 | Path | What it is |
 |------|------------|
-| [`study/exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md`](study/exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md) | The exam guide: 5 domains, 30 task statements, 6 scenarios, sample questions, prep exercises. |
-| [`labs/`](labs/) | 25 hands-on labs + a shared test harness. Start at [`labs/README.md`](labs/README.md). |
+| [`study/exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md`](study/exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md) | The CCAR-F exam guide: 5 domains, 30 task statements, 6 scenarios, sample questions, prep exercises. Each exam's guide and manifest live in `study/exams/<exam>/`. |
+| [`labs/`](labs/) | 25 hands-on CCAR-F labs + a shared test harness. Start at [`labs/README.md`](labs/README.md). |
 | [`labs/README.md`](labs/README.md) | Master matrix: labs by dependency tier & difficulty, with effort estimates and a full task-statement → lab / scenario → capstone traceability map. |
 | [`labs/_shared/`](labs/_shared/) | Reusable test harness (deterministic mock Claude client, `starter`/`solution` switching, opt-in LLM grading). See [`labs/_shared/README.md`](labs/_shared/README.md). |
-| [`study/`](study/) | A local, offline study app — a 3-tier practice quiz (Standard/Intermediate/Hard, with multi-select items), flashcards with self-graded recall tracking, concept explainers (with code samples), browsable labs, and a readiness dashboard. Web UI (`uv run study/serve.py`) plus standalone CLI/TUI quiz and flashcard tools. See [`study/README.md`](study/README.md). |
+| [`study/`](study/) | A local, offline, multi-exam study app — a 3-tier practice quiz (Standard/Intermediate/Hard, with multi-select items), flashcards with self-graded recall tracking, concept explainers (with code samples), browsable labs, and a readiness dashboard. Web UI (`uv run study/serve.py`) plus standalone CLI/TUI quiz and flashcard tools. See [`study/README.md`](study/README.md). |
 | `.claude/` | Project Claude Code config (enables the `pyright-lsp` and `agent-sdk-dev` plugins). |
 
 ## Labs At A Glance
@@ -93,6 +100,6 @@ into the six exam scenarios.
 
 ## Notes
 
-- Derived from the publicly distributed CCAF exam guide.
+- CCAR-F content is derived from the publicly distributed CCAR-F exam guide.
 - Test suite status: `LAB_TARGET=solution uv run pytest` → 376 passed, 3 `llm`-marked
   tests deselected (they run only with an API key).

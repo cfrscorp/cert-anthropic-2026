@@ -25,7 +25,7 @@ Domain 5. See [`README.md`](README.md) for scope and how these were sourced.
 
 ### 5.5 Human review workflows and confidence calibration: seeing past aggregate accuracy
 
-- **[Confidence scores for Box AI Extract: Know when to rely on your extractions](https://www.youtube.com/watch?v=sTXMYV6gcvw)** — Box. Hands-on demo of field-level confidence scores driving auto-approve vs. human-review routing in a real extraction product — the closest real-world demonstration found of calibrated-confidence-driven review workflows (note: a general document-extraction product demo, not CCAF-specific, but matches the mechanics closely).
+- **[Confidence scores for Box AI Extract: Know when to rely on your extractions](https://www.youtube.com/watch?v=sTXMYV6gcvw)** — Box. Hands-on demo of field-level confidence scores driving auto-approve vs. human-review routing in a real extraction product — the closest real-world demonstration found of calibrated-confidence-driven review workflows (note: a general document-extraction product demo, not CCAR-F-specific, but matches the mechanics closely).
 
 ### 5.6 Preserving provenance and handling uncertainty in multi-source synthesis
 

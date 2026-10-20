@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CCAF Study — app (vanilla JS, no dependencies)
+   Claude certification study app (vanilla JS, no dependencies)
    Loads exams/ + content/ JSON, routes 4 views by hash, tracks cumulative progress in
    localStorage, and renders a readiness dashboard. Serve over http://localhost
    (see ../serve.py) so fetch() of the local JSON works.
