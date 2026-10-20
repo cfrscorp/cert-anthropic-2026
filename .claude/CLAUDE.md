@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Claude certification exam-prep repository
 
-Study materials for Anthropic's Claude certification exams, built to hold any number of exams. Current: **CCAR-F** (Claude Certified Architect – Foundations) — complete. Planned: **CCDV-F** (Claude Certified Developer – Foundations; BL-048). Use the official codes (CCAR-F, CCDV-F) in user-facing text and the lowercase, hyphen-free slugs (`ccarf`, `ccdvf`) in file/dir names, IDs, storage keys, and CLI values.
+Study materials for Anthropic's Claude certification exams, built to hold any number of exams. Current: **CCAR-F** (Claude Certified Architect – Foundations) — complete. Planned: **CCDV-F** (Claude Certified Developer – Foundations; BL-049–BL-052). Use the official codes (CCAR-F, CCDV-F) in user-facing text and the lowercase, hyphen-free slugs (`ccarf`, `ccdvf`) in file/dir names, IDs, storage keys, and CLI values.
 
 ## Layout
 
@@ -41,7 +41,7 @@ uv run study/tools/quiz.py --exam ccarf --set hard --shuffle --num 20   # CLI qu
   - **Components** — `study/content/*.json`, each registered in `study/content/components.json` as `{id, kind, version, file, task_scheme}`. One copy per component on disk; `task_scheme` is the exam slug its items' task-statement IDs belong to (`null` for the untagged `labs` catalog).
   - **Exams** — `study/exams/index.json` lists slugs (first = default); `study/exams/<slug>/exam.json` holds code/name/guide, `config` (coverage target, pass threshold), domains + weights, task statements (+ their labs), and `sections` pinning components by id + version range (`^1.0`). Pins are checked by tests, not at runtime.
   - **Item IDs** carry the scheme prefix and are globally unique per kind (`ccarf-q-1.1-001`, `ccarf-fc-…`, `ccarf-concept-1.1`) — progress is keyed by them. Changing IDs or task tags is a breaking (major) component change.
-  - Adding a component: write the file, register it in `components.json` (a test enforces registry ↔ disk sync), pin it in each exam that uses it. Pinning another exam's component isn't supported until cross-exam task mappings land (BL-048; a test blocks it).
+  - Adding a component: write the file, register it in `components.json` (a test enforces registry ↔ disk sync), pin it in each exam that uses it. Pinning another exam's component isn't supported until the shared pool lands (BL-050; a test blocks it).
   - Exam slugs are lowercase, no hyphen (`ccarf`, `ccdvf`); user-facing text uses the official codes (CCAR-F, CCDV-F).
 - **Data → UI:** schemas live in `study/schema/`. The Web UI (`web/app.js`, vanilla JS, no build step) boots from `app.json` + `exams/index.json` + `content/components.json`, loads the exam's `exam.json`, and fetches every pinned component. `serve.py` exists only because browsers block `fetch()` over `file://`.
 - **Question tiers** (`ccarf-questions-standard/intermediate/hard`) are schema-identical. `correct` is a single letter, or a 2+-letter array for "Select N" multi-response items. Every distractor needs a rationale. Answer options are shuffled **at display time** in all three interfaces (web, CLI, TUI) — authored keys stay as written in the data; don't reorder options to "balance" them.
