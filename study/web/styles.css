@@ -145,9 +145,11 @@ a:hover { text-decoration: underline; }
 .exam-switch__select { font-size: .82rem; padding: .25rem .5rem; border-radius: 8px; }
 /* Sub-nav stripe: the active exam's name + its section tabs */
 .subnav { border-top: 1px solid var(--hairline); }
-/* Dark theme: a slightly lighter stripe so it reads apart from the top bar
-   (tab hover steps up one more shade so it stays visible on it) */
-[data-theme="dark"] .subnav { background: color-mix(in srgb, var(--surface-3) 88%, transparent); }
+/* One step off the top bar so the stripes read apart: --surface-3 is darker
+   than --surface-1 in the light theme and lighter in the dark one. Tab hover
+   steps one more shade so it stays visible on the stripe. */
+.subnav { background: color-mix(in srgb, var(--surface-3) 88%, transparent); }
+.subnav .tab:hover { background: var(--baseline); }
 [data-theme="dark"] .subnav .tab:hover { background: var(--hairline); }
 .subnav__inner {
   max-width: 940px; margin: 0 auto; padding: .35rem 1rem;
