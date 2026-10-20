@@ -24,6 +24,10 @@
 
   /* Categorical domain hues (CVD-validated) — data encoding, not brand */
   --d1: #2a78d6;  --d2: #1baf7a;  --d3: #eda100;  --d4: #008300;  --d5: #4a3aa7;
+  /* d6–d8 (8-domain exams): magenta / olive / cyan — orange and red are avoided
+     because they read as the status colors (--warning, --serious, --critical).
+     Validated in order on this surface: adjacent CVD ΔE ≥ 9.1, normal ≥ 19.9. */
+  --d6: #e87ba4;  --d7: #7f9a00;  --d8: #0097b2;
 
   --good: #0ca30c;  --good-text: #006300;
   --warning: #d9822b;  --serious: #ec835a;  --critical: #c0473a;
@@ -57,6 +61,10 @@
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.5);
 
   --d1: #3987e5;  --d2: #199e70;  --d3: #c98500;  --d4: #008300;  --d5: #9085e9;
+  /* Dark steps of d6–d8; validated on the dark card surface: adjacent normal ΔE
+     ≥ 19.7, all ≥ 3:1 (the one CVD warn is the existing d3↔d4 pair; domain
+     colors always sit beside their labels). */
+  --d6: #d55181;  --d7: #7f9a00;  --d8: #0097b2;
 
   --good: #0ca30c;  --good-text: #12b312;
   --warning: #e0912f;  --serious: #ec835a;  --critical: #e06a5c;

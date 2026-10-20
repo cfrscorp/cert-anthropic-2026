@@ -1,0 +1,329 @@
+{
+  "slug": "ccdvf",
+  "code": "CCDV-F",
+  "name": "Claude Certified Developer – Foundations",
+  "guide": "anthropic-ccdvf-exam-guide-2026-10.md",
+  "config": {
+    "questions_per_task_target": 6,
+    "coverage_component": "questions-standard",
+    "pass_threshold": 72
+  },
+  "domains": [
+    {
+      "id": 1,
+      "name": "Agents and Workflows",
+      "weight": 14.7
+    },
+    {
+      "id": 2,
+      "name": "Applications and Integration",
+      "weight": 33.1
+    },
+    {
+      "id": 3,
+      "name": "Claude Code",
+      "weight": 3.1
+    },
+    {
+      "id": 4,
+      "name": "Eval, Testing, and Debugging",
+      "weight": 2.6
+    },
+    {
+      "id": 5,
+      "name": "Model Selection and Optimization",
+      "weight": 16.8
+    },
+    {
+      "id": 6,
+      "name": "Prompt and Context Engineering",
+      "weight": 11.0
+    },
+    {
+      "id": 7,
+      "name": "Security and Safety",
+      "weight": 8.1
+    },
+    {
+      "id": 8,
+      "name": "Tools and MCPs",
+      "weight": 10.6
+    }
+  ],
+  "task_statements": [
+    {
+      "id": "1.1",
+      "domain": 1,
+      "title": "Agent Architecture",
+      "weight": 4.5,
+      "labs": [
+        "lab-19-multi-agent-orchestration",
+        "lab-24-capstone-research-system"
+      ]
+    },
+    {
+      "id": "1.2",
+      "domain": 1,
+      "title": "Agent Construction with Claude",
+      "weight": 5.3,
+      "labs": [
+        "lab-03-agentic-loop",
+        "lab-11-hooks-and-enforcement"
+      ]
+    },
+    {
+      "id": "1.3",
+      "domain": 1,
+      "title": "Agent Patterns and Frameworks",
+      "weight": 4.9,
+      "labs": [
+        "lab-03-agentic-loop",
+        "lab-14-context-management",
+        "lab-19-multi-agent-orchestration"
+      ]
+    },
+    {
+      "id": "2.1",
+      "domain": 2,
+      "title": "Understanding Requirements",
+      "weight": 3.4,
+      "labs": []
+    },
+    {
+      "id": "2.2",
+      "domain": 2,
+      "title": "Systems Life Cycle",
+      "weight": 2.8,
+      "labs": []
+    },
+    {
+      "id": "2.3",
+      "domain": 2,
+      "title": "Claude API Mechanics",
+      "weight": 6.8,
+      "labs": [
+        "lab-01-claude-api-fundamentals",
+        "lab-17-batch-processing"
+      ]
+    },
+    {
+      "id": "2.4",
+      "domain": 2,
+      "title": "Software Engineering Foundations",
+      "weight": 7.4,
+      "labs": [
+        "lab-21-claude-code-cicd"
+      ]
+    },
+    {
+      "id": "2.5",
+      "domain": 2,
+      "title": "Claude Application Design",
+      "weight": 8.6,
+      "labs": [
+        "lab-04-structured-output",
+        "lab-13-session-state"
+      ]
+    },
+    {
+      "id": "2.6",
+      "domain": 2,
+      "title": "Configuration Management",
+      "weight": 4.1,
+      "labs": [
+        "lab-02-claude-code-config-foundations",
+        "lab-07-rules-commands-skills"
+      ]
+    },
+    {
+      "id": "3.1",
+      "domain": 3,
+      "title": "Claude Code Operation",
+      "weight": 3.1,
+      "labs": [
+        "lab-02-claude-code-config-foundations",
+        "lab-07-rules-commands-skills",
+        "lab-08-plan-mode-and-refinement",
+        "lab-21-claude-code-cicd"
+      ]
+    },
+    {
+      "id": "4.1",
+      "domain": 4,
+      "title": "Debugging and Error Handling",
+      "weight": 2.6,
+      "labs": [
+        "lab-09-errors-and-tool-distribution",
+        "lab-10-validation-retry",
+        "lab-20-error-propagation-provenance"
+      ]
+    },
+    {
+      "id": "5.1",
+      "domain": 5,
+      "title": "LLM Fundamentals",
+      "weight": 5.2,
+      "labs": [
+        "lab-01-claude-api-fundamentals",
+        "lab-06-few-shot-and-criteria"
+      ]
+    },
+    {
+      "id": "5.2",
+      "domain": 5,
+      "title": "Technical Fundamentals",
+      "weight": 6.1,
+      "labs": [
+        "lab-01-claude-api-fundamentals"
+      ]
+    },
+    {
+      "id": "5.3",
+      "domain": 5,
+      "title": "Model Selection and Tradeoffs",
+      "weight": 2.7,
+      "labs": []
+    },
+    {
+      "id": "5.4",
+      "domain": 5,
+      "title": "Cost and Token Management",
+      "weight": 2.8,
+      "labs": [
+        "lab-17-batch-processing"
+      ]
+    },
+    {
+      "id": "6.1",
+      "domain": 6,
+      "title": "Context Engineering",
+      "weight": 3.8,
+      "labs": [
+        "lab-14-context-management",
+        "lab-19-multi-agent-orchestration"
+      ]
+    },
+    {
+      "id": "6.2",
+      "domain": 6,
+      "title": "Prompt Engineering",
+      "weight": 4.6,
+      "labs": [
+        "lab-06-few-shot-and-criteria"
+      ]
+    },
+    {
+      "id": "6.3",
+      "domain": 6,
+      "title": "Output Handling",
+      "weight": 2.6,
+      "labs": [
+        "lab-04-structured-output",
+        "lab-10-validation-retry"
+      ]
+    },
+    {
+      "id": "7.1",
+      "domain": 7,
+      "title": "AI Application Security",
+      "weight": 3.2,
+      "labs": []
+    },
+    {
+      "id": "7.2",
+      "domain": 7,
+      "title": "Guardrails and Safe Deployment",
+      "weight": 2.3,
+      "labs": [
+        "lab-09-errors-and-tool-distribution",
+        "lab-11-hooks-and-enforcement"
+      ]
+    },
+    {
+      "id": "7.3",
+      "domain": 7,
+      "title": "Claude Hooks",
+      "weight": 1.0,
+      "labs": [
+        "lab-11-hooks-and-enforcement"
+      ]
+    },
+    {
+      "id": "7.4",
+      "domain": 7,
+      "title": "Identity, Secrets, and Key Management",
+      "weight": 1.6,
+      "labs": [
+        "lab-15-mcp-integration"
+      ]
+    },
+    {
+      "id": "8.1",
+      "domain": 8,
+      "title": "Tool Implementation",
+      "weight": 4.4,
+      "labs": [
+        "lab-05-tool-interface-design",
+        "lab-09-errors-and-tool-distribution"
+      ]
+    },
+    {
+      "id": "8.2",
+      "domain": 8,
+      "title": "MCP Server Development",
+      "weight": 2.1,
+      "labs": [
+        "lab-15-mcp-integration"
+      ]
+    },
+    {
+      "id": "8.3",
+      "domain": 8,
+      "title": "Agentic Customization",
+      "weight": 4.1,
+      "labs": [
+        "lab-02-claude-code-config-foundations",
+        "lab-07-rules-commands-skills",
+        "lab-15-mcp-integration"
+      ]
+    }
+  ],
+  "sections": {
+    "questions": [
+      {
+        "component": "questions-standard",
+        "version": "^1.0",
+        "label": "Standard"
+      },
+      {
+        "component": "questions-intermediate",
+        "version": "^1.0",
+        "label": "Intermediate"
+      },
+      {
+        "component": "questions-hard",
+        "version": "^1.0",
+        "label": "Hard"
+      }
+    ],
+    "flashcards": [
+      {
+        "component": "flashcards",
+        "version": "^1.0",
+        "label": "Standard"
+      }
+    ],
+    "concepts": [
+      {
+        "component": "concepts",
+        "version": "^1.0"
+      }
+    ],
+    "labs": [
+      {
+        "component": "labs",
+        "version": "^1.0"
+      }
+    ]
+  }
+}

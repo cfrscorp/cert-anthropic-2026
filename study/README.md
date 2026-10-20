@@ -166,6 +166,7 @@ toward. One item can serve several exams, each under its own task.
 | `exams/index.json` | The available exams, by slug (the first is the default). |
 | `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (per-task question target, pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
 | `exams/ccarf/map.json` | The CCAR-F item map: per kind (`questions`, `flashcards`, `concepts`), each pool item CCAR-F uses → its task statement (e.g. `"q-0001": "1.1"`). Items not listed aren't part of the exam. |
+| `exams/ccdvf/exam.json`, `exams/ccdvf/map.json` | The CCDV-F exam (8 domains, 25 skills numbered 1.1–8.3 in guide order, with the guide's fractional domain and skill weights) and its item map — in development: not yet listed in `exams/index.json`, so not shown in the app, but validated by the tests. Guide: `exams/ccdvf/anthropic-ccdvf-exam-guide-2026-10.md`. |
 | `exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` | The CCAR-F exam guide — source of truth for its content (`-2026-06` is the prior edition). |
 | `content/components.json` | Registry of every pool component: `{id, kind, version, file}`. |
 | `content/questions-standard.json` (240), `content/questions-intermediate.json` (120), `content/questions-hard.json` (75, incl. 10 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
@@ -193,11 +194,11 @@ cd study && uv run pytest
 
 The tests check schema validity; component integrity (valid answer keys, complete
 distractor rationales, neutral unique IDs, resolvable lab links, the registry staying
-in sync with the files on disk); exam integrity (weights summing to 100, the guide
+in sync with the files on disk); exam integrity for every exam directory, listed or not (domain weights summing to 100 and any per-task weights to their domain's, the guide
 existing, every pin resolving to a component of the right kind and version); map
 integrity (every mapped item exists in a component the exam pins and counts toward a
 real task statement; no item listed twice; no pinned component left unused); and
-coverage per exam, through its map (question count per task statement, per-tier
+coverage per listed exam, through its map (question count per task statement, per-tier
 minimums, one concept per task statement). Deleting an item an exam still maps fails
 the tests.
 

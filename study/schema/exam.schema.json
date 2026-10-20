@@ -30,7 +30,7 @@
         "properties": {
           "id": { "type": "integer", "minimum": 1 },
           "name": { "type": "string", "minLength": 1 },
-          "weight": { "type": "integer", "minimum": 1, "maximum": 100 }
+          "weight": { "description": "Percent of the exam (may be fractional, e.g. 14.7); domains sum to 100.", "type": "number", "exclusiveMinimum": 0, "maximum": 100 }
         }
       }
     },
@@ -45,6 +45,7 @@
           "id": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
           "domain": { "type": "integer", "minimum": 1 },
           "title": { "type": "string", "minLength": 1 },
+          "weight": { "description": "Optional percent of the exam for this task/skill, where the guide gives one; a domain's task weights sum to its weight.", "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
           "labs": { "type": "array", "items": { "type": "string", "pattern": "^lab-[0-9]{2}-" } }
         }
       }

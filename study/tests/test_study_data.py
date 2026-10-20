@@ -13,9 +13,10 @@ cross-checked:
 - exam integrity (weights, task statements, guide, lab links), pin integrity
   (pinned component exists, is the right kind, satisfies the pin's version
   range), and map integrity (every mapped item exists in a component the exam
-  pins, every task is real) — parametrized over every exam in the index;
-- coverage per exam, computed through its map (per-task question target, tier
-  minimums, one concept per task statement);
+  pins, every task is real) — parametrized over every exam directory, listed
+  in the index or not (an unlisted exam is in development);
+- coverage per listed exam, computed through its map (per-task question
+  target, tier minimums, one concept per task statement);
 - the BL-050 ID-migration file stays well-formed.
 
 Mirrors the labs' philosophy: the content cannot silently break the web app.
@@ -69,9 +70,12 @@ REGISTRY = _load(CONTENT / "components.json")
 COMPONENTS = {c["id"]: c for c in REGISTRY["components"]}
 ITEMS = {cid: _load(CONTENT / c["file"]) for cid, c in COMPONENTS.items() if (CONTENT / c["file"]).is_file()}
 EXAM_INDEX = _load(EXAMS_DIR / "index.json")
-EXAM_SLUGS = EXAM_INDEX["exams"]
-EXAMS = {slug: _load(EXAMS_DIR / slug / "exam.json") for slug in EXAM_SLUGS}
-MAPS = {slug: _load(EXAMS_DIR / slug / "map.json") for slug in EXAM_SLUGS}
+EXAM_SLUGS = EXAM_INDEX["exams"]  # listed: shown in the app, must meet coverage
+# Every exam directory, listed or not: an unlisted exam is in development
+# (e.g. while its content is being written) but must still be well-formed.
+ALL_EXAMS = sorted(p.parent.name for p in EXAMS_DIR.glob("*/exam.json"))
+EXAMS = {slug: _load(EXAMS_DIR / slug / "exam.json") for slug in ALL_EXAMS}
+MAPS = {slug: _load(EXAMS_DIR / slug / "map.json") for slug in ALL_EXAMS}
 
 
 def _of_kind(kind: str) -> list[str]:
@@ -127,12 +131,12 @@ def test_manifest_matches_schema(path, schema_file):
     jsonschema.validate(instance=_load(path), schema=_load(SCHEMA / schema_file))
 
 
-@pytest.mark.parametrize("slug", EXAM_SLUGS)
+@pytest.mark.parametrize("slug", ALL_EXAMS)
 def test_exam_matches_schema(slug):
     jsonschema.validate(instance=EXAMS[slug], schema=_load(SCHEMA / "exam.schema.json"))
 
 
-@pytest.mark.parametrize("slug", EXAM_SLUGS)
+@pytest.mark.parametrize("slug", ALL_EXAMS)
 def test_exam_map_matches_schema(slug):
     jsonschema.validate(instance=MAPS[slug], schema=_load(SCHEMA / "exam-map.schema.json"))
 
@@ -240,7 +244,7 @@ def test_labs_slugs_resolve_and_have_content():
 # --------------------------------------------------------------------------- #
 # Exam integrity                                                               #
 # --------------------------------------------------------------------------- #
-@pytest.mark.parametrize("slug", EXAM_SLUGS)
+@pytest.mark.parametrize("slug", ALL_EXAMS)
 def test_exam_identity_and_guide(slug):
     exam = EXAMS[slug]
     assert exam["slug"] == slug, f"exams/{slug}/exam.json declares slug {exam['slug']!r}"
@@ -248,12 +252,12 @@ def test_exam_identity_and_guide(slug):
     assert (EXAMS_DIR / slug / exam["guide"]).is_file(), f"{slug}: missing guide {exam['guide']}"
 
 
-@pytest.mark.parametrize("slug", EXAM_SLUGS)
+@pytest.mark.parametrize("slug", ALL_EXAMS)
 def test_exam_domains_and_tasks(slug):
     exam = EXAMS[slug]
     domain_ids = [d["id"] for d in exam["domains"]]
     task_ids = [ts["id"] for ts in exam["task_statements"]]
-    assert sum(d["weight"] for d in exam["domains"]) == 100
+    assert sum(d["weight"] for d in exam["domains"]) == pytest.approx(100)
     assert len(domain_ids) == len(set(domain_ids)), "duplicate domain ids"
     assert len(task_ids) == len(set(task_ids)), "duplicate task-statement ids"
     for ts in exam["task_statements"]:
@@ -263,7 +267,25 @@ def test_exam_domains_and_tasks(slug):
             assert (LABS_ROOT / lab).is_dir(), f"{slug} {ts['id']} → missing lab {lab}"
 
 
-@pytest.mark.parametrize("slug", EXAM_SLUGS)
+@pytest.mark.parametrize("slug", ALL_EXAMS)
+def test_task_weights_sum_to_domain_weights(slug):
+    # Task/skill weights are optional (CCAR-F's guide doesn't give them), but
+    # when an exam gives them, it gives every one, and each domain's add up.
+    tasks = EXAMS[slug]["task_statements"]
+    weighted = [ts for ts in tasks if "weight" in ts]
+    if not weighted:
+        return
+    assert len(weighted) == len(tasks), f"{slug}: some task statements have a weight and some don't"
+    for d in EXAMS[slug]["domains"]:
+        total = sum(ts["weight"] for ts in tasks if ts["domain"] == d["id"])
+        assert total == pytest.approx(d["weight"]), f"{slug}: domain {d['id']} task weights sum to {total}, not {d['weight']}"
+
+
+def test_index_lists_only_real_exams():
+    assert set(EXAM_SLUGS) <= set(ALL_EXAMS), f"exams/index.json lists missing exams: {set(EXAM_SLUGS) - set(ALL_EXAMS)}"
+
+
+@pytest.mark.parametrize("slug", ALL_EXAMS)
 def test_exam_pins_resolve(slug):
     for section, pins in EXAMS[slug]["sections"].items():
         ids = [pin["component"] for pin in pins]
@@ -277,7 +299,7 @@ def test_exam_pins_resolve(slug):
             )
 
 
-@pytest.mark.parametrize("slug", EXAM_SLUGS)
+@pytest.mark.parametrize("slug", ALL_EXAMS)
 def test_exam_map_entries_resolve(slug):
     # Every mapped item exists in a component the exam pins for that kind, and
     # counts toward a real task statement. This is also what makes deleting an
