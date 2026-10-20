@@ -32,7 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import flashcards as core  # noqa: E402
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 
 # --------------------------------------------------------------------------
@@ -108,7 +108,7 @@ def render_frame(index, total, card, state, running_correct, running_seen):
     """state is None (front only), or a dict with
     {"skipped": bool, "revealed": bool, "graded": bool|None}."""
     lines = []
-    lines.append(core.c("  CCAF FLASHCARDS", core.Color.BOLD, core.Color.CYAN) + core.c("  ·  fixed-layout mode", core.Color.DIM))
+    lines.append(core.c("  " + f"{core.EXAM_CODE} FLASHCARDS".strip(), core.Color.BOLD, core.Color.CYAN) + core.c("  ·  fixed-layout mode", core.Color.DIM))
     lines.append(core.c("─" * term_width(), core.Color.DIM))
 
     header = f"Card {index}/{total}"
@@ -241,28 +241,31 @@ def run_tui_session(cards, history, history_path, source_files, filters):
 
 EPILOG = """\
 Examples (run from the repo root):
-  # Fixed-layout review of the main flashcard deck
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json
+  # Fixed-layout review of the default exam's flashcard deck (CCAR-F)
+  uv run study/tools/flashcards_tui.py
+
+  # Pick the exam / deck explicitly (by label or component id)
+  uv run study/tools/flashcards_tui.py --exam ccarf --set standard
 
   # Shuffle and cap the session at 20 random cards
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --shuffle --num 20
+  uv run study/tools/flashcards_tui.py --shuffle --num 20
 
-  # Drill just one domain or task statement
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --domain 1
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --task 4.3
+  # Drill one domain or one task statement
+  uv run study/tools/flashcards_tui.py --domain 1
+  uv run study/tools/flashcards_tui.py --task 4.3
 
-  # Re-drill only cards you've marked "missed" before (shared history with flashcards.py)
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --review-missed
+  # Re-drill only cards you graded "missed" (shared history with flashcards.py)
+  uv run study/tools/flashcards_tui.py --review-missed
 
-  # View cumulative recall stats or list domains/tasks without reviewing
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --stats
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --list
+  # View cumulative stats or list domains/tasks without a session
+  uv run study/tools/flashcards_tui.py --stats
+  uv run study/tools/flashcards_tui.py --list
 
-  # Use a separate history file
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --history .working/my_history.json
+  # Review explicit files instead, with a separate history file
+  uv run study/tools/flashcards_tui.py .working/my-cards.json --history .working/my_history.json
 
-  # Disable color (front/back text still appears above the input line)
-  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --no-color
+  # Disable color
+  uv run study/tools/flashcards_tui.py --no-color
 
   # Show the script version
   uv run study/tools/flashcards_tui.py --version
@@ -281,10 +284,10 @@ def build_parser():
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
         "files", nargs="*", type=Path,
-        help="One or more flashcard-set JSON files (flashcards.json schema). "
-             "Not required for --reset-history alone.",
+        help="Flashcard-set JSON files (flashcards.schema.json) to use instead of the exam's sets.",
     )
-    parser.add_argument("--domain", type=int, metavar="N", help="Only include cards from domain N (1-5).")
+    core.add_exam_arguments(parser)
+    parser.add_argument("--domain", type=int, metavar="N", help="Only include cards from domain N (see --list).")
     parser.add_argument("--task", metavar="X.Y", help="Only include cards from task statement X.Y (e.g. 4.3).")
     parser.add_argument("--tag", metavar="TAG", help="Only include cards with this tag.")
     parser.add_argument("--num", type=int, metavar="N", help="Limit the session to N cards.")
@@ -295,8 +298,8 @@ def build_parser():
         help="Only include cards whose most recent grading was 'missed'.",
     )
     parser.add_argument(
-        "--history", type=Path, default=core.DEFAULT_HISTORY_PATH, metavar="PATH",
-        help=f"Path to the progress-history JSON file (default: {core.DEFAULT_HISTORY_PATH}, "
+        "--history", type=Path, default=None, metavar="PATH",
+        help="Path to the progress-history JSON file (default: .working/flashcards_history_<exam>.json, "
              "shared with flashcards.py).",
     )
     parser.add_argument("--stats", action="store_true", help="Show cumulative recall stats and exit (no session).")
@@ -313,21 +316,9 @@ def main(argv=None):
 
     core.Color.enabled = sys.stdout.isatty() and not args.no_color
 
+    exam = core.resolve_exam(parser, args)
     if args.reset_history:
-        if args.history.exists():
-            if not args.yes:
-                answer = input(f"Delete all progress history in {args.history}? [y/N] ").strip().lower()
-                if answer != "y":
-                    print("Cancelled.")
-                    return 0
-            args.history.unlink()
-            print(core.c(f"Deleted {args.history}.", core.Color.GREEN))
-        else:
-            print(core.c(f"No history file at {args.history}; nothing to delete.", core.Color.YELLOW))
-        return 0
-
-    if not args.files:
-        parser.error("at least one flashcard-set JSON file is required (see --help for examples)")
+        return core.reset_history(args, exam)
 
     missing = [p for p in args.files if not p.exists()]
     if missing:

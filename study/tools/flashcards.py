@@ -3,9 +3,10 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""A colorful, offline terminal flashcard runner for CCAF-style flashcard sets.
+"""A colorful, offline terminal flashcard runner for exam flashcard sets.
 
-Reads one or more JSON files matching the schema of study/content/ccarf-flashcards.json
+By default it reviews a flashcard set pinned by an exam (--exam, --set), or
+reads explicit JSON files matching study/schema/flashcards.schema.json
 (front, back, domain, task_statement, tags), runs an interactive self-graded
 review session in the terminal ("Got it" / "Missed it"), and tracks personal
 recall results across sessions in a small local JSON history file so you can
@@ -25,14 +26,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
-# Personal progress is scratch state, not project content, so it defaults into
-# the repo's gitignored .working/ directory (study/tools/ -> study/ -> repo root)
-# rather than living next to this tracked script. Deliberately a *separate*
-# history file from quiz.py's — self-graded recall isn't exam-question mastery.
-DEFAULT_HISTORY_PATH = Path(__file__).resolve().parents[2] / ".working" / "flashcards_history.json"
+# exam_manifest.py lives alongside this script (shared with quiz.py).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import exam_manifest as em  # noqa: E402
+
+# Deliberately a *separate* history file from quiz.py's — self-graded recall
+# isn't exam-question mastery. -> .working/flashcards_history_<exam>.json
+HISTORY_KIND = "flashcards"
 HISTORY_SCHEMA_VERSION = 1
+EXAM_CODE = ""  # set by resolve_exam(); shown in the banner
 
 
 # --------------------------------------------------------------------------
@@ -238,7 +242,7 @@ def select_cards(pool, args):
 
 def print_banner():
     rule("═")
-    print(c("  CCAF FLASHCARDS", Color.BOLD, Color.CYAN))
+    print(c("  " + f"{EXAM_CODE} FLASHCARDS".strip(), Color.BOLD, Color.CYAN))
     rule("═")
 
 
@@ -422,38 +426,55 @@ def print_list(cards):
 # CLI
 # --------------------------------------------------------------------------
 
+# CLI helpers shared with flashcards_tui.py (logic lives in exam_manifest.py).
+def add_exam_arguments(parser):
+    em.add_exam_arguments(parser, "flashcards", "flashcard")
+
+
+def resolve_exam(parser, args):
+    global EXAM_CODE
+    exam = em.resolve_exam(parser, args, kind=HISTORY_KIND, section="flashcards", records_key="cards", c=c, Color=Color)
+    EXAM_CODE = exam["code"]
+    return exam
+
+
+def reset_history(args, exam):
+    return em.reset_history(args, exam, kind=HISTORY_KIND, records_key="cards", c=c, Color=Color)
+
+
 EPILOG = """\
 Examples (run from the repo root):
-  # Review the main flashcard deck, cards in file order
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json
+  # Review the default exam's flashcard deck (CCAR-F), cards in file order
+  uv run study/tools/flashcards.py
+
+  # Pick the exam / deck explicitly (by label or component id)
+  uv run study/tools/flashcards.py --exam ccarf --set standard
 
   # Shuffle and cap the session at 20 random cards
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --shuffle --num 20
+  uv run study/tools/flashcards.py --shuffle --num 20
 
-  # Drill just one domain or task statement
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --domain 1
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --task 4.3
+  # Drill one domain or one task statement
+  uv run study/tools/flashcards.py --domain 1
+  uv run study/tools/flashcards.py --task 4.3
 
-  # Re-drill only cards you've marked "missed" before
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --review-missed
+  # Re-drill only the cards you graded "missed" last time
+  uv run study/tools/flashcards.py --review-missed
 
-  # Reproducible shuffle order (useful for comparing runs)
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --shuffle --seed 42
+  # Reproducible shuffle order
+  uv run study/tools/flashcards.py --shuffle --seed 42
 
-  # View cumulative recall stats without starting a session
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --stats
+  # View cumulative recall stats, or list domains/tasks/tags, without a session
+  uv run study/tools/flashcards.py --stats
+  uv run study/tools/flashcards.py --list
 
-  # See what's available (domains/tasks/tags) in a file without reviewing
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --list
+  # Review explicit files instead, with a separate history file
+  uv run study/tools/flashcards.py .working/my-cards.json --history .working/my_history.json
 
-  # Use a separate history file
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --history .working/my_history.json
-
-  # Wipe saved progress for the current history file
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --reset-history
+  # Wipe saved progress for the exam's history file (.working/flashcards_history_<exam>.json)
+  uv run study/tools/flashcards.py --reset-history
 
   # Disable color (e.g. piping output to a file)
-  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --no-color
+  uv run study/tools/flashcards.py --no-color
 
   # Show the script version
   uv run study/tools/flashcards.py --version
@@ -463,18 +484,18 @@ Examples (run from the repo root):
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="flashcards.py",
-        description="Interactive, offline terminal flashcard runner for CCAF-style flashcard "
-                    "sets (flashcards.json schema), with cross-session self-graded recall tracking.",
+        description="Interactive, offline terminal flashcard runner for exam flashcard "
+                    "sets, with per-exam cross-session self-graded recall tracking.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=EPILOG,
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
         "files", nargs="*", type=Path,
-        help="One or more flashcard-set JSON files (flashcards.json schema). "
-             "Not required for --reset-history alone.",
+        help="Flashcard-set JSON files (flashcards.schema.json) to use instead of the exam's sets.",
     )
-    parser.add_argument("--domain", type=int, metavar="N", help="Only include cards from domain N (1-5).")
+    add_exam_arguments(parser)
+    parser.add_argument("--domain", type=int, metavar="N", help="Only include cards from domain N (see --list).")
     parser.add_argument("--task", metavar="X.Y", help="Only include cards from task statement X.Y (e.g. 4.3).")
     parser.add_argument("--tag", metavar="TAG", help="Only include cards with this tag.")
     parser.add_argument("--num", type=int, metavar="N", help="Limit the session to N cards.")
@@ -485,8 +506,8 @@ def build_parser():
         help="Only include cards whose most recent grading was 'missed'.",
     )
     parser.add_argument(
-        "--history", type=Path, default=DEFAULT_HISTORY_PATH, metavar="PATH",
-        help=f"Path to the progress-history JSON file (default: {DEFAULT_HISTORY_PATH}).",
+        "--history", type=Path, default=None, metavar="PATH",
+        help="Path to the progress-history JSON file (default: .working/flashcards_history_<exam>.json).",
     )
     parser.add_argument("--stats", action="store_true", help="Show cumulative recall stats and exit (no session).")
     parser.add_argument("--list", action="store_true", help="List domains/tasks/tags in the loaded file(s) and exit.")
@@ -502,21 +523,9 @@ def main(argv=None):
 
     Color.enabled = sys.stdout.isatty() and not args.no_color
 
+    exam = resolve_exam(parser, args)
     if args.reset_history:
-        if args.history.exists():
-            if not args.yes:
-                answer = input(f"Delete all progress history in {args.history}? [y/N] ").strip().lower()
-                if answer != "y":
-                    print("Cancelled.")
-                    return 0
-            args.history.unlink()
-            print(c(f"Deleted {args.history}.", Color.GREEN))
-        else:
-            print(c(f"No history file at {args.history}; nothing to delete.", Color.YELLOW))
-        return 0
-
-    if not args.files:
-        parser.error("at least one flashcard-set JSON file is required (see --help for examples)")
+        return reset_history(args, exam)
 
     missing = [p for p in args.files if not p.exists()]
     if missing:

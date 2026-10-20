@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import quiz as core  # noqa: E402
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 
 # --------------------------------------------------------------------------
@@ -118,7 +118,7 @@ def render_frame(index, total, q, display_options, orig_to_display, display_to_o
     `choice` is in display-letter terms; display_options/orig_to_display/
     display_to_orig describe this question's current on-screen shuffle."""
     lines = []
-    lines.append(core.c("  CCAF PRACTICE QUIZ", core.Color.BOLD, core.Color.CYAN) + core.c("  ·  fixed-layout mode", core.Color.DIM))
+    lines.append(core.c("  " + f"{core.EXAM_CODE} PRACTICE QUIZ".strip(), core.Color.BOLD, core.Color.CYAN) + core.c("  ·  fixed-layout mode", core.Color.DIM))
     lines.append(core.c("─" * term_width(), core.Color.DIM))
 
     header = f"Question {index}/{total}"
@@ -295,28 +295,29 @@ def run_tui_session(questions, history, history_path, source_files, filters, rng
 
 EPILOG = """\
 Examples (run from the repo root):
-  # Fixed-layout quiz on the main study bank
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json
+  # Fixed-layout quiz on the default exam's first question set (CCAR-F Standard)
+  uv run study/tools/quiz_tui.py
 
-  # Shuffle and cap the session at 20 random questions
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --shuffle --num 20
+  # Pick the exam and set(s); sets are matched by label or component id
+  uv run study/tools/quiz_tui.py --exam ccarf --set hard
+  uv run study/tools/quiz_tui.py --set all --shuffle --num 20
 
   # Drill just one domain or task statement
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --domain 1
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --task 4.3
+  uv run study/tools/quiz_tui.py --domain 1
+  uv run study/tools/quiz_tui.py --set all --task 4.3
 
   # Re-drill only questions you've gotten wrong before (shared history with quiz.py)
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --review-missed
+  uv run study/tools/quiz_tui.py --set all --review-missed
 
   # View cumulative stats or list domains/tasks without quizzing
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --stats
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --list
+  uv run study/tools/quiz_tui.py --set all --stats
+  uv run study/tools/quiz_tui.py --set hard --list
 
-  # Use a separate history file
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --history .working/my_history.json
+  # Quiz on explicit files instead, with a separate history file
+  uv run study/tools/quiz_tui.py .working/my-questions.json --history .working/my_history.json
 
   # Disable color (feedback/verdict text still appears above the input line)
-  uv run study/tools/quiz_tui.py study/content/ccarf-questions-standard.json --no-color
+  uv run study/tools/quiz_tui.py --no-color
 
   # Show the script version
   uv run study/tools/quiz_tui.py --version
@@ -335,10 +336,10 @@ def build_parser():
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
         "files", nargs="*", type=Path,
-        help="One or more question-set JSON files (questions.json schema). "
-             "Not required for --reset-history alone.",
+        help="Question-set JSON files (questions.schema.json) to use instead of the exam's sets.",
     )
-    parser.add_argument("--domain", type=int, metavar="N", help="Only include questions from domain N (1-5).")
+    core.add_exam_arguments(parser)
+    parser.add_argument("--domain", type=int, metavar="N", help="Only include questions from domain N (see --list).")
     parser.add_argument("--task", metavar="X.Y", help="Only include questions from task statement X.Y (e.g. 4.3).")
     parser.add_argument("--tag", metavar="TAG", help="Only include questions with this tag.")
     parser.add_argument("--num", type=int, metavar="N", help="Limit the session to N questions.")
@@ -353,8 +354,8 @@ def build_parser():
         help="Only include questions whose most recent recorded attempt was incorrect.",
     )
     parser.add_argument(
-        "--history", type=Path, default=core.DEFAULT_HISTORY_PATH, metavar="PATH",
-        help=f"Path to the progress-history JSON file (default: {core.DEFAULT_HISTORY_PATH}, "
+        "--history", type=Path, default=None, metavar="PATH",
+        help="Path to the progress-history JSON file (default: .working/quiz_history_<exam>.json, "
              "shared with quiz.py).",
     )
     parser.add_argument("--stats", action="store_true", help="Show cumulative stats and exit (no quiz).")
@@ -371,21 +372,9 @@ def main(argv=None):
 
     core.Color.enabled = sys.stdout.isatty() and not args.no_color
 
+    exam = core.resolve_exam(parser, args)
     if args.reset_history:
-        if args.history.exists():
-            if not args.yes:
-                answer = input(f"Delete all progress history in {args.history}? [y/N] ").strip().lower()
-                if answer != "y":
-                    print("Cancelled.")
-                    return 0
-            args.history.unlink()
-            print(core.c(f"Deleted {args.history}.", core.Color.GREEN))
-        else:
-            print(core.c(f"No history file at {args.history}; nothing to delete.", core.Color.YELLOW))
-        return 0
-
-    if not args.files:
-        parser.error("at least one question-set JSON file is required (see --help for examples)")
+        return core.reset_history(args, exam)
 
     missing = [p for p in args.files if not p.exists()]
     if missing:

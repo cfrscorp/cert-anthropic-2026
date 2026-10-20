@@ -3,9 +3,10 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""A colorful, offline terminal quiz runner for CCAF-style practice question sets.
+"""A colorful, offline terminal quiz runner for exam-style practice question sets.
 
-Reads one or more JSON files matching the schema of study/content/ccarf-questions-standard.json
+By default it quizzes on a question set pinned by an exam (--exam, --set), or
+reads explicit JSON files matching study/schema/questions.schema.json
 (scenario, stem, four options, correct key, rationale, domain, task_statement,
 difficulty, tags), runs an interactive multiple-choice session in the
 terminal, and tracks personal correct/incorrect results across sessions in a
@@ -22,13 +23,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
-# Personal progress is scratch state, not project content, so it defaults into
-# the repo's gitignored .working/ directory (study/tools/ -> study/ -> repo root)
-# rather than living next to this tracked script.
-DEFAULT_HISTORY_PATH = Path(__file__).resolve().parents[2] / ".working" / "quiz_history.json"
+# exam_manifest.py lives alongside this script (shared with flashcards.py).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import exam_manifest as em  # noqa: E402
+
+HISTORY_KIND = "quiz"  # -> .working/quiz_history_<exam>.json (em.history_path)
 HISTORY_SCHEMA_VERSION = 1
+EXAM_CODE = ""  # set by resolve_exam(); shown in the banner
 
 
 # --------------------------------------------------------------------------
@@ -263,7 +266,7 @@ def shuffle_options(q, rng):
 
 def print_banner():
     rule("═")
-    print(c("  CCAF PRACTICE QUIZ", Color.BOLD, Color.CYAN))
+    print(c("  " + f"{EXAM_CODE} PRACTICE QUIZ".strip(), Color.BOLD, Color.CYAN))
     rule("═")
 
 
@@ -483,46 +486,63 @@ def print_list(questions):
 # CLI
 # --------------------------------------------------------------------------
 
+# CLI helpers shared with quiz_tui.py (logic lives in exam_manifest.py).
+def add_exam_arguments(parser):
+    em.add_exam_arguments(parser, "questions", "question")
+
+
+def resolve_exam(parser, args):
+    global EXAM_CODE
+    exam = em.resolve_exam(parser, args, kind=HISTORY_KIND, section="questions", records_key="questions", c=c, Color=Color)
+    EXAM_CODE = exam["code"]
+    return exam
+
+
+def reset_history(args, exam):
+    return em.reset_history(args, exam, kind=HISTORY_KIND, records_key="questions", c=c, Color=Color)
+
+
 EPILOG = """\
 Examples (run from the repo root):
-  # Quiz on the main study bank, questions in file order
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json
+  # Quiz on the default exam's first question set (CCAR-F Standard)
+  uv run study/tools/quiz.py
+
+  # Pick the exam and set(s) explicitly; sets are matched by label or component id
+  uv run study/tools/quiz.py --exam ccarf --set hard
+  uv run study/tools/quiz.py --set standard --set intermediate
+  uv run study/tools/quiz.py --set all --shuffle --num 30
 
   # Shuffle and cap the session at 20 random questions
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --shuffle --num 20
+  uv run study/tools/quiz.py --shuffle --num 20
 
   # Drill just one domain (Agentic Architecture & Orchestration)
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --domain 1
+  uv run study/tools/quiz.py --domain 1
 
-  # Drill one task statement
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --task 4.3
+  # Drill one task statement, or filter by tag
+  uv run study/tools/quiz.py --set all --task 4.3
+  uv run study/tools/quiz.py --tag hooks
 
-  # Filter by tag
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --tag hooks
-
-  # Combine the main bank with your own personal question set
+  # Quiz on explicit files instead, e.g. a component plus your own question set
   uv run study/tools/quiz.py study/content/ccarf-questions-standard.json .working/my-questions.json --shuffle
 
   # Re-drill only the questions you've gotten wrong before
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --review-missed
+  uv run study/tools/quiz.py --set all --review-missed
 
   # Reproducible shuffle order (useful for comparing runs)
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --shuffle --seed 42
+  uv run study/tools/quiz.py --shuffle --seed 42
 
-  # View cumulative stats without starting a quiz
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --stats
+  # View cumulative stats, or see what's in a set (domains/tasks/tags), without quizzing
+  uv run study/tools/quiz.py --set all --stats
+  uv run study/tools/quiz.py --set hard --list
 
-  # See what's available (domains/tasks/tags) in a file without quizzing
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --list
-
-  # Use a separate history file, e.g. to keep two question banks' progress apart
+  # Use a separate history file, e.g. to keep a personal bank's progress apart
   uv run study/tools/quiz.py .working/my-questions.json --history .working/my-questions_history.json
 
-  # Wipe saved progress for the current history file
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --reset-history
+  # Wipe saved progress for the exam's history file (.working/quiz_history_<exam>.json)
+  uv run study/tools/quiz.py --reset-history
 
   # Disable color (e.g. piping output to a file)
-  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --no-color
+  uv run study/tools/quiz.py --no-color
 
   # Show the script version
   uv run study/tools/quiz.py --version
@@ -532,18 +552,18 @@ Examples (run from the repo root):
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="quiz.py",
-        description="Interactive, offline terminal quiz runner for CCAF-style practice "
-                    "question sets (questions.json schema), with cross-session progress tracking.",
+        description="Interactive, offline terminal quiz runner for exam-style practice "
+                    "question sets, with per-exam cross-session progress tracking.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=EPILOG,
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument(
         "files", nargs="*", type=Path,
-        help="One or more question-set JSON files (questions.json schema). "
-             "Not required for --reset-history alone.",
+        help="Question-set JSON files (questions.schema.json) to use instead of the exam's sets.",
     )
-    parser.add_argument("--domain", type=int, metavar="N", help="Only include questions from domain N (1-5).")
+    add_exam_arguments(parser)
+    parser.add_argument("--domain", type=int, metavar="N", help="Only include questions from domain N (see --list).")
     parser.add_argument("--task", metavar="X.Y", help="Only include questions from task statement X.Y (e.g. 4.3).")
     parser.add_argument("--tag", metavar="TAG", help="Only include questions with this tag.")
     parser.add_argument("--num", type=int, metavar="N", help="Limit the session to N questions.")
@@ -558,8 +578,8 @@ def build_parser():
         help="Only include questions whose most recent recorded attempt was incorrect.",
     )
     parser.add_argument(
-        "--history", type=Path, default=DEFAULT_HISTORY_PATH, metavar="PATH",
-        help=f"Path to the progress-history JSON file (default: {DEFAULT_HISTORY_PATH}).",
+        "--history", type=Path, default=None, metavar="PATH",
+        help="Path to the progress-history JSON file (default: .working/quiz_history_<exam>.json).",
     )
     parser.add_argument("--stats", action="store_true", help="Show cumulative stats and exit (no quiz).")
     parser.add_argument("--list", action="store_true", help="List domains/tasks/tags in the loaded file(s) and exit.")
@@ -575,21 +595,9 @@ def main(argv=None):
 
     Color.enabled = sys.stdout.isatty() and not args.no_color
 
+    exam = resolve_exam(parser, args)
     if args.reset_history:
-        if args.history.exists():
-            if not args.yes:
-                answer = input(f"Delete all progress history in {args.history}? [y/N] ").strip().lower()
-                if answer != "y":
-                    print("Cancelled.")
-                    return 0
-            args.history.unlink()
-            print(c(f"Deleted {args.history}.", Color.GREEN))
-        else:
-            print(c(f"No history file at {args.history}; nothing to delete.", Color.YELLOW))
-        return 0
-
-    if not args.files:
-        parser.error("at least one question-set JSON file is required (see --help for examples)")
+        return reset_history(args, exam)
 
     missing = [p for p in args.files if not p.exists()]
     if missing:

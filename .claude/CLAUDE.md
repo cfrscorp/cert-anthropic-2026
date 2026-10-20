@@ -31,7 +31,7 @@ ANTHROPIC_API_KEY=... uv run pytest -m llm                        # opt-in seman
 # Run the app / tools
 uv run study/serve.py [--port 8123] [--no-browser]               # opens /web/
 uv run study/tools/build_labs.py                                  # regenerate study/content/labs.json
-uv run study/tools/quiz.py study/content/ccarf-questions-hard.json --shuffle --num 20
+uv run study/tools/quiz.py --exam ccarf --set hard --shuffle --num 20   # CLI quiz (TUI: quiz_tui.py)
 ```
 
 ## Architecture
@@ -46,7 +46,7 @@ uv run study/tools/quiz.py study/content/ccarf-questions-hard.json --shuffle --n
 - **Data → UI:** schemas live in `study/schema/`. The Web UI (`web/app.js`, vanilla JS, no build step) boots from `app.json` + `exams/index.json` + `content/components.json`, loads the exam's `exam.json`, and fetches every pinned component. `serve.py` exists only because browsers block `fetch()` over `file://`.
 - **Question tiers** (`ccarf-questions-standard/intermediate/hard`) are schema-identical. `correct` is a single letter, or a 2+-letter array for "Select N" multi-response items. Every distractor needs a rationale. Answer options are shuffled **at display time** in all three interfaces (web, CLI, TUI) — authored keys stay as written in the data; don't reorder options to "balance" them.
 - **`labs.json` is generated**, not hand-edited: `build_labs.py` renders each lab's `README.md`/`SOLUTION.md` to HTML at build time (so the browser needs no Markdown parser). Re-run it whenever lab Markdown changes; tests check it covers every `labs/lab-*` dir.
-- **CLI/TUI pairs:** `quiz_tui.py` imports `quiz.py` as `core` (likewise `flashcards_tui.py` → `flashcards.py`). Logic lives in the core module; TUI files only add rendering. History is written to `.working/`.
+- **CLI/TUI pairs:** `quiz_tui.py` imports `quiz.py` as `core` (likewise `flashcards_tui.py` → `flashcards.py`). Logic lives in the core module; TUI files only add rendering. All four resolve `--exam`/`--set` through the same manifests via `tools/exam_manifest.py`, which also owns per-exam history (`.working/{quiz,flashcards}_history_<exam>.json`) and the one-time legacy-history migration. `study/tests/test_tools.py` covers that plumbing with history redirected to a temp dir.
 - **Version lockstep:** `study/app.json` `app_version` (the engine version — separate from component versions) must equal `study/pyproject.toml` `version` and `serve.py` `__version__` (tested). Bump all three together.
 - Coverage targets come from each exam's `config` (`questions_per_task_target`, applied to its `coverage_component`); every pinned question tier needs ≥ 50 questions and every task statement exactly one concept.
 

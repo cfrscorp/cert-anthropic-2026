@@ -192,24 +192,37 @@ minimums, one concept per task statement).
 
 Prefer a terminal? `quiz.py` / `quiz_tui.py` and `flashcards.py` / `flashcards_tui.py`
 are standalone, dependency-free scripts offering the same content outside the
-browser, with their own cross-session progress history (`.working/`, gitignored).
-Each pair shares one "core" data/history module (`quiz_tui.py` and `flashcards_tui.py`
-just add a fixed-layout, full-screen rendering mode — same flags, same history file).
+browser. Like the Web UI, they read the exam manifests: `--exam` picks the exam
+(default: the first in `exams/index.json`, i.e. `ccarf`) and `--set` picks its
+question/flashcard sets by label or component id (`--set hard`, repeatable, or
+`--set all`; default: the exam's first set). Explicit JSON file paths still work
+in place of `--set`.
+
+Progress history is kept per exam in `.working/` (gitignored):
+`quiz_history_<exam>.json` and `flashcards_history_<exam>.json`. On first run, a
+pre-multi-exam `.working/quiz_history.json` / `flashcards_history.json` is migrated
+into the CCAR-F file (IDs re-keyed to the `ccarf-` form; the original is left in
+place). Each pair shares one "core" module (`quiz_tui.py` and `flashcards_tui.py`
+just add a fixed-layout, full-screen rendering mode — same flags, same history
+file), and all four share `exam_manifest.py` for exam/set resolution.
 
 ```bash
 # Quiz: shuffle 20 Hard-tier questions, scoped to one domain
-uv run study/tools/quiz.py study/content/ccarf-questions-hard.json --shuffle --num 20 --domain 1
+uv run study/tools/quiz.py --set hard --shuffle --num 20 --domain 1
 
 # Combine tiers, or drill everything you've missed before
-uv run study/tools/quiz.py study/content/ccarf-questions-standard.json study/content/ccarf-questions-intermediate.json
-uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --review-missed
+uv run study/tools/quiz.py --set standard --set intermediate
+uv run study/tools/quiz.py --set all --review-missed
 
 # Fixed-layout TUI variant (same flags)
-uv run study/tools/quiz_tui.py study/content/ccarf-questions-hard.json --task 4.3
+uv run study/tools/quiz_tui.py --set hard --task 4.3
 
 # Flashcards: self-graded recall, filtered to one task statement
-uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --task 3.2
-uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --review-missed
+uv run study/tools/flashcards.py --task 3.2
+uv run study/tools/flashcards_tui.py --review-missed
+
+# Your own question file instead of the exam's sets
+uv run study/tools/quiz.py .working/my-questions.json --history .working/my-questions_history.json
 
 # Full flag reference for any of the four
 uv run study/tools/quiz.py --help
