@@ -1,6 +1,6 @@
 /* ==========================================================================
    Claude certification study app (vanilla JS, no dependencies)
-   Loads exams/ + content/ JSON, routes 4 views by hash, tracks cumulative progress in
+   Loads exams/ + content/ JSON, routes 5 views by hash (#/<exam>/<view>), tracks cumulative progress in
    localStorage, and renders a readiness dashboard. Serve over http://localhost
    (see ../serve.py) so fetch() of the local JSON works.
    ========================================================================== */
@@ -218,16 +218,40 @@
   }
 
   /* ---- router ----------------------------------------------------------- */
+  // Routes carry the exam: #/<exam>/<view> (e.g. #/ccarf/quiz). A bare legacy
+  // route (#/quiz) or an unknown view is rewritten in place to the active exam
+  // + a real view. A route naming a different exam saves it and reloads, so
+  // that exam's data and storage namespace boot cleanly.
   var ROUTES = { concepts: renderConcepts, flashcards: renderFlashcards, labs: renderLabs, quiz: renderQuiz, readiness: renderReadiness };
+  var EXAM = null, EXAM_SLUGS = []; // active exam slug + all slugs; set at boot
+  function parseHash() {
+    var parts = (location.hash || "").replace(/^#\/?/, "").split("/");
+    if (EXAM_SLUGS.indexOf(parts[0]) >= 0) return { exam: parts[0], view: parts[1] || "" };
+    return { exam: null, view: parts[0] || "" };
+  }
+  function viewHref(name, slug) { return "#/" + (slug || EXAM) + "/" + name; }
   function currentRoute() {
-    var h = (location.hash || "").replace(/^#\/?/, "");
-    return ROUTES[h] ? h : "concepts";
+    var v = parseHash().view;
+    return ROUTES[v] ? v : "concepts";
   }
   function router() {
+    var r = parseHash();
+    if (r.exam && r.exam !== EXAM) {
+      localStorage.setItem(EXAM_KEY, r.exam);
+      location.reload();
+      return;
+    }
     var name = currentRoute();
+    if (r.exam !== EXAM || r.view !== name) history.replaceState(null, "", viewHref(name));
     document.querySelectorAll(".tab").forEach(function (t) {
-      if (t.getAttribute("data-view") === name) t.setAttribute("aria-current", "page");
+      var v = t.getAttribute("data-view");
+      t.setAttribute("href", viewHref(v));
+      if (v === name) t.setAttribute("aria-current", "page");
       else t.removeAttribute("aria-current");
+    });
+    // Switching exams keeps the current view.
+    document.querySelectorAll(".exam-switch__opt").forEach(function (a) {
+      a.setAttribute("href", viewHref(name, a.getAttribute("data-exam")));
     });
     view.innerHTML = "";
     ROUTES[name]();
@@ -453,7 +477,7 @@
           '<div class="muted">questions correct this set</div></div></div>' +
         '<div class="row" style="justify-content:center;margin-top:1.2rem">' +
           '<button class="btn btn--primary" id="q-again">New Quiz</button>' +
-          '<a class="btn" href="#/readiness">View Readiness →</a>' +
+          '<a class="btn" href="' + viewHref("readiness") + '">View Readiness →</a>' +
         "</div>" +
       "</div>";
     document.getElementById("q-again").addEventListener("click", function () { quiz = null; renderQuiz(); });
@@ -721,7 +745,7 @@
 
     if (answered === 0) {
       view.insertAdjacentHTML("beforeend", emptyState("📊", "Take a quiz to start building your readiness picture.") +
-        '<div class="row" style="justify-content:center;margin-bottom:2rem"><a class="btn btn--primary" href="#/quiz">Start a Quiz →</a></div>');
+        '<div class="row" style="justify-content:center;margin-bottom:2rem"><a class="btn btn--primary" href="' + viewHref("quiz") + '">Start a Quiz →</a></div>');
       renderProgressTools(p);
       return;
     }
@@ -983,24 +1007,27 @@
     return Promise.all(entries.map(function (e) { return fetchJSON("../content/" + e.file); }));
   }
   function concatAll(lists) { return [].concat.apply([], lists); }
-  // Header brand reflects the active exam; the picker only appears when
-  // there's more than one exam. Switching saves the choice and reloads, so
-  // each exam's data and storage namespace are loaded cleanly.
+  // Top stripe: segmented exam switcher (a dropdown once there are too many
+  // exams to fit). Sub-nav stripe: the active exam's full name. The switcher's
+  // links are re-pointed by router() so switching keeps the current view.
+  var SWITCH_MAX_SEGMENTS = 5;
   function initExamChrome(exam, exams) {
-    document.getElementById("brand-title").textContent = exam.code + " Study";
-    document.getElementById("brand-sub").textContent = exam.name;
-    document.title = exam.code + " Study";
-    var picker = document.getElementById("exam-picker");
-    if (exams.length < 2) return;
-    picker.innerHTML = exams.map(function (e) {
-      return '<option value="' + esc(e.slug) + '"' + (e.slug === exam.slug ? " selected" : "") + ">" + esc(e.code + " · " + e.name) + "</option>";
+    document.getElementById("exam-name").textContent = exam.name;
+    document.title = exam.code + " · Claude Certification Study";
+    var sw = document.getElementById("exam-switch");
+    if (exams.length > SWITCH_MAX_SEGMENTS) {
+      sw.innerHTML = '<select class="exam-switch__select" aria-label="Exam">' + exams.map(function (e) {
+        return '<option value="' + esc(e.slug) + '"' + (e.slug === exam.slug ? " selected" : "") + ">" + esc(e.code) + "</option>";
+      }).join("") + "</select>";
+      sw.querySelector("select").addEventListener("change", function (ev) {
+        location.hash = viewHref(currentRoute(), ev.target.value);
+      });
+      return;
+    }
+    sw.innerHTML = exams.map(function (e) {
+      return '<a class="exam-switch__opt" data-exam="' + esc(e.slug) + '" href="' + viewHref("concepts", e.slug) + '" title="' + esc(e.name) + '"' +
+        (e.slug === exam.slug ? ' aria-current="true"' : "") + ">" + esc(e.code) + "</a>";
     }).join("");
-    picker.hidden = false;
-    document.getElementById("brand-sub").hidden = true;
-    picker.addEventListener("change", function () {
-      localStorage.setItem(EXAM_KEY, picker.value);
-      location.reload();
-    });
   }
   function boot() {
     initTheme();
@@ -1013,8 +1040,12 @@
         return Promise.all(res[1].exams.map(function (slug) { return fetchJSON("../exams/" + slug + "/exam.json"); }));
       })
       .then(function (exams) {
-        var saved = localStorage.getItem(EXAM_KEY);
-        var exam = exams.filter(function (e) { return e.slug === saved; })[0] || exams[0];
+        // Exam precedence: the route (#/<exam>/…), then the last-used exam, then the first.
+        EXAM_SLUGS = exams.map(function (e) { return e.slug; });
+        var wanted = parseHash().exam || localStorage.getItem(EXAM_KEY);
+        var exam = exams.filter(function (e) { return e.slug === wanted; })[0] || exams[0];
+        EXAM = exam.slug;
+        localStorage.setItem(EXAM_KEY, EXAM);
         DATA.meta = exam;
         useExamKeys(exam.slug);
         migrateLegacyStorage(exam.slug);
@@ -1046,7 +1077,6 @@
           document.getElementById("app-version-sep").hidden = false;
         }
         window.addEventListener("hashchange", router);
-        if (!location.hash) location.hash = "#/concepts";
         router();
       })
       .catch(function (err) {

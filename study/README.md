@@ -7,8 +7,8 @@ see `BACKLOG.md`): a **3-tier practice-question bank** (435 questions —
 Standard/Intermediate/Hard, including real multi-response "Select N" items),
 **flashcards** (135 cards, with self-graded recall tracking), **concept
 explainers**, and a **readiness dashboard** that tracks your progress over time.
-When more than one exam is available, an exam picker appears in the header, and
-each exam keeps its own progress.
+Switch exams from the header (each exam keeps its own progress); links name the
+exam and section, e.g. `#/ccarf/quiz`, so bookmarks stay on the right exam.
 No cloud, no accounts, no backend — everything runs on your machine and your
 progress lives in your browser (or in a local history file for the CLI/TUI tools).
 
