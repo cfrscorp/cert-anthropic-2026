@@ -782,12 +782,15 @@
   function renderReadiness() {
     var p = loadProgress();
     var r = computeReadiness(p);
-    var answered = Object.keys(p.questions).length;
+    // The tile counts the selected set only, like the gauge and bars below it;
+    // records from other tiers (or for items no longer mapped) don't count.
+    var answered = DATA.questions.filter(function (q) { var rec = p.questions[q.id]; return rec && rec.seen > 0; }).length;
     var totalQ = DATA.questions.length;
+    var setEntry = DATA.sets.questions.find(function (e) { return e.id === DATA.currentQuestionSet; });
 
     view.innerHTML = '<div class="view-head"><h1>Readiness</h1><p>Cumulative, weighted by the exam’s domain weights. Progress is saved in this browser.</p></div>';
 
-    if (answered === 0) {
+    if (Object.keys(p.questions).length === 0) {
       view.insertAdjacentHTML("beforeend", emptyState("📊", "Take a quiz to start building your readiness picture.") +
         '<div class="row" style="justify-content:center;margin-bottom:2rem"><a class="btn btn--primary" href="' + viewHref("quiz") + '">Start a Quiz →</a></div>');
       renderProgressTools(p);
@@ -802,7 +805,7 @@
         '<div class="muted">' + (r.overall >= PASS_THRESHOLD ? "At or above the ~" + PASS_THRESHOLD + "% pass line. Keep reinforcing weak areas." : "Below the ~" + PASS_THRESHOLD + "% pass line — focus on the weak domains below.") + "</div></div>" +
       "</div>" +
       '<div class="stat-tiles" style="margin-top:1rem">' +
-        tile(answered + "/" + totalQ, "questions attempted") +
+        tile(answered + "/" + totalQ, (setEntry ? setEntry.label + " " : "") + "questions attempted") +
         tile(sessionCount(p) + "", "quiz sessions") +
         tile(bestStreak(p) + "", "best session score %") +
         tile(lastStudied(p), "last studied") +
