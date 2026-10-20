@@ -229,6 +229,21 @@ def test_every_distractor_has_a_rationale():
         assert got == expected, f"{q['id']}: distractor rationales {got} != {expected}"
 
 
+def test_no_answer_length_tell():
+    # A single correct option longer than every distractor lets a learner guess
+    # by length alone (BL-039 for Hard, BL-058 for Standard/Intermediate); 1.1x
+    # keeps "pick the longest" near chance across a quiz.
+    tells = []
+    for q in _all_questions():
+        if isinstance(q["correct"], list):
+            continue
+        lengths = {o["key"]: len(o["text"]) for o in q["options"]}
+        key = lengths.pop(q["correct"])
+        if all(key >= 1.1 * n for n in lengths.values()):
+            tells.append(q["id"])
+    assert not tells, f"correct option is >= 1.1x longer than every distractor: {tells}"
+
+
 def test_labs_cover_every_lab_dir():
     lab_dirs = sorted(d.name for d in LABS_ROOT.glob("lab-*") if d.is_dir())
     indexed = sorted(l["slug"] for cid in _of_kind("labs") for l in ITEMS[cid])

@@ -6,15 +6,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Only \"max_tokens\", since that's the only value indicating the response was cut off."
+        "text": "Only \"max_tokens\", since it is the one value indicating the response was cut off; a \"tool_use\" ending is a normal mid-loop state."
       },
       {
         "key": "B",
-        "text": "Both \"tool_use\" and \"max_tokens\" — a final stored response with \"tool_use\" means the loop stopped before executing an outstanding request, and \"max_tokens\" means generation was cut short."
+        "text": "Both \"tool_use\" and \"max_tokens\" — one means a pending tool request was never executed, the other that generation was cut short."
       },
       {
         "key": "C",
-        "text": "\"end_turn\" only, since it is the value most often confused with a genuine completion."
+        "text": "\"end_turn\" only, since it is the value most often confused with a genuine completion and can mask an unfinished task."
       },
       {
         "key": "D",
@@ -45,7 +45,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Include the entire prior assistant message exactly as returned — both the text block and the tool_use block — so the model's own reasoning and its tool request stay together in context."
+        "text": "Include the entire prior assistant message exactly as returned — both the text block and the tool_use block."
       },
       {
         "key": "B",
@@ -53,16 +53,16 @@
       },
       {
         "key": "C",
-        "text": "Include only the text block; the tool_use block is redundant once the tool_result is appended."
+        "text": "Include only the text block; the tool_use block is redundant once the matching tool_result is appended."
       },
       {
         "key": "D",
-        "text": "Merge the text and tool_use content into a single flattened string before appending."
+        "text": "Merge the text and tool_use content into a single flattened string before appending, to keep the turn compact."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "An assistant turn can contain multiple content blocks of different types in one message. The full message — text and tool_use together — must be preserved and appended as-is; the model's own prior turn is not something the loop edits or trims.",
+      "correct": "An assistant turn can contain multiple content blocks of different types in one message. The full message — text and tool_use together — must be preserved and appended as-is, so the model's own reasoning and its tool request stay together in context; the model's own prior turn is not something the loop edits or trims.",
       "distractors": {
         "B": "Discarding the text block removes context (the model's stated reasoning) that may matter for later turns, and there's no reason the loop needs to edit the assistant's own prior message.",
         "C": "Discarding the tool_use block breaks the pairing tool_result blocks rely on (they're matched to a specific tool_use by ID), corrupting the next request.",
@@ -84,24 +84,24 @@
     "options": [
       {
         "key": "A",
-        "text": "The Claude API has no `tool_calls` field; tool requests appear as `content` blocks with `type: \"tool_use\"`, and the presence of tool_use content combined with `stop_reason: \"tool_use\"` is what the loop should check instead."
+        "text": "The Claude API has no `tool_calls` field; tool requests arrive as `content` blocks with `type: \"tool_use\"`, signaled by `stop_reason: \"tool_use\"`."
       },
       {
         "key": "B",
-        "text": "Nothing is wrong; `tool_calls` is simply an older, deprecated name for the same field."
+        "text": "Nothing is wrong; `tool_calls` is simply an older, deprecated name for the same field and is still populated for compatibility."
       },
       {
         "key": "C",
-        "text": "The check is correct, but it should also inspect `stop_reason` in addition, not instead."
+        "text": "The check is correct, but it should also inspect `stop_reason` in addition, not instead, to catch truncated responses."
       },
       {
         "key": "D",
-        "text": "`tool_calls` is correct, but it only appears when `tool_choice` is set to `\"any\"`."
+        "text": "`tool_calls` is correct, but it only appears when `tool_choice` is set to `\"any\"`, so the check misses calls under the default `\"auto\"`."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "This is a common carryover mistake from other providers' APIs. Claude's response represents tool requests as content blocks of type `tool_use` inside the `content` array, signaled by `stop_reason: \"tool_use\"` — there is no top-level `tool_calls` field to check.",
+      "correct": "This is a common carryover mistake from other providers' APIs. Claude's response represents tool requests as content blocks of type `tool_use` inside the `content` array, signaled by `stop_reason: \"tool_use\"` — there is no top-level `tool_calls` field to check. The loop should check for tool_use content together with `stop_reason: \"tool_use\"` instead.",
       "distractors": {
         "B": "There's no deprecated `tool_calls` field in the Claude API at any point — this isn't a naming migration, it's checking a field that doesn't exist.",
         "C": "This assumes `tool_calls` exists and just needs a companion check; the actual fix is checking the correct fields entirely (content blocks and stop_reason), not adding to a nonexistent one.",
@@ -123,15 +123,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Treat it as another valid terminal state — like `\"end_turn\"` — and return the response, since the model stopped deliberately at a configured boundary rather than being cut off or requesting a tool."
+        "text": "Treat it as another valid terminal state, like `\"end_turn\"`, and return the response — the model stopped at a configured boundary."
       },
       {
         "key": "B",
-        "text": "Treat it identically to `\"tool_use\"` and attempt to execute a tool, since any non-`\"end_turn\"` value implies more work remains."
+        "text": "Treat it identically to `\"tool_use\"` and attempt to execute a tool, since any non-`\"end_turn\"` value implies more work remains to do."
       },
       {
         "key": "C",
-        "text": "Treat it as an error condition and retry the request unchanged."
+        "text": "Treat it as an error condition and retry the request unchanged, since the loop has no defined handling for that value."
       },
       {
         "key": "D",
@@ -140,7 +140,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "`\"stop_sequence\"` is a legitimate terminal stop_reason meaning generation stopped at a custom sequence you configured — it's not an error and not a tool request. The loop's stop-condition logic needs to recognize the full set of terminal states, not just `\"end_turn\"`.",
+      "correct": "`\"stop_sequence\"` is a legitimate terminal stop_reason meaning generation stopped at a custom sequence you configured — it's not an error and not a tool request. Unlike `\"max_tokens\"` it doesn't signal truncation, and unlike `\"tool_use\"` there is nothing to execute. The loop's stop-condition logic needs to recognize the full set of terminal states, not just `\"end_turn\"`.",
       "distractors": {
         "B": "There's no tool_use content to execute here; treating a terminal state as a tool request would look for tool_use blocks that don't exist.",
         "C": "This isn't an error — retrying an already-successful request that matched its stop sequence doesn't address the actual gap, which is a missing branch in the stop-condition logic.",
@@ -201,7 +201,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Always run exactly one refinement round regardless of the findings, to bound cost."
+        "text": "Run exactly one refinement round regardless of the findings, so the cost of each report stays bounded and predictable."
       },
       {
         "key": "B",
@@ -209,16 +209,16 @@
       },
       {
         "key": "C",
-        "text": "Stop once remaining gaps fall below a defined sufficiency bar (e.g., minor detail rather than a missing subtopic), balancing coverage against diminishing returns."
+        "text": "Stop once remaining gaps fall below a defined sufficiency bar, such as minor detail rather than a missing subtopic."
       },
       {
         "key": "D",
-        "text": "Never re-delegate more than once per subtopic, regardless of how thin the resulting coverage is."
+        "text": "Re-delegate at most once per subtopic regardless of how thin the resulting coverage is, to avoid repeated passes."
       }
     ],
     "correct": "C",
     "rationale": {
-      "correct": "Iterative refinement should continue only while it is closing meaningful gaps; once remaining gaps are minor rather than substantive, further rounds cost more than they add. A defined sufficiency bar keeps the loop from running indefinitely on marginal improvements.",
+      "correct": "Iterative refinement should continue only while it is closing meaningful gaps; once remaining gaps are minor rather than substantive, further rounds cost more than they add. A defined sufficiency bar balances coverage against diminishing returns and keeps the loop from running indefinitely on marginal improvements.",
       "distractors": {
         "A": "A fixed one-round rule ignores whether that round actually closed the gaps; some reports need more, others need none.",
         "B": "Exhaustive coverage has no natural stopping point and would make the loop run indefinitely at unbounded cost.",
@@ -240,11 +240,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Keep the coordinator's system prompt focused on orchestration — when to delegate, how to decide which subagents to invoke, and how to synthesize their outputs — and let each subagent's own system prompt own the domain expertise it actually needs."
+        "text": "Keep the coordinator's prompt focused on orchestration — delegation, subagent selection, synthesis — and let each subagent's prompt own its domain expertise."
       },
       {
         "key": "B",
-        "text": "Keep all domain knowledge duplicated in both places, since the coordinator might need it as a fallback if a subagent is unavailable."
+        "text": "Keep all domain knowledge duplicated in both places, since the coordinator might need it as a fallback if a subagent is unavailable or fails."
       },
       {
         "key": "C",
@@ -252,7 +252,7 @@
       },
       {
         "key": "D",
-        "text": "Split the domain knowledge alphabetically between the coordinator and the subagents to balance prompt length."
+        "text": "Split the domain knowledge alphabetically between the coordinator and the subagents to balance prompt length across agents."
       }
     ],
     "correct": "A",
@@ -279,15 +279,15 @@
     "options": [
       {
         "key": "A",
-        "text": "The task's actual complexity doesn't warrant nine subagents; the coordinator should scope subagent count to what the task needs, since over-spawning adds coordination and synthesis overhead without a proportional quality gain for a task this simple."
+        "text": "The task doesn't warrant nine subagents; over-spawning adds coordination and synthesis overhead without a proportional quality gain."
       },
       {
         "key": "B",
-        "text": "Nothing — more subagents always produce higher-quality results regardless of task complexity."
+        "text": "Nothing — more subagents always produce higher-quality results, because each one gets a narrower and cleaner slice of the overall task."
       },
       {
         "key": "C",
-        "text": "Nine subagents will exceed the Task tool's per-turn call limit and the request will fail outright."
+        "text": "Nine subagents will exceed the Task tool's per-turn call limit, so the request will fail outright before any analysis runs."
       },
       {
         "key": "D",
@@ -296,7 +296,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Subagent count should match task complexity. Three simple, similar reports don't need nine narrowly-sliced subagents — that just adds nine outputs to reconcile and coordinate for no real quality benefit over a couple of well-scoped subagents (or even direct handling).",
+      "correct": "Subagent count should match task complexity, so the coordinator should scope how many it spawns to what the task needs. Three simple, similar reports don't need nine narrowly-sliced subagents — that just adds nine outputs to reconcile and coordinate for no real quality benefit over a couple of well-scoped subagents (or even direct handling).",
       "distractors": {
         "B": "More subagents isn't automatically better; past the point where the task's actual structure calls for it, additional subagents mostly add coordination overhead and redundant partial results to reconcile.",
         "C": "There's no fixed universal per-turn call limit at play here — the real problem is task/subagent-count mismatch, not a hard technical ceiling.",
@@ -318,7 +318,7 @@
     "options": [
       {
         "key": "A",
-        "text": "`fact-checker`, because the task is a narrow, single-claim verification against material already on hand, not open-ended research or general document extraction."
+        "text": "`fact-checker`, because the task is a narrow, single-claim check against material already on hand."
       },
       {
         "key": "B",
@@ -330,12 +330,12 @@
       },
       {
         "key": "D",
-        "text": "All three, in parallel, so their outputs can be cross-checked against each other."
+        "text": "All three, in parallel, so their outputs can be cross-checked against each other before answering."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Matching the task's actual shape — a narrow, single-claim check against material already provided — to the subagent type built for exactly that (`fact-checker`) is more precise and efficient than defaulting to a broader-capability agent or picking by superficial name association.",
+      "correct": "Matching the task's actual shape — a narrow, single-claim check against material already provided, not open-ended research or general document extraction — to the subagent type built for exactly that (`fact-checker`) is more precise and efficient than defaulting to a broader-capability agent or picking by superficial name association.",
       "distractors": {
         "B": "Defaulting to the broadest subagent regardless of task shape wastes capability and doesn't reflect how subagent types should be selected.",
         "C": "Picking by keyword match on the subagent's name rather than the actual task ignores what each type is actually built to do.",
@@ -357,7 +357,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Spawn search and document-analysis in parallel (since they're independent of each other), then spawn synthesis afterward, once both have returned results to pass into its prompt."
+        "text": "Spawn search and document-analysis in parallel, then spawn synthesis once both have returned results to pass into its prompt."
       },
       {
         "key": "B",
@@ -365,11 +365,11 @@
       },
       {
         "key": "C",
-        "text": "Spawn them one at a time in an arbitrary order, since Task tool calls must always run sequentially."
+        "text": "Spawn them one at a time in an arbitrary order, since Task tool calls must always run sequentially within a turn."
       },
       {
         "key": "D",
-        "text": "Spawn synthesis first so it's ready to receive results as they arrive."
+        "text": "Spawn synthesis first so it's ready to receive results from the other two subagents as they arrive."
       }
     ],
     "correct": "A",
@@ -396,15 +396,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Spawn five separate invocations of the same `contract-analyzer` subagent type in parallel, one per contract, since the type doesn't limit how many times or how often it can be instantiated."
+        "text": "Spawn five separate invocations of the same `contract-analyzer` subagent type in parallel, one per contract."
       },
       {
         "key": "B",
-        "text": "Register five new subagent types, one per contract, since each invocation requires its own distinct type."
+        "text": "Register five new subagent types, one per contract, since each invocation requires its own distinct type definition."
       },
       {
         "key": "C",
-        "text": "Invoke `contract-analyzer` once with all five contracts concatenated into a single prompt."
+        "text": "Invoke `contract-analyzer` once with all five contracts concatenated into a single prompt to compare them side by side."
       },
       {
         "key": "D",
@@ -435,19 +435,19 @@
     "options": [
       {
         "key": "A",
-        "text": "An explicit output-format specification (e.g., a required structure or schema each subagent's response must follow), so all three subagents return findings the synthesis subagent can process uniformly."
+        "text": "An explicit output-format specification, such as a required structure or schema each subagent's response must follow."
       },
       {
         "key": "B",
-        "text": "A request for each subagent to write in a more 'professional' tone."
+        "text": "A request for each subagent to write in a more 'professional' tone, so the findings read consistently across reports."
       },
       {
         "key": "C",
-        "text": "A larger max_tokens budget for each subagent, so their outputs can be longer."
+        "text": "A larger max_tokens budget for each subagent, so their outputs can be longer and cover findings in full detail."
       },
       {
         "key": "D",
-        "text": "An instruction telling each subagent to guess what format the others are likely using."
+        "text": "An instruction telling each subagent to guess what format the others are likely using and match it."
       }
     ],
     "correct": "A",
@@ -478,15 +478,15 @@
       },
       {
         "key": "B",
-        "text": "Extend the shared prerequisite-gate mechanism to also cover process_exchange, so both tools enforce the same identity check through one reusable rule."
+        "text": "Extend the shared prerequisite-gate mechanism to cover process_exchange, so one reusable rule enforces both tools."
       },
       {
         "key": "C",
-        "text": "Add a system-prompt reminder telling the agent to verify identity before using process_exchange."
+        "text": "Add a system-prompt reminder telling the agent to verify identity before using process_exchange, mirroring the refund policy."
       },
       {
         "key": "D",
-        "text": "Skip enforcement for process_exchange since it doesn't move money directly."
+        "text": "Skip enforcement for process_exchange since it doesn't move money directly and carries lower financial risk."
       }
     ],
     "correct": "B",
@@ -513,15 +513,15 @@
     "options": [
       {
         "key": "A",
-        "text": "A single hard-coded $500 gate for everyone, with premium customers manually overridden case by case."
+        "text": "A single hard-coded $500 gate for everyone, with premium customers manually overridden case by case by a supervisor."
       },
       {
         "key": "B",
-        "text": "A programmatic gate that looks up the customer's tier and applies the corresponding threshold before allowing process_refund to proceed."
+        "text": "A programmatic gate that looks up the customer's tier and applies the matching threshold before process_refund proceeds."
       },
       {
         "key": "C",
-        "text": "A system-prompt instruction listing both thresholds and asking the agent to apply the correct one."
+        "text": "A system-prompt instruction listing both thresholds and asking the agent to apply the correct one for each customer's tier."
       },
       {
         "key": "D",
@@ -556,7 +556,7 @@
       },
       {
         "key": "B",
-        "text": "The receiving human must re-derive what the agent already concluded should happen, slowing resolution; the handoff should include a specific recommended action."
+        "text": "The human must re-derive what the agent already concluded, slowing resolution; add a specific recommended action."
       },
       {
         "key": "C",
@@ -564,7 +564,7 @@
       },
       {
         "key": "D",
-        "text": "The fix is to include the full conversation transcript instead, so the human can read everything themselves."
+        "text": "The fix is to include the full conversation transcript instead, so the human can read everything and reach their own conclusion."
       }
     ],
     "correct": "B",
@@ -591,19 +591,19 @@
     "options": [
       {
         "key": "A",
-        "text": "A structured handoff carrying the case's actual details — customer ID, requested amount, and reason for the original request — so the human reviewer can act without re-investigating from scratch."
+        "text": "A structured handoff carrying the case details — customer ID, requested amount, and reason — so the reviewer can act immediately."
       },
       {
         "key": "B",
-        "text": "Nothing; a generic message is sufficient since the human can look up the case themselves."
+        "text": "Nothing; a generic message is sufficient, since the human reviewer can look up the case themselves in the order system."
       },
       {
         "key": "C",
-        "text": "A retry loop that keeps re-attempting the refund at smaller amounts until one clears the limit."
+        "text": "A retry loop that keeps re-attempting the refund at smaller amounts until one clears the limit, avoiding escalation."
       },
       {
         "key": "D",
-        "text": "A second hook that double-checks the first hook's decision before escalating."
+        "text": "A second hook that double-checks the first hook's decision before escalating, to reduce false escalations."
       }
     ],
     "correct": "A",
@@ -630,19 +630,19 @@
     "options": [
       {
         "key": "A",
-        "text": "A PreToolUse hook that inspects the outgoing `process_refund` call and, if `currency` is absent, injects the default value \"USD\" before the call executes."
+        "text": "A PreToolUse hook that injects the default `currency` value \"USD\" into a `process_refund` call missing it, before it executes."
       },
       {
         "key": "B",
-        "text": "A system-prompt reminder telling the model to always include `currency`."
+        "text": "A system-prompt reminder telling the model to always include `currency`, with an example `process_refund` call."
       },
       {
         "key": "C",
-        "text": "A PostToolUse hook that adds `currency` to the tool's result after it has already executed."
+        "text": "A PostToolUse hook that adds `currency` to the tool's result after it has executed, so downstream records show USD."
       },
       {
         "key": "D",
-        "text": "Reject any `process_refund` call missing `currency` and ask the model to retry from scratch."
+        "text": "Reject any `process_refund` call missing `currency` and ask the model to retry the call from scratch with the field included."
       }
     ],
     "correct": "A",
@@ -669,7 +669,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Maintain and consult persistent state (a count of recent refunds per customer) across calls, since this rule depends on the customer's refund history, not anything visible in a single call's arguments."
+        "text": "Maintain and consult persistent state across calls, such as a count of each customer's refunds in the rolling window."
       },
       {
         "key": "B",
@@ -686,7 +686,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "A per-customer, rolling-window limit is a cross-call rule: the hook needs to track and check state that persists across invocations (e.g., a per-customer counter with a timestamp), not just validate what's inside any single call's arguments.",
+      "correct": "A per-customer, rolling-window limit is a cross-call rule that depends on the customer's refund history, not anything visible in a single call's arguments: the hook needs to track and check state that persists across invocations (e.g., a per-customer counter with a timestamp).",
       "distractors": {
         "B": "A single call's arguments have no way of expressing how many refunds this customer already received today — that information doesn't exist without persistent state to consult.",
         "C": "Relying on the model to self-track a count across turns is exactly the kind of stateful bookkeeping a probabilistic instruction can't be trusted to enforce correctly every time.",
@@ -708,24 +708,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Both conditions are real, independent violations, so the call should be blocked — it's sufficient that any registered PreToolUse hook for this tool call rejects it; which one reports first doesn't change the outcome of blocking the call."
+        "text": "Block the call: a rejection from any registered PreToolUse hook is enough to block it."
       },
       {
         "key": "B",
-        "text": "Only the first-registered hook should run; the second is skipped once one hook exists."
+        "text": "Only the first-registered hook should run; the second is skipped once one hook exists for that tool and event."
       },
       {
         "key": "C",
-        "text": "The call should be allowed, since a call is only blocked if every registered hook rejects it."
+        "text": "The call should be allowed, since a call is only blocked if every registered hook for that tool rejects it."
       },
       {
         "key": "D",
-        "text": "The two hooks will conflict and the tool call will silently execute without any enforcement."
+        "text": "The two hooks will conflict over which result to report, and the tool call will silently execute without enforcement."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Multiple PreToolUse hooks on the same tool each get a chance to evaluate the call; if any of them rejects it, the call is blocked. Here both independently would reject it — the point is the call doesn't execute, not which single hook 'wins.'",
+      "correct": "Multiple PreToolUse hooks on the same tool each get a chance to evaluate the call; if any of them rejects it, the call is blocked. Here both are real, independent violations and both hooks would reject it — the point is the call doesn't execute, and which hook reports first doesn't change that outcome.",
       "distractors": {
         "B": "Registered hooks for an event aren't limited to just the first one — the whole point of registering multiple hooks is that each gets evaluated for a matching call.",
         "C": "Requiring every hook to reject before blocking would mean a call only needs one hook to approve it to bypass all enforcement — the opposite of how a safety mechanism should behave.",
@@ -747,19 +747,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Scope the hook's registration to the specific tool(s) it's meant to apply to (`lookup_order`), rather than registering it globally for every tool call."
+        "text": "Scope the hook's registration to the tool it's meant for (`lookup_order`) instead of registering it globally for every tool."
       },
       {
         "key": "B",
-        "text": "Leave the hook global, but add a check inside it for the string \"order\" somewhere in the response."
+        "text": "Leave the hook global, but add a check inside it for the string \"order\" somewhere in the response before redacting."
       },
       {
         "key": "C",
-        "text": "Remove the hook entirely, since PII redaction isn't worth the added latency."
+        "text": "Remove the hook entirely, since PII redaction isn't worth the added latency across the agent's tool calls."
       },
       {
         "key": "D",
-        "text": "Move the redaction logic into the system prompt instead of a hook."
+        "text": "Move the redaction logic into the system prompt, so the model omits PII when it relays tool results."
       }
     ],
     "correct": "A",
@@ -786,24 +786,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Resolve the first issue and ask the customer to open separate tickets for the others."
+        "text": "Resolve the first issue now and ask the customer to open separate tickets for the other two, so each gets its own thread."
       },
       {
         "key": "B",
-        "text": "Decompose the message into three items, investigate each (in parallel where possible) using shared context, then synthesize one unified resolution."
+        "text": "Split the message into three items, investigate each against the shared context, then send one unified resolution."
       },
       {
         "key": "C",
-        "text": "Escalate the whole conversation because multi-issue requests exceed the agent's scope."
+        "text": "Escalate the whole conversation to a human, because a request bundling several issues exceeds the agent's single-intent scope."
       },
       {
         "key": "D",
-        "text": "Address only the issue whose wording sounds most urgent."
+        "text": "Address only the issue whose wording sounds most urgent, keeping the reply focused and short."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "Multi-concern requests should be decomposed into distinct items, each investigated against the shared conversational context, then synthesized into a single coherent resolution that addresses all three.",
+      "correct": "Multi-concern requests should be decomposed into distinct items, each investigated (in parallel where possible) against the shared conversational context, then synthesized into a single coherent resolution that addresses all three.",
       "distractors": {
         "A": "Shifting two of the three issues back onto the customer to file separately creates unnecessary friction and is not how decomposition should work.",
         "C": "Escalating the entire conversation is disproportionate; multi-issue requests are within scope once decomposed.",
@@ -824,24 +824,24 @@
     "options": [
       {
         "key": "A",
-        "text": "The search subagent's queries are not comprehensive enough."
+        "text": "The search subagent's queries are not comprehensive enough to surface wind, hydro, and geothermal sources."
       },
       {
         "key": "B",
-        "text": "The coordinator's task decomposition is too narrow, so subagent assignments miss whole domains of the topic."
+        "text": "The coordinator's task decomposition is too narrow for the topic."
       },
       {
         "key": "C",
-        "text": "The synthesis subagent is dropping non-solar findings."
+        "text": "The synthesis subagent is dropping non-solar findings when it merges the subagent reports."
       },
       {
         "key": "D",
-        "text": "The document-analysis subagent's relevance criteria are too restrictive."
+        "text": "The document-analysis subagent's relevance criteria are too restrictive and filter out non-solar documents."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "The logs implicate the coordinator directly: it never assigned wind, hydro, or geothermal subtopics in the first place, so downstream subagents executed correctly on an incomplete plan.",
+      "correct": "The logs implicate the coordinator directly: its decomposition was too narrow, so subagent assignments missed whole domains of the topic. It never assigned wind, hydro, or geothermal subtopics in the first place, so downstream subagents executed correctly on an incomplete plan.",
       "distractors": {
         "A": "The search subagent only ran the queries it was assigned; it wasn't asked about wind, hydro, or geothermal at all.",
         "C": "There's nothing to drop — synthesis never received non-solar findings because they were never researched.",
@@ -862,24 +862,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Revise the plan to add the newly discovered call sites as additional steps, since a decomposition plan is a living document that should be updated when new information invalidates its original assumptions."
+        "text": "Revise the plan to add the newly discovered call sites as additional steps."
       },
       {
         "key": "B",
-        "text": "Continue executing the original 5 steps exactly as planned and ignore the newly discovered call sites, since the plan was already fixed."
+        "text": "Continue the original 5 steps exactly as planned and ignore the new call sites, since the plan was fixed upfront."
       },
       {
         "key": "C",
-        "text": "Restart the entire migration from scratch with a completely new plan."
+        "text": "Restart the entire migration from scratch with a new plan built on a fresh, complete audit."
       },
       {
         "key": "D",
-        "text": "Silently skip the newly discovered call sites since they weren't part of the original scope."
+        "text": "Skip the newly discovered call sites without flagging them, since they fell outside the original audit's scope."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "A decomposition plan — even one initially treated as fixed — should be revised when new discoveries invalidate its original assumptions. The right move is updating the plan to cover the newly found call sites, not rigidly executing a plan now known to be incomplete.",
+      "correct": "A decomposition plan is a living document — even one initially treated as fixed should be revised when new discoveries invalidate its original assumptions. The right move is updating the plan to cover the newly found call sites, not rigidly executing a plan now known to be incomplete.",
       "distractors": {
         "B": "Sticking to a plan now known to be incomplete leaves real work undone and produces an incomplete migration.",
         "C": "A full restart discards the valid progress already made on the original 5 steps; only the plan needs updating, not the whole effort.",
@@ -901,7 +901,7 @@
     "options": [
       {
         "key": "A",
-        "text": "The granularity is too fine for this codebase's structure — some genuinely related files need to be reviewed together (or cross-referenced by a targeted pass) to see interactions between them; splitting every single file into total isolation loses exactly those relationships."
+        "text": "The granularity is too fine: tightly related files need to be reviewed together, or cross-referenced in a targeted pass."
       },
       {
         "key": "B",
@@ -909,11 +909,11 @@
       },
       {
         "key": "C",
-        "text": "The problem is only that 200 passes is too many API calls, unrelated to how the files were grouped."
+        "text": "The problem is only that 200 passes means too many API calls; the cost is the issue, unrelated to how files were grouped."
       },
       {
         "key": "D",
-        "text": "The fix is to merge all 200 files back into a single pass to eliminate the coordination overhead."
+        "text": "The fix is to merge all 200 files back into a single pass, eliminating the coordination overhead between passes."
       }
     ],
     "correct": "A",
@@ -940,19 +940,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Resume the prior session with --resume and keep going."
+        "text": "Resume the prior session with --resume and keep going from where it left off."
       },
       {
         "key": "B",
-        "text": "Fork the session to create a branch from the prior analysis."
+        "text": "Fork the session to create a fresh branch that builds on the prior analysis."
       },
       {
         "key": "C",
-        "text": "Start a new session and inject a structured summary of prior findings, noting which files changed."
+        "text": "Start a new session and inject a structured summary of prior findings and changed files."
       },
       {
         "key": "D",
-        "text": "Increase the context window so the stale results don't get dropped."
+        "text": "Increase the context window so the stale results don't get dropped or truncated later on."
       }
     ],
     "correct": "C",
@@ -979,7 +979,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Start a fresh session and inject a distilled summary of the key findings, even though nothing is stale, since the actual constraint here is context budget, not validity — carrying the full accumulated history forward risks losing information to truncation."
+        "text": "Start a fresh session with a distilled summary of the key findings, since the constraint is context budget."
       },
       {
         "key": "B",
@@ -991,12 +991,12 @@
       },
       {
         "key": "D",
-        "text": "Delete the oldest half of the conversation history to make room, without summarizing it first."
+        "text": "Delete the oldest half of the conversation history to make room, without summarizing it first, keeping recent turns intact."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Validity and context budget are two separate constraints. Even fully valid context can outgrow the window; when that happens, the practical fix is the same as for staleness — start fresh with a distilled summary — just for a different reason (size, not staleness).",
+      "correct": "Validity and context budget are two separate constraints. Even fully valid context can outgrow the window, and carrying the full history forward risks losing information to truncation; when that happens, the practical fix is the same as for staleness — start fresh with a distilled summary — just for a different reason (size, not staleness).",
       "distractors": {
         "B": "Treating staleness as the only valid reason to start fresh ignores the very real constraint of running out of context room, which is happening here regardless of validity.",
         "C": "Repeated compaction is lossy and, used as a permanent strategy rather than an occasional tool, degrades the very findings you're trying to preserve.",
@@ -1018,7 +1018,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Adopt a consistent, descriptive session-naming convention (e.g., including the ticket ID or feature name) when starting a named session, so any teammate can identify and resume the right one later."
+        "text": "Adopt a consistent, descriptive session-naming convention, such as including the ticket ID or feature name."
       },
       {
         "key": "B",
@@ -1026,7 +1026,7 @@
       },
       {
         "key": "C",
-        "text": "Disable named sessions entirely and always start fresh for every task."
+        "text": "Disable named sessions entirely and always start fresh for every task, recording findings in the ticket."
       },
       {
         "key": "D",
@@ -1035,7 +1035,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "The problem is that names carry no identifying information. A descriptive naming convention (ticket ID, feature, or bug reference) is what makes a named session discoverable and resumable by someone other than the person who started it.",
+      "correct": "The problem is that names carry no identifying information. A descriptive naming convention (ticket ID, feature, or bug reference) is what makes a named session discoverable and resumable by any teammate, not just the person who started it.",
       "distractors": {
         "B": "Sharing one name across all investigations would mix unrelated work into a single session, the opposite of what's needed.",
         "C": "Disabling named sessions throws away the resumption mechanism entirely rather than fixing how sessions are named.",
@@ -1057,11 +1057,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Fork the session before starting the risky exploration, so the original stays untouched as a clean checkpoint while the fork inherits the full validated baseline and absorbs any exploratory dead ends."
+        "text": "Fork the session before the risky exploration, so the original stays untouched as a clean checkpoint."
       },
       {
         "key": "B",
-        "text": "Continue directly in the original session, since nothing bad has happened yet."
+        "text": "Continue directly in the original session, since nothing bad has happened yet and you can undo later."
       },
       {
         "key": "C",
@@ -1074,7 +1074,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Forking is exactly for this: preserving a validated baseline session untouched while a new branch — which inherits everything already learned — takes on the risk of an exploratory path that might not pan out.",
+      "correct": "Forking is exactly for this: preserving a validated baseline session untouched while a new branch — which inherits the full validated baseline — takes on the risk of an exploratory path and absorbs any dead ends.",
       "distractors": {
         "B": "Continuing directly in the original session means a bad exploratory turn contaminates the very session you wanted to preserve as a clean checkpoint.",
         "C": "Starting with no prior context throws away the validated architectural understanding you explicitly want to keep building on.",
@@ -1100,11 +1100,11 @@
       },
       {
         "key": "B",
-        "text": "Add a few-shot example set specifically covering the genuinely ambiguous request patterns that still cause misrouting, layered on top of the improved descriptions."
+        "text": "Add few-shot examples targeting the genuinely ambiguous request patterns, layered on the improved descriptions."
       },
       {
         "key": "C",
-        "text": "Revert the description changes, since they clearly didn't work."
+        "text": "Revert the description changes, since misrouting persisted and they added tokens to every request."
       },
       {
         "key": "D",
@@ -1134,19 +1134,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Remove the agent's access to Grep entirely."
+        "text": "Remove the agent's access to Grep so it has to use the MCP tool."
       },
       {
         "key": "B",
-        "text": "Enhance the MCP tool's description to clearly explain its capabilities and outputs so the agent prefers it."
+        "text": "Improve the MCP tool's description so its capabilities and outputs are clear."
       },
       {
         "key": "C",
-        "text": "Rename the built-in Grep tool."
+        "text": "Rename the built-in Grep tool so it looks less like the default choice."
       },
       {
         "key": "D",
-        "text": "Force tool_choice to the MCP tool on every turn."
+        "text": "Force tool_choice to the MCP tool on every turn so it is used."
       }
     ],
     "correct": "B",
@@ -1173,7 +1173,7 @@
     "options": [
       {
         "key": "A",
-        "text": "The verbosity itself can dilute the model's attention on the actually decision-relevant details (purpose, inputs, when to use it); trim the description to the essential purpose, inputs, and disambiguating guidance, moving historical/implementation notes elsewhere."
+        "text": "Verbosity dilutes attention on decision-relevant details; trim it to purpose, inputs, and disambiguating guidance."
       },
       {
         "key": "B",
@@ -1181,16 +1181,16 @@
       },
       {
         "key": "C",
-        "text": "Description length has no effect on tool selection; only the tool's name matters."
+        "text": "Description length has no effect on tool selection; only the tool's name and input schema matter."
       },
       {
         "key": "D",
-        "text": "The description should be split across multiple tools, one per edge case mentioned."
+        "text": "Split the description across multiple tools, one per edge case, so each stays short and focused."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Tool descriptions are attention-limited context, not an unlimited reference document — burying the decision-relevant purpose and usage guidance under historical and implementation detail makes it harder, not easier, for the model to extract what actually matters for selection. A tight, purpose-focused description usually selects better than an exhaustive one.",
+      "correct": "Tool descriptions are attention-limited context, not an unlimited reference document — burying the decision-relevant purpose and usage guidance under historical and implementation detail makes it harder, not easier, for the model to extract what actually matters for selection. Trim to the essentials and move historical/implementation notes elsewhere; a tight, purpose-focused description usually selects better than an exhaustive one.",
       "distractors": {
         "B": "More text is not strictly better; past a point, added length adds noise that competes with the decision-relevant content for the model's attention.",
         "C": "Descriptions are the primary selection signal alongside the name; claiming length is irrelevant contradicts that.",
@@ -1212,7 +1212,7 @@
     "options": [
       {
         "key": "A",
-        "text": "The odd-one-out description gives the model less to work with than its siblings, making `get_refund` comparatively harder to select correctly; rewrite it to match the family's pattern (retrieves-by-ID plus returned fields)."
+        "text": "`get_refund` gives the model less to work with than its siblings; rewrite it to match the family's pattern."
       },
       {
         "key": "B",
@@ -1220,7 +1220,7 @@
       },
       {
         "key": "C",
-        "text": "Rename `get_refund` to `get_refund_v2` to signal it works differently."
+        "text": "Rename `get_refund` to `get_refund_v2` to signal that it works differently from the others."
       },
       {
         "key": "D",
@@ -1251,11 +1251,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Return a structured response listing per-item results — which SKUs succeeded, and for each failed SKU, the specific reason — rather than a single pass/fail verdict for the whole batch."
+        "text": "Return a structured response with per-item results: which SKUs succeeded, and why each failed SKU failed."
       },
       {
         "key": "B",
-        "text": "Return `isError: true` for the whole call, since 3 of 50 items failed."
+        "text": "Return `isError: true` for the whole call, since 3 of 50 items failed and the batch is incomplete."
       },
       {
         "key": "C",
@@ -1263,7 +1263,7 @@
       },
       {
         "key": "D",
-        "text": "Retry the entire batch of 50 automatically until all 50 succeed."
+        "text": "Retry the entire batch of 50 automatically until all 50 succeed, then report success."
       }
     ],
     "correct": "A",
@@ -1290,7 +1290,7 @@
     "options": [
       {
         "key": "A",
-        "text": "As a distinct, retryable rate-limit category (not a generic transient error) including a `retryAfter` value, so the agent waits the right amount of time instead of retrying immediately or treating it as a hard failure."
+        "text": "As a distinct, retryable rate-limit category with a `retryAfter` value, rather than a generic transient error."
       },
       {
         "key": "B",
@@ -1307,7 +1307,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Rate limiting is retryable, but immediate retries make it worse, and generic-transient handling (retry right away) doesn't respect the provider's actual reset window. A dedicated category plus a concrete wait-time signal (`retryAfter`) lets the agent retry correctly instead of guessing.",
+      "correct": "Rate limiting is retryable, but immediate retries make it worse, and generic-transient handling (retry right away) doesn't respect the provider's actual reset window. A dedicated category plus a concrete wait-time signal (`retryAfter`) lets the agent wait the right amount of time instead of retrying immediately or treating it as a hard failure.",
       "distractors": {
         "B": "Marking it non-retryable is wrong — the call will succeed later, once the window resets; that's exactly what distinguishes rate limiting from a hard business rule.",
         "C": "A generic, undifferentiated error throws away the one piece of information (how long to wait) that would let the agent recover cleanly.",
@@ -1329,7 +1329,7 @@
     "options": [
       {
         "key": "A",
-        "text": "As a distinct permission/authorization category, non-retryable by the agent itself — surface it to the user or a human with enough detail to know which permission is missing, rather than retrying or silently failing."
+        "text": "As a distinct, non-retryable permission category, surfaced to a human with the specific missing permission."
       },
       {
         "key": "B",
@@ -1341,7 +1341,7 @@
       },
       {
         "key": "D",
-        "text": "As a successful no-op, since nothing was deleted."
+        "text": "As a successful no-op, since nothing was deleted and no state changed."
       }
     ],
     "correct": "A",
@@ -1368,11 +1368,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Return a distinct 'outcome unknown' status (not a plain success or failure) and have the agent check the actual charge status via an idempotency key or a status-check call before deciding whether to retry — never blindly resubmit a payment whose outcome is unconfirmed."
+        "text": "Return a distinct 'outcome unknown' status, and have the agent verify the charge via an idempotency key or status check before retrying."
       },
       {
         "key": "B",
-        "text": "Return `isError: true` and let the agent retry the charge immediately, since a failed network call means the charge didn't happen."
+        "text": "Return `isError: true` and let the agent retry the charge immediately, since a failed network call means the charge didn't go through."
       },
       {
         "key": "C",
@@ -1385,7 +1385,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "For an action with real-world side effects like a charge, a dropped connection after the request was sent is genuinely ambiguous — the charge may have gone through. Blindly retrying risks a double charge, and blindly assuming success or failure risks either a lost charge or a duplicate one. The safe pattern is an explicit 'unknown' outcome plus an idempotent way to check or safely resubmit.",
+      "correct": "For an action with real-world side effects like a charge, a dropped connection after the request was sent is genuinely ambiguous — the charge may have gone through. Blindly retrying risks a double charge, and blindly assuming success or failure risks either a lost charge or a duplicate one. The safe pattern is an explicit 'unknown' outcome (not a plain success or failure) plus an idempotent way to check or safely resubmit; never blindly resubmit a payment whose outcome is unconfirmed.",
       "distractors": {
         "B": "Assuming failure and retrying immediately risks charging the customer twice if the original request actually succeeded before the connection dropped.",
         "C": "Assuming success when the actual outcome is unconfirmed risks the agent proceeding as if payment was received when it may not have been.",
@@ -1407,19 +1407,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Keep all 18 tools available on every turn and accept the selection-reliability cost as unavoidable."
+        "text": "Keep all 18 tools available on every turn and accept the selection-reliability cost as the price of broad capability."
       },
       {
         "key": "B",
-        "text": "Classify each incoming request by type first, then expose only the subset of tools relevant to that request type for the turn."
+        "text": "Classify each request by type first, then expose only the tools relevant to that type for the turn."
       },
       {
         "key": "C",
-        "text": "Remove least-used tools permanently, regardless of whether some request types still need them."
+        "text": "Permanently remove the least-used tools to shrink the choice set, regardless of whether some request types still need them."
       },
       {
         "key": "D",
-        "text": "Add few-shot examples covering all 18 tools to compensate."
+        "text": "Add few-shot examples covering all 18 tools so the model learns when each one applies."
       }
     ],
     "correct": "B",
@@ -1485,24 +1485,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Forcing one specific tool call on every turn removes the model's ability to respond conversationally or pick a different, more appropriate tool when the request doesn't call for that specific action; reserve forced tool_choice for the narrow turns that genuinely require it, and use `auto` (or an unforced `any`) elsewhere."
+        "text": "Forcing one tool every turn blocks conversational replies and better-suited tools; force it where needed, else use `auto`."
       },
       {
         "key": "B",
-        "text": "Nothing is wrong; forcing a specific tool is always the safest, most reliable choice for every turn in any application."
+        "text": "Nothing is wrong; forcing a specific tool is always the safest, most reliable choice for every turn in any kind of application."
       },
       {
         "key": "C",
-        "text": "The fix is to rename `extract_metadata` to something more general so it can answer any question."
+        "text": "Rename `extract_metadata` to something more general so it can handle and answer any question."
       },
       {
         "key": "D",
-        "text": "The fix is to force a different single tool instead, so at least one tool always runs."
+        "text": "Force a different, more general single tool instead, so at least one tool always runs each turn."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Forced tool_choice is a narrow-purpose setting for turns where you genuinely need that exact action to happen — applying it blanket-wide removes the model's ability to have an ordinary conversation or select the tool actually suited to a given request, exactly the failure mode reported.",
+      "correct": "Forced tool_choice is a narrow-purpose setting for turns where you genuinely need that exact action to happen — applying it blanket-wide removes the model's ability to have an ordinary conversation or select the tool actually suited to a given request, exactly the failure mode reported. Reserve it for the turns that require it and use `auto` (or an unforced `any`) elsewhere.",
       "distractors": {
         "B": "Blanket forcing is precisely what's causing the reported failures; it is not a universally safe default.",
         "C": "Renaming the tool doesn't change what it does; it still can't meaningfully answer unrelated questions like explaining an error message.",
@@ -1524,7 +1524,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Configure the request so parallel tool use isn't disabled (leave the model free to emit multiple tool_use blocks in one turn) and prompt the assistant to call both searches together when a request calls for independent lookups."
+        "text": "Leave parallel tool use enabled and prompt the assistant to call both searches together for independent lookups."
       },
       {
         "key": "B",
@@ -1532,11 +1532,11 @@
       },
       {
         "key": "C",
-        "text": "Rename the tools so they sort alphabetically next to each other."
+        "text": "Rename the tools so they sort alphabetically next to each other in the tools list."
       },
       {
         "key": "D",
-        "text": "Increase `max_tokens` so there's room for two tool calls."
+        "text": "Increase `max_tokens` so there's room for two tool_use blocks in one response."
       }
     ],
     "correct": "A",
@@ -1563,7 +1563,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Expose the static page index and category taxonomy as resources (so the agent can see them without a tool call), and expose search, create, and update actions as tools (since those require dynamic input the agent supplies each time)."
+        "text": "Expose the static page index and category taxonomy as resources, and expose the search, create, and update actions as tools."
       },
       {
         "key": "B",
@@ -1580,7 +1580,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Resources are the right fit for stable, browsable reference content the agent should have visibility into without spending a tool call — exactly the page index and taxonomy here. Actions that need per-call, dynamic input (a search query, new page content) are what tools are for.",
+      "correct": "Resources are the right fit for stable, browsable reference content the agent should have visibility into without spending a tool call — exactly the page index and taxonomy here. Actions that need per-call, dynamic input the agent supplies each time (a search query, new page content) are what tools are for.",
       "distractors": {
         "B": "Tools aren't the only mechanism — that's exactly the design flaw resources exist to fix, and using tools for stable reference data adds needless exploratory calls.",
         "C": "Search and update are actions with per-call inputs and side effects (for update); resources are read-only content, not a substitute for actions.",
@@ -1601,7 +1601,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Build (or fork and update) a custom server anyway, since an unmaintained, insecure, or feature-incomplete community server no longer represents the low-risk, well-solved option the general guidance assumes."
+        "text": "Build (or fork and update) a custom server, since this community server no longer fits the well-maintained, low-risk case the guidance assumes."
       },
       {
         "key": "B",
@@ -1609,11 +1609,11 @@
       },
       {
         "key": "C",
-        "text": "Skip MCP entirely and call the CRM's REST API directly from the agent."
+        "text": "Skip MCP entirely and call the CRM's newer REST API directly from the agent's code, sidestepping the community server's security gaps."
       },
       {
         "key": "D",
-        "text": "Expose the CRM only as an MCP resource, with no tools, to avoid the security issues."
+        "text": "Expose the CRM only as an MCP resource, with no tools, so the agent can read CRM data without touching the insecure write paths."
       }
     ],
     "correct": "A",
@@ -1640,24 +1640,24 @@
     "options": [
       {
         "key": "A",
-        "text": "The session should still start with the GitHub tools available and working; the Postgres server's unavailability should be reported (e.g., a connection warning) without blocking access to the other, healthy server's tools."
+        "text": "The session should start with the GitHub tools working, and the Postgres server's unavailability should be reported as a connection warning."
       },
       {
         "key": "B",
-        "text": "The whole session should refuse to start until every configured MCP server, including Postgres, is reachable."
+        "text": "The whole session should refuse to start until every configured MCP server, including Postgres, is reachable, so no one works with a partial toolset."
       },
       {
         "key": "C",
-        "text": "The GitHub server should also be marked unavailable, since one server in the config is down."
+        "text": "The GitHub server should also be marked unavailable, since one server in the shared config being down means the config itself may be invalid."
       },
       {
         "key": "D",
-        "text": "Remove Postgres from `.mcp.json` permanently so the team never has to consider it again."
+        "text": "Remove Postgres from `.mcp.json` permanently so the team never has to deal with its maintenance windows blocking their sessions again."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "MCP servers are configured and connected independently; one server being temporarily unreachable shouldn't cascade into blocking access to a different, healthy server's tools the developer doesn't even need right now.",
+      "correct": "MCP servers are configured and connected independently; one server being temporarily unreachable shouldn't cascade into blocking access to a different, healthy server's tools the developer doesn't even need right now. The outage should be surfaced (e.g., a connection warning) without blocking the GitHub tools.",
       "distractors": {
         "B": "Requiring every configured server to be reachable before starting turns one server's routine maintenance window into an outage for unrelated work.",
         "C": "There's no dependency between separately-configured servers; one being down doesn't imply anything is wrong with another.",
@@ -1679,7 +1679,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Configure or request that each server expose its tool under a distinct, descriptive name (or rely on the client's namespacing of tools by server, where supported), so the agent sees two clearly distinguishable tools rather than two identically-named ones."
+        "text": "Give each server's tool a distinct, descriptive name (or rely on the client's per-server tool namespacing, where supported)."
       },
       {
         "key": "B",
@@ -1687,7 +1687,7 @@
       },
       {
         "key": "C",
-        "text": "Instruct the agent, in the system prompt, to always guess based on context which `search` it means."
+        "text": "Instruct the agent, in the system prompt, to infer from the conversation's context which of the two `search` tools the user means each time."
       },
       {
         "key": "D",
@@ -1696,7 +1696,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Two identically-named tools give the model nothing to differentiate them by at the point of selection; distinct, descriptive tool names (or client-level namespacing where available) restore a clear selection signal, the same underlying principle as any other under-differentiated tool pair.",
+      "correct": "Two identically-named tools give the model nothing to differentiate them by at the point of selection; distinct, descriptive tool names (or client-level namespacing where available) mean the agent sees two clearly distinguishable tools — the same underlying principle as any other under-differentiated tool pair.",
       "distractors": {
         "B": "Manually toggling server connections to avoid a naming collision is a heavy, error-prone workaround for what a better name fixes directly.",
         "C": "Asking the model to guess from context reintroduces exactly the ambiguity a clear name would eliminate outright.",
@@ -1835,7 +1835,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Write, to create the new file with its initial contents."
+        "text": "Write, to create the new file with its contents."
       },
       {
         "key": "B",
@@ -1843,11 +1843,11 @@
       },
       {
         "key": "C",
-        "text": "Grep, to confirm the file doesn't already exist."
+        "text": "Grep, to confirm the file doesn't already exist first."
       },
       {
         "key": "D",
-        "text": "Glob, to generate the file from a pattern."
+        "text": "Glob, to generate the new file from a path pattern."
       }
     ],
     "correct": "A",
@@ -1913,19 +1913,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Increase max_tokens so more tests are generated."
+        "text": "Increase max_tokens so more tests are generated and longer test files aren't truncated mid-case."
       },
       {
         "key": "B",
-        "text": "Document testing standards, valuable-test criteria, and available fixtures in CLAUDE.md so CI-invoked Claude uses them."
+        "text": "Document testing standards, valuable-test criteria, and fixtures in CLAUDE.md for CI runs."
       },
       {
         "key": "C",
-        "text": "Switch test generation to the Message Batches API."
+        "text": "Switch test generation to the Message Batches API so each file gets its own dedicated request."
       },
       {
         "key": "D",
-        "text": "Ask for more tests per run."
+        "text": "Ask for more tests per run so that more of the code's edge cases end up covered."
       }
     ],
     "correct": "B",
@@ -1952,7 +1952,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Claude Code will keep following the stale instruction as written (it has no way to know it's outdated), generating code against a removed API; update CLAUDE.md to reflect the current v2 endpoints as part of ordinary maintenance whenever conventions change."
+        "text": "Claude Code keeps following the stale instruction, targeting a removed API; update CLAUDE.md to the v2 endpoints."
       },
       {
         "key": "B",
@@ -1960,7 +1960,7 @@
       },
       {
         "key": "C",
-        "text": "CLAUDE.md instructions expire automatically after a fixed period and stop applying."
+        "text": "CLAUDE.md instructions expire automatically after a fixed period, so the v1 rule has simply stopped applying by now."
       },
       {
         "key": "D",
@@ -1969,7 +1969,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "CLAUDE.md is followed as written; it has no independent way to detect that the codebase has moved on. Like any other documentation, it needs to be kept in sync with reality — the responsibility for updating it after a migration falls on the team, not the tool.",
+      "correct": "CLAUDE.md is followed as written; Claude Code has no independent way to detect that the codebase has moved on, so it generates code against the removed v1 API. Like any other documentation, CLAUDE.md needs to be kept in sync with reality — updating it whenever conventions change is ordinary maintenance that falls on the team, not the tool.",
       "distractors": {
         "B": "There's no such automatic-detection mechanism; CLAUDE.md content is taken as given.",
         "C": "Instructions in CLAUDE.md don't have a built-in expiration; stale content persists until someone updates it.",
@@ -1991,7 +1991,7 @@
     "options": [
       {
         "key": "A",
-        "text": "All three, combined additively: structured JSON logs, with a request_id field, and also a masked account_id field — each level adds to the ones above it rather than replacing them."
+        "text": "All three, combined additively: structured JSON logs with a request_id field and a masked account_id field."
       },
       {
         "key": "B",
@@ -1999,16 +1999,16 @@
       },
       {
         "key": "C",
-        "text": "Only the root CLAUDE.md's guidance, since it is loaded first."
+        "text": "Only the root CLAUDE.md's guidance, since it is loaded first and establishes the project-wide logging baseline."
       },
       {
         "key": "D",
-        "text": "Whichever file was edited most recently."
+        "text": "Whichever of the three files was edited most recently, since its logging guidance reflects the newest decision."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "CLAUDE.md files are hierarchical and additive — instructions from the root, intermediate, and most specific directory-level files all combine into the effective context for a given path, rather than the most specific one replacing the others.",
+      "correct": "CLAUDE.md files are hierarchical and additive — instructions from the root, intermediate, and most specific directory-level files all combine into the effective context for a given path, each level adding to the ones above it rather than the most specific one replacing the others.",
       "distractors": {
         "B": "Directory-level files add to broader ones; they don't erase guidance from parent levels.",
         "C": "The root file's guidance still applies; it's just supplemented, not the only thing in effect.",
@@ -2069,11 +2069,11 @@
     "options": [
       {
         "key": "A",
-        "text": "The quality and specificity of the skill's `description` field, since Claude decides whether to invoke a skill by matching the current context against its description."
+        "text": "The quality and specificity of the skill's `description` field, which Claude matches against the current context."
       },
       {
         "key": "B",
-        "text": "Setting `disable-model-invocation: true` in the skill's frontmatter."
+        "text": "Setting `disable-model-invocation: true` in the skill's frontmatter so the model hands invocation to the harness."
       },
       {
         "key": "C",
@@ -2081,7 +2081,7 @@
       },
       {
         "key": "D",
-        "text": "Adding an `argument-hint` describing when the skill applies."
+        "text": "Adding an `argument-hint` that describes the situations and file types in which the skill applies."
       }
     ],
     "correct": "A",
@@ -2108,7 +2108,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Reference `$ARGUMENTS` (or a similarly named placeholder) in the command's markdown body; Claude Code substitutes it with whatever the user typed after the command name."
+        "text": "Reference `$ARGUMENTS` in the command's markdown body; Claude Code substitutes the text typed after the command name."
       },
       {
         "key": "B",
@@ -2116,7 +2116,7 @@
       },
       {
         "key": "C",
-        "text": "Use `argument-hint` alone, since it both documents and supplies the argument value."
+        "text": "Use `argument-hint` alone in the frontmatter, since it both documents the argument and supplies its value."
       },
       {
         "key": "D",
@@ -2147,7 +2147,7 @@
     "options": [
       {
         "key": "A",
-        "text": "`context: fork` so the scan's verbose work happens in an isolated sub-agent context, with only the concise summary returned to the main conversation."
+        "text": "`context: fork`, so the verbose scan runs in an isolated sub-agent context and returns only a concise summary."
       },
       {
         "key": "B",
@@ -2155,11 +2155,11 @@
       },
       {
         "key": "C",
-        "text": "`argument-hint` describing the scan's scope, since that alone determines where the work runs."
+        "text": "`argument-hint` describing the scan's scope, since the declared scope determines where and how the skill's work runs."
       },
       {
         "key": "D",
-        "text": "No special configuration — every skill already runs its work in an isolated context by default."
+        "text": "No special configuration — skills already run their work in an isolated context by default, so the output stays separate."
       }
     ],
     "correct": "A",
@@ -2224,15 +2224,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Both rules load (the file matches both globs), and the more specific rule's guidance for that directory is what should be followed for this particular code, since it's explicitly scoped to override the general default there."
+        "text": "Both rules load, since the file matches both globs, and the narrower legacy-adapter rule governs this directory."
       },
       {
         "key": "B",
-        "text": "Only the general-style rule applies, since it was created first."
+        "text": "Only the general-style rule applies, since it was created first and sets the project-wide default for TypeScript."
       },
       {
         "key": "C",
-        "text": "Both rules cancel each other out, so no style guidance applies in that directory at all."
+        "text": "Both rules cancel each other out, so no style guidance applies in that directory at all and Claude uses its own defaults."
       },
       {
         "key": "D",
@@ -2241,7 +2241,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Path-scoped rules can legitimately express an exception for a narrower path, and a well-written narrower rule (like the legacy-adapter one) is written to explicitly carve out that exception. Both rules being present is expected — the more specific, purpose-written guidance for that exact directory is the one that should govern code in it.",
+      "correct": "Path-scoped rules can legitimately express an exception for a narrower path, and a well-written narrower rule (like the legacy-adapter one) is written to explicitly carve out that exception. Both rules load because the file matches both globs — that is expected — and the more specific, purpose-written guidance for that exact directory is the one that should govern code in it.",
       "distractors": {
         "B": "Creation order isn't the mechanism that determines precedence between path-scoped rules; specificity and intent are.",
         "C": "Rules don't cancel each other by being simultaneously present; both are simply part of the context loaded for that file.",
@@ -2263,24 +2263,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Use a `paths` pattern like `**/*.ts` and a paired exclusion (e.g. `!src/generated/**/*.ts` or an equivalent negative-glob mechanism) so generated code is explicitly carved out."
+        "text": "Use a `paths` include like `**/*.ts` paired with an exclusion such as `!src/generated/**/*.ts` (or equivalent negative glob)."
       },
       {
         "key": "B",
-        "text": "List every non-generated directory individually in `paths`, so `src/generated/` is simply never mentioned."
+        "text": "List every non-generated directory individually in `paths`, so `src/generated/` is simply never mentioned and stays out of scope."
       },
       {
         "key": "C",
-        "text": "There is no way to exclude a subdirectory; the rule must apply repo-wide or not at all."
+        "text": "There is no way to exclude a subdirectory; the rule must apply repo-wide or not at all, so generated files are included."
       },
       {
         "key": "D",
-        "text": "Add a comment inside `src/generated/` files asking Claude to ignore the rule."
+        "text": "Add a comment inside the `src/generated/` files asking Claude to ignore the rule whenever it edits them."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "A broad include pattern paired with an explicit exclusion for the generated directory directly expresses 'everywhere except here,' which is both clearer and far less brittle than manually enumerating every directory that isn't excluded.",
+      "correct": "A broad include pattern paired with an explicit exclusion for the generated directory directly expresses 'everywhere except here,' carving generated code out explicitly — both clearer and far less brittle than manually enumerating every directory that isn't excluded.",
       "distractors": {
         "B": "Manually listing every non-generated directory is brittle — it silently stops covering any new directory added later unless someone remembers to update the list.",
         "C": "Path-scoping mechanisms generally support exclusion patterns; claiming it's impossible undersells the tooling.",
@@ -2302,19 +2302,19 @@
     "options": [
       {
         "key": "A",
-        "text": "On every request, regardless of which file is being edited — omitting `paths` means the rule isn't conditionally scoped, so it behaves like always-loaded context rather than a file-type-triggered rule."
+        "text": "On every request, regardless of which file is being edited, since omitting `paths` makes it always-loaded context."
       },
       {
         "key": "B",
-        "text": "Never, since a rule without a `paths` field is invalid and silently ignored."
+        "text": "Never, since a rule without a `paths` field is invalid and silently ignored by the rules loader."
       },
       {
         "key": "C",
-        "text": "Only when editing files directly inside `.claude/rules/` itself."
+        "text": "Only when editing files directly inside `.claude/rules/`, since without `paths` the rule falls back to its own location."
       },
       {
         "key": "D",
-        "text": "Only on the first request of a session, then not again."
+        "text": "Only on the first request of a session, after which it is dropped to save context."
       }
     ],
     "correct": "A",
@@ -2345,7 +2345,7 @@
       },
       {
         "key": "B",
-        "text": "It warrants at least a brief planning step, since the fix now involves a design decision (three different fallback behaviors) rather than a single unambiguous change."
+        "text": "It warrants at least a brief planning step, since the three different fallback behaviors are a design decision."
       },
       {
         "key": "C",
@@ -2384,7 +2384,7 @@
       },
       {
         "key": "B",
-        "text": "A plan-mode pass per module, since each module's usage patterns may call for different specific migration steps despite sharing the same overall library change."
+        "text": "A plan-mode pass per module, since each module's usage patterns may call for different migration steps."
       },
       {
         "key": "C",
@@ -2418,11 +2418,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Exit plan mode and proceed with direct execution now that the investigation has revealed a simple, well-understood mechanical change with no remaining design decisions."
+        "text": "Exit plan mode and switch to direct execution, since the remaining work is a simple, mechanical change."
       },
       {
         "key": "B",
-        "text": "Continue in plan mode regardless, since the task was originally scoped as a 30-file change."
+        "text": "Continue in plan mode regardless, since the task was originally scoped and approved as a 30-file change."
       },
       {
         "key": "C",
@@ -2457,7 +2457,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Stop direct execution and switch to plan mode now that the task has revealed itself to be a larger, multi-call-site change with real design implications, rather than continuing to patch it ad hoc."
+        "text": "Stop and switch to plan mode, since the fix has become a multi-call-site interface change with real design implications."
       },
       {
         "key": "B",
@@ -2504,11 +2504,11 @@
       },
       {
         "key": "C",
-        "text": "Use the interview pattern to have Claude surface the specific edge cases and rules it's uncertain about, since the two examples pinned down what they covered but didn't establish general rules for unseen formats."
+        "text": "Use the interview pattern so Claude surfaces the edge cases and formatting rules it's still uncertain about."
       },
       {
         "key": "D",
-        "text": "Lower the temperature, since the inconsistency is a randomness problem, not a specification problem."
+        "text": "Lower the temperature, since the inconsistency is a randomness problem in sampling, not a gap in how the transformation was specified."
       }
     ],
     "correct": "C",
@@ -2535,19 +2535,19 @@
     "options": [
       {
         "key": "A",
-        "text": "No — since a written spec already exists, the interview pattern is redundant and should be skipped entirely."
+        "text": "No — since a written spec already covers invalidation and stampede handling, the interview pattern is redundant and should be skipped."
       },
       {
         "key": "B",
-        "text": "Yes — even a thorough spec can miss domain-specific considerations the author didn't think to write down, and the interview pattern is specifically designed to surface exactly those unknown gaps."
+        "text": "Yes — even a thorough spec can miss domain considerations its author never thought to write down, which interviewing surfaces."
       },
       {
         "key": "C",
-        "text": "No — the interview pattern is only appropriate when no spec exists at all."
+        "text": "No — the interview pattern is meant for greenfield work where no spec exists yet, not for refining a spec that's already written."
       },
       {
         "key": "D",
-        "text": "Yes — the interview pattern should replace the written spec entirely rather than supplement it."
+        "text": "Yes — the interview pattern should replace the written spec entirely, so the requirements come from Claude's questions instead."
       }
     ],
     "correct": "B",
@@ -2612,7 +2612,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Concrete input/output examples to pin down the inconsistent country-code formatting, and the interview pattern to surface unfamiliar-country edge cases you haven't thought to specify."
+        "text": "Concrete input/output examples for the inconsistent country-code formatting, plus the interview pattern to surface unfamiliar-country edge cases."
       },
       {
         "key": "B",
@@ -2620,7 +2620,7 @@
       },
       {
         "key": "C",
-        "text": "One large upfront specification covering every case you can currently think of, for both problems."
+        "text": "One large upfront specification covering every case you can currently think of, applied to both the formatting and edge-case problems."
       },
       {
         "key": "D",
@@ -2651,24 +2651,24 @@
     "options": [
       {
         "key": "A",
-        "text": "-p doesn't actually prevent interactive prompts in all cases, so the fix is to abandon it and find another flag."
+        "text": "-p doesn't actually prevent interactive prompts in all cases, so the fix is to abandon it and find another flag that fully suppresses them."
       },
       {
         "key": "B",
-        "text": "A tool the review invokes (e.g., a custom script or MCP server call) is itself waiting on interactive input or an external resource, independent of Claude Code's own print-mode behavior."
+        "text": "A tool the review invokes, such as a custom script or MCP server, is itself waiting on interactive input or an external resource."
       },
       {
         "key": "C",
-        "text": "The CI runner's timeout is set too low, which is unrelated to hanging at all."
+        "text": "The CI runner's timeout is set too low for large PRs, which is what makes certain review jobs appear to hang."
       },
       {
         "key": "D",
-        "text": "-p requires a companion --non-interactive flag that this job is missing."
+        "text": "-p requires a companion --non-interactive flag to suppress permission prompts, and this job is missing it."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "Once -p correctly puts Claude Code itself into non-interactive mode, a persistent hang is more likely coming from something Claude Code calls out to — a tool, script, or external service still waiting on input or a slow/blocked resource — rather than from Claude Code's own prompt handling.",
+      "correct": "Once -p correctly puts Claude Code itself into non-interactive mode, a persistent hang is more likely coming from something Claude Code calls out to — a tool, script, or external service still waiting on input or a slow/blocked resource — independent of Claude Code's own print-mode behavior.",
       "distractors": {
         "A": "-p is the documented, correct mechanism; abandoning it because a hang persists elsewhere misdiagnoses the cause.",
         "C": "A too-low timeout would cause the job to fail fast, not hang indefinitely — that's the opposite symptom.",
@@ -2690,11 +2690,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Add confidence as a new optional field in the JSON schema, and update the downstream parser to read it while still tolerating its absence from any not-yet-updated callers."
+        "text": "Add confidence as a new optional field in the JSON schema, and update the downstream parser to read it while tolerating its absence."
       },
       {
         "key": "B",
-        "text": "Remove --json-schema entirely so the field can be added freely without schema constraints."
+        "text": "Remove --json-schema entirely so the new field can be added freely without schema validation rejecting the output."
       },
       {
         "key": "C",
@@ -2702,12 +2702,12 @@
       },
       {
         "key": "D",
-        "text": "Rename the existing fields to make room for the new one, since JSON objects have a fixed number of keys."
+        "text": "Rename the existing fields to make room for the new one, since a JSON object has a fixed number of keys and the schema is full."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Adding a new field as optional in the schema is backward compatible: existing parsers that don't yet know about confidence are unaffected, since strict schema enforcement continues to guarantee the fields those parsers do expect, while newer parser code can opt in to reading the addition.",
+      "correct": "Adding a new field as optional in the schema is backward compatible: existing parsers that don't yet know about confidence are unaffected, since strict schema enforcement continues to guarantee the fields those parsers do expect, while newer parser code can opt in to reading the addition — and, by tolerating its absence, keeps working with any not-yet-updated callers.",
       "distractors": {
         "B": "Removing schema enforcement reopens the exact reliability problem --json-schema was adopted to solve.",
         "C": "Maintaining two parallel output formats doubles complexity for no benefit over a single backward-compatible schema addition.",
@@ -2729,15 +2729,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Pass the prior findings into context along with the current diff, so the model can check each prior finding against the latest code and drop any it can confirm is now resolved, not just avoid restating them blindly."
+        "text": "Pass the current diff with the prior findings and have the model re-verify each against the latest code, dropping any now resolved."
       },
       {
         "key": "B",
-        "text": "Stop passing prior findings into context altogether, since that was clearly the source of the problem."
+        "text": "Stop passing prior findings into context altogether, since stale findings in the prompt are clearly what triggers the re-flagging."
       },
       {
         "key": "C",
-        "text": "Manually maintain a separate resolved-issues list that a human updates by hand after every fix."
+        "text": "Maintain a separate resolved-issues list that a human updates by hand after every fix and that the reviewer checks before posting comments."
       },
       {
         "key": "D",
@@ -2768,15 +2768,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Have the CI step parse the structured (`--output-format json`) findings for any marked critical severity, and exit non-zero when one is present, so the CI job itself fails and blocks the merge via the platform's required-check mechanism."
+        "text": "Have the CI step parse the JSON findings for any critical severity and exit non-zero, so the required check fails and blocks the merge."
       },
       {
         "key": "B",
-        "text": "Rely on developers to notice and act on the PR comment before merging."
+        "text": "Rely on developers to notice and act on the PR comment before merging, as they would with any other review feedback."
       },
       {
         "key": "C",
-        "text": "Increase the review's `max_tokens` so critical findings are described in more detail."
+        "text": "Increase the review's `max_tokens` so critical findings are described in more detail and are much harder for reviewers to overlook."
       },
       {
         "key": "D",
@@ -2807,19 +2807,19 @@
     "options": [
       {
         "key": "A",
-        "text": "It isn't explicit enough; it needs to be made even more precise in wording."
+        "text": "It isn't explicit enough; the wording needs to be made even more precise about what counts as \"near\"."
       },
       {
         "key": "B",
-        "text": "It is explicit, but it targets the wrong condition — code being changed nearby says nothing about whether the comment's claim now contradicts the code, which is the condition that actually matters."
+        "text": "It tests the wrong condition: nearby code changing doesn't mean the comment's claim now contradicts the code."
       },
       {
         "key": "C",
-        "text": "Explicit criteria are inherently unreliable regardless of what they specify."
+        "text": "Explicit criteria are inherently unreliable for comment-staleness checks, regardless of what condition they specify."
       },
       {
         "key": "D",
-        "text": "The criterion needs a confidence threshold added on top of it."
+        "text": "The criterion needs a confidence threshold added on top so that low-confidence matches are filtered out."
       }
     ],
     "correct": "B",
@@ -2845,19 +2845,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Re-enable immediately, since any measured improvement is sufficient regardless of the new rate."
+        "text": "Re-enable immediately, since dropping from 60% to 12% shows the fix worked and any measured improvement is sufficient."
       },
       {
         "key": "B",
-        "text": "Compare the new false-positive rate against the accurate categories' existing rates (and any threshold the team considers acceptable) before re-enabling, rather than re-enabling on the basis of improvement alone."
+        "text": "Compare the new rate against the accurate categories' rates or a team-set threshold, rather than re-enabling on improvement alone."
       },
       {
         "key": "C",
-        "text": "Never re-enable a category that was ever disabled, regardless of subsequent fixes."
+        "text": "Never re-enable a category that was ever disabled, since developers' trust in it is unlikely to recover regardless of fixes."
       },
       {
         "key": "D",
-        "text": "Re-enable it only after removing the other, already-accurate categories, to isolate its effect."
+        "text": "Re-enable it only after removing the other, already-accurate categories, so the trial can isolate the style category's own effect on noise."
       }
     ],
     "correct": "B",
@@ -2884,24 +2884,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Add an explicit negative example/exception for the sandboxed template library's internal `eval()` use, so the criterion still flags genuinely dangerous `eval()` calls while excluding this specific known-safe pattern."
+        "text": "Add an explicit negative example excluding the sandboxed template library's internal `eval()` use."
       },
       {
         "key": "B",
-        "text": "Remove the `eval()` criterion entirely, since it now produces a false positive."
+        "text": "Remove the `eval()` criterion entirely, since a rule that now produces false positives is no longer trustworthy."
       },
       {
         "key": "C",
-        "text": "Tell developers to manually dismiss every template-render finding going forward."
+        "text": "Tell developers to manually dismiss every template-render finding going forward, since the cause is already understood."
       },
       {
         "key": "D",
-        "text": "Lower the category's severity so the false positives matter less."
+        "text": "Lower the category's severity so the template-render false positives matter less in developers' triage."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "The criterion is still valuable for genuinely risky `eval()` use; the problem is one specific, now-known pattern it shouldn't apply to. An explicit exception for that pattern keeps the criterion precise without discarding its real value.",
+      "correct": "The criterion is still valuable for genuinely risky `eval()` use; the problem is one specific, now-known pattern it shouldn't apply to. An explicit negative example/exception for that pattern keeps flagging genuinely dangerous `eval()` calls while excluding the known-safe one, so the criterion stays precise without discarding its real value.",
       "distractors": {
         "B": "Removing the criterion entirely loses its ability to catch genuinely dangerous eval() use elsewhere, over one specific known exception.",
         "C": "Manual dismissal treats a fixable criteria gap as an ongoing chore instead of fixing the root cause once.",
@@ -2923,7 +2923,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Periodic criteria maintenance: as the codebase's patterns evolve, criteria that were precise when written can drift out of sync and need updating (e.g., excluding the template-placeholder syntax) — criteria are not a one-time, permanent artifact."
+        "text": "Periodic criteria maintenance: update the criterion as codebase patterns evolve, e.g., excluding the template-placeholder syntax."
       },
       {
         "key": "B",
@@ -2931,16 +2931,16 @@
       },
       {
         "key": "C",
-        "text": "Immediately disable the entire secrets-detection category, since one new pattern broke it."
+        "text": "Immediately disable the entire secrets-detection category, since one new pattern broke it and its results can no longer be trusted."
       },
       {
         "key": "D",
-        "text": "Retrain developers to stop using the templating pattern so the existing criterion doesn't need to change."
+        "text": "Retrain developers to stop using the templating pattern, so the existing, well-tuned criterion doesn't need to change."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Explicit criteria are precise for the codebase as it existed when written; as new legitimate patterns emerge, criteria need periodic revisiting and updating, the same way any other project-specific documentation does. Criteria are a maintained asset, not a permanent one-time investment.",
+      "correct": "Explicit criteria are precise for the codebase as it existed when written; as new legitimate patterns emerge, criteria can drift out of sync and need periodic revisiting and updating, the same way any other project-specific documentation does. Criteria are a maintained asset, not a permanent one-time artifact.",
       "distractors": {
         "B": "Codebases evolve, and criteria written against yesterday's patterns can become imprecise against today's — treating them as eternally correct is exactly the assumption that causes this drift.",
         "C": "Disabling the whole category over one new pattern is more disruptive than the targeted fix (updating the criterion) actually needed.",
@@ -2962,7 +2962,7 @@
     "options": [
       {
         "key": "A",
-        "text": "The examples, all from one narrow category, taught the model patterns specific to electronics rather than the general classification logic; add examples spanning the range of categories the prompt actually needs to handle, not just one."
+        "text": "The single-category examples taught electronics-specific patterns, not general logic; add examples spanning all the categories."
       },
       {
         "key": "B",
@@ -2970,7 +2970,7 @@
       },
       {
         "key": "C",
-        "text": "Adding more examples from the same electronics category will fix the furniture and clothing regressions."
+        "text": "Adding more examples from the same electronics category will fix the furniture and clothing regressions by reinforcing the logic."
       },
       {
         "key": "D",
@@ -3001,24 +3001,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Provide a few worked examples of full replies in the target voice (acknowledging the customer's situation, then giving the same information warmly), so the model has concrete instances of the desired tone to draw from, not just an abstract instruction like 'be warmer.'"
+        "text": "Provide a few worked example replies in the target voice that acknowledge the customer's situation, then give the same information."
       },
       {
         "key": "B",
-        "text": "Add the instruction 'be warm and empathetic' to the system prompt and nothing else."
+        "text": "Add the instruction 'be warm and empathetic' to the system prompt and nothing else, since the information content is already correct."
       },
       {
         "key": "C",
-        "text": "Increase the model's temperature so replies sound more natural and varied."
+        "text": "Increase the model's temperature so replies sound more natural and varied instead of templated, stiff, and repetitive."
       },
       {
         "key": "D",
-        "text": "Shorten every reply, since brevity is what reads as impersonal."
+        "text": "Shorten every reply, since brevity is what reads as impersonal when customers are already frustrated."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Tone, like format or classification boundaries, is something few-shot examples convey more reliably than an adjective in a prompt — concrete worked examples show the model exactly what 'warmer' looks like in practice, in a way abstract instructions don't.",
+      "correct": "Tone, like format or classification boundaries, is something few-shot examples convey more reliably than an adjective in a prompt — concrete worked examples show the model exactly what 'warmer' looks like in practice, in a way abstract instructions don't. The examples should acknowledge the customer's situation, then give the same information warmly.",
       "distractors": {
         "B": "A bare adjective like 'warm' is exactly the kind of vague instruction that tends to be interpreted inconsistently, the same failure mode as vague review criteria.",
         "C": "Higher temperature increases output variability, not adherence to a specific desired tone.",
@@ -3040,11 +3040,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Few-shot examples teach the model how to apply judgment it already has, not facts it's missing; if the gap is genuine domain knowledge, the fix is supplying that knowledge (e.g., relevant reference material in context) rather than adding more examples."
+        "text": "Examples teach how to apply judgment the model has, not facts it lacks; for a knowledge gap, supply the knowledge in context instead."
       },
       {
         "key": "B",
-        "text": "The fix is always to add more few-shot examples, regardless of the underlying cause of poor performance."
+        "text": "The fix is to add more few-shot examples, since broader coverage of ambiguous documents is what ultimately improves accuracy on those documents."
       },
       {
         "key": "C",
@@ -3052,14 +3052,14 @@
       },
       {
         "key": "D",
-        "text": "Increasing the number of examples to 20+ will eventually compensate for missing domain knowledge."
+        "text": "Increasing the number of examples to 20+ will eventually compensate for missing domain knowledge by covering more ambiguous cases."
       }
     ],
     "correct": "A",
     "rationale": {
       "correct": "Few-shot examples are best suited to showing the model how to apply reasoning/judgment it already has — output format, disambiguation logic, tone. When the actual gap is missing factual/domain knowledge, more examples of the same kind won't supply what's missing; the fix is providing that knowledge directly.",
       "distractors": {
-        "B": "Blindly adding more examples doesn't address a knowledge gap, only a reasoning/format gap.",
+        "B": "Adding more examples doesn't address a knowledge gap, only a reasoning/format gap — more coverage of ambiguous cases can't supply facts the model doesn't have.",
         "C": "The parts of the prompt already working (the well-chosen existing examples handling non-ambiguous cases) shouldn't be discarded just because one sub-problem needs a different fix.",
         "D": "Piling on more examples doesn't inject domain knowledge the model doesn't have; it's the wrong lever for this specific gap."
       }
@@ -3079,19 +3079,19 @@
     "options": [
       {
         "key": "A",
-        "text": "The examples don't span the actual decision boundary — without a contrasting 'handle directly' case and a borderline case showing where the line falls, the model has no signal for where escalation stops being warranted; include examples on both sides of the boundary, including a close call."
+        "text": "The examples don't span the decision boundary; add contrasting 'handle directly' cases and a borderline close call."
       },
       {
         "key": "B",
-        "text": "The example set is already sufficient, since more escalate-cases will make the model more cautious, which is always the safer outcome."
+        "text": "The example set is already sufficient, since more escalate-cases will make the model more cautious, which is the safer outcome."
       },
       {
         "key": "C",
-        "text": "The fix is to add ten more 'definitely escalate' examples to reinforce the pattern further."
+        "text": "The fix is to add ten more 'definitely escalate' examples to reinforce the pattern further and make escalation more consistent."
       },
       {
         "key": "D",
-        "text": "Few-shot examples cannot teach a boundary decision like this one at all; only explicit rules can."
+        "text": "Few-shot examples cannot teach a boundary decision like this one at all; explicit if/then rules are needed to define it."
       }
     ],
     "correct": "A",
@@ -3122,7 +3122,7 @@
       },
       {
         "key": "B",
-        "text": "The schema guarantees structural validity (a well-formed array of the right shape) but not that the array's contents are complete or accurate — that's a semantic completeness issue requiring its own check, such as validating line-item count against other invoice fields."
+        "text": "The schema guarantees structural validity, not complete contents; this semantic completeness gap needs its own check."
       },
       {
         "key": "C",
@@ -3130,12 +3130,12 @@
       },
       {
         "key": "D",
-        "text": "Switching to a larger model will resolve completeness regardless of the schema."
+        "text": "Switching to a larger model will resolve completeness regardless of the schema, since smaller models skip line items."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "tool_use enforces structural conformance — the array's shape is valid — but has no way to guarantee the array's contents are complete or correct. Missing line items despite a valid empty (or under-filled) array is a semantic completeness problem, which needs an explicit downstream check, not a schema-shape fix.",
+      "correct": "tool_use enforces structural conformance — the array's shape is valid — but has no way to guarantee the array's contents are complete or correct. Missing line items despite a valid empty (or under-filled) array is a semantic completeness problem, which needs an explicit downstream check, not a schema-shape fix. For example, validate the line-item count against other invoice fields.",
       "distractors": {
         "A": "The gap is real and addressable — just not through the schema-conformance mechanism alone; a completeness check is the appropriate addition.",
         "C": "A minimum-length constraint could force a non-empty array but wouldn't guarantee the array's contents are the correct items — it would risk the model padding with placeholder values instead.",
@@ -3161,7 +3161,7 @@
       },
       {
         "key": "B",
-        "text": "Make the field nullable, and apply the format pattern constraint only to non-null values, so absence is representable and any present value must still conform."
+        "text": "Make the field nullable, with the format pattern applied only to non-null values, so absence is representable and present values must conform."
       },
       {
         "key": "C",
@@ -3169,7 +3169,7 @@
       },
       {
         "key": "D",
-        "text": "Drop the field from the schema entirely, since it isn't present on every document type."
+        "text": "Drop the field from the schema entirely, since it isn't present on every document type and a partial field complicates downstream validation."
       }
     ],
     "correct": "B",
@@ -3200,20 +3200,20 @@
       },
       {
         "key": "B",
-        "text": "Since sub_category is more volatile and depends on document_type, keep the same other-with-detail-string fallback but expect it to be exercised more frequently, and treat document_type as authoritative context for interpreting the other value rather than requiring sub_category's enum to anticipate every combination up front."
+        "text": "Keep the other-with-detail fallback, expect it to fire more often, and use document_type as context for interpreting the other value."
       },
       {
         "key": "C",
-        "text": "Make sub_category a required field with no fallback at all, since it's clearly the more important field."
+        "text": "Make sub_category a required field with no fallback at all, since it's clearly the more important and more specific of the two fields."
       },
       {
         "key": "D",
-        "text": "Merge document_type and sub_category into a single combined enum listing every valid pairing in advance."
+        "text": "Merge document_type and sub_category into a single combined enum listing every valid pairing in advance, so dependencies are explicit."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "The same extensible pattern still applies, but recognizing that sub_category is more volatile means expecting the fallback path to carry more real cases, and using the already-known document_type as context to interpret an 'other' sub_category avoids trying to pre-enumerate every future pairing.",
+      "correct": "The same extensible pattern still applies, but recognizing that sub_category is more volatile means expecting the fallback path to carry more real cases, and using the already-known document_type as context to interpret an 'other' sub_category avoids trying to pre-enumerate every future pairing. Document_type is treated as authoritative context, rather than requiring sub_category's enum to anticipate every combination up front.",
       "distractors": {
         "A": "Applying the pattern identically without accounting for the different volatility and the dependency between the two fields misses the actual design challenge in this scenario.",
         "C": "A required field with no fallback for the more volatile of the two fields is the fabrication-risk pattern this whole approach exists to avoid.",
@@ -3235,7 +3235,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Use a discriminated/tagged structure: a `type` field with an enum of the three payment methods, paired with a schema that requires only the fields relevant to that type — so a credit card entry can't carry a routing number, and vice versa."
+        "text": "Use a discriminated structure: a `type` enum of the three payment methods, with each type requiring only its own fields, so a card entry can't carry a routing number."
       },
       {
         "key": "B",
@@ -3274,7 +3274,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Add explicit normalization guidance and a worked input/output example (stripping currency symbols and commas, then coercing to a number) so the model reliably emits the correctly-typed value."
+        "text": "Add explicit normalization guidance plus a worked input/output example that strips symbols and commas and coerces to a number."
       },
       {
         "key": "B",
@@ -3282,11 +3282,11 @@
       },
       {
         "key": "C",
-        "text": "Reject the whole extraction and ask a human to retype the number."
+        "text": "Reject the whole extraction and ask a human to retype the number, so no malformed value reaches the ledger."
       },
       {
         "key": "D",
-        "text": "Increase `max_tokens` so the model has more room to format the number correctly."
+        "text": "Increase `max_tokens` so the model has more room to format the number correctly instead of truncating it."
       }
     ],
     "correct": "A",
@@ -3317,11 +3317,11 @@
       },
       {
         "key": "B",
-        "text": "Include both validation errors in the same retry request alongside the original document and failed output, so the model can address both in one pass."
+        "text": "Include both validation errors in one retry request, with the original document and failed output, so the model fixes both in one pass."
       },
       {
         "key": "C",
-        "text": "Discard the attempt and skip straight to human review, since two simultaneous errors indicate the case is too complex to retry."
+        "text": "Discard the attempt and skip straight to human review, since two simultaneous errors suggest the case is too complex for retry to fix reliably."
       },
       {
         "key": "D",
@@ -3355,11 +3355,11 @@
       },
       {
         "key": "B",
-        "text": "A different situation — the information exists in the source but wasn't supplied to the model at all; the fix is to include page 3 in the extraction input, after which a retry (or the original request, resubmitted with full input) can succeed."
+        "text": "A different situation — the clause exists in the source but was never supplied to the model; include page 3 in the extraction input and resubmit."
       },
       {
         "key": "C",
-        "text": "The same situation — since page 1 alone was given, the model correctly determined the field is absent, and no further input would change that."
+        "text": "The same situation — given page 1, the model correctly reported the field as absent, and since that is what the document showed it, more input wouldn't change the answer."
       },
       {
         "key": "D",
@@ -3368,7 +3368,7 @@
     ],
     "correct": "B",
     "rationale": {
-      "correct": "This differs from true absence: the data exists in the source, it just wasn't included in what the model was given. Unlike a field that's genuinely missing from the document, this is fixed by supplying the missing page, not by accepting null or escalating to a human.",
+      "correct": "This differs from true absence: the data exists in the source, it just wasn't included in what the model was given. Unlike a field that's genuinely missing from the document, this is fixed by supplying the missing page, not by accepting null or escalating to a human — once page 3 is in the input, a retry (or the original request resubmitted with full input) can succeed.",
       "distractors": {
         "A": "This isn't the genuinely-absent case; treating it identically would accept a null that a fuller input could actually resolve.",
         "C": "The model didn't determine anything about page 3 at all — it was never given that page, which is different from having reviewed the full document and finding no such clause.",
@@ -3390,15 +3390,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Stop retrying after a small, fixed number of attempts and route the document to a human, rather than retrying indefinitely — repeated distinct failures on retries with feedback suggest the document itself is unusually difficult, not a quick, fixable mistake."
+        "text": "Cap retries at a small, fixed number of attempts and route the document to a human for review."
       },
       {
         "key": "B",
-        "text": "Keep retrying indefinitely with the same error feedback, since eventually the model will produce valid output."
+        "text": "Keep retrying indefinitely with the same error feedback, since each new attempt gives the model another chance to land on valid output."
       },
       {
         "key": "C",
-        "text": "Silently accept the third attempt's output even though it fails validation, since three attempts is 'enough effort.'"
+        "text": "Silently accept the third attempt's output even though it fails validation, since three attempts is 'enough effort' and the result is probably close."
       },
       {
         "key": "D",
@@ -3407,7 +3407,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Retry-with-feedback is effective for correctable format/structural mistakes, but a pattern of repeated, differently-invalid attempts on the same document signals something harder than a quick fix — capping retries and escalating to a human avoids burning unbounded attempts on a case that likely needs one anyway.",
+      "correct": "Retry-with-feedback is effective for correctable format/structural mistakes, but a pattern of repeated, differently-invalid attempts on the same document suggests the document itself is unusually difficult, not a quick, fixable mistake — capping retries and escalating to a human avoids burning unbounded attempts on a case that likely needs one anyway.",
       "distractors": {
         "B": "Indefinite retrying on a document that's already failed three distinct ways risks never terminating while providing no better guarantee of eventual success.",
         "C": "Accepting invalid output because enough attempts were made abandons the validation guarantee entirely for this document.",
@@ -3429,11 +3429,11 @@
     "options": [
       {
         "key": "A",
-        "text": "No — any deadline at all, even a next-morning one with slack, disqualifies a workflow from batch processing."
+        "text": "No — any deadline at all, even a next-morning one with slack, disqualifies a workflow from batch processing, since delivery time can't be guaranteed."
       },
       {
         "key": "B",
-        "text": "Yes — there is no one waiting on it interactively, and starting the batch with enough lead time before the deadline (accounting for batch's up-to-24-hour processing window) comfortably meets a Monday-morning delivery expectation."
+        "text": "Yes — no one is waiting on it interactively, and submitting with enough lead time for batch's up-to-24-hour window meets the Monday deadline."
       },
       {
         "key": "C",
@@ -3468,11 +3468,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Treat all 15 identically: chunk every failed document and resubmit all 15 using their custom_ids."
+        "text": "Treat all 15 identically: chunk every failed document and resubmit all 15 using their custom_ids, keeping recovery to a single code path."
       },
       {
         "key": "B",
-        "text": "Resubmit the 12 oversized documents after chunking them; the 3 corrupted files can't be chunked into a valid document and need to be re-sourced (or flagged for manual attention) before any resubmission makes sense."
+        "text": "Chunk and resubmit the 12 oversized documents; re-source the 3 corrupted files (or flag them for manual attention) before resubmitting them."
       },
       {
         "key": "C",
@@ -3507,19 +3507,19 @@
     "options": [
       {
         "key": "A",
-        "text": "Nothing — the batch is processed as a whole and doesn't guarantee sub-ordering of results within it; if 20 specific requests are urgent, submit them separately (individually or in their own small batch, or via synchronous calls) rather than mixed into the larger batch."
+        "text": "Nothing within the batch — there is no intra-batch ordering; submit the 20 urgent requests separately (sync calls or a small batch)."
       },
       {
         "key": "B",
-        "text": "Set a `priority` field on those 20 requests so they're processed first within the same batch."
+        "text": "Set a `priority` field on those 20 requests so the batch scheduler processes them ahead of the other 980 requests in the same submission."
       },
       {
         "key": "C",
-        "text": "The batch API automatically detects which requests are most urgent based on their content."
+        "text": "The batch API automatically detects which requests are most urgent from their content and schedules those first."
       },
       {
         "key": "D",
-        "text": "Submit the 20 urgent requests as a batch of size 1,000 each, padded with duplicates, to force faster processing."
+        "text": "Set a shorter `processing_window` on the batch so all 1,000 requests, including the 20 urgent ones, must finish sooner."
       }
     ],
     "correct": "A",
@@ -3528,7 +3528,7 @@
       "distractors": {
         "B": "There's no such priority field for reordering processing within a single batch submission.",
         "C": "The API doesn't infer urgency from request content; it has no concept of relative priority within a batch.",
-        "D": "Padding with duplicates doesn't change how quickly any given request is processed and wastes cost on redundant work."
+        "D": "There is no configurable processing window. A batch completes within up to 24 hours, and nothing lets you shorten that for the batch or for individual requests inside it."
       }
     },
     "lab": "lab-17-batch-processing",
@@ -3546,7 +3546,7 @@
     "options": [
       {
         "key": "A",
-        "text": "No — the 50% savings only matters if the workload can tolerate batch's lack of a guaranteed latency SLA (results can take up to 24 hours); an interactive, seconds-latency requirement is incompatible with batch regardless of the potential savings."
+        "text": "No — batch has no guaranteed latency SLA (results can take up to 24 hours), which a seconds-latency interactive tool can't tolerate."
       },
       {
         "key": "B",
@@ -3585,11 +3585,11 @@
     "options": [
       {
         "key": "A",
-        "text": "The instruction wasn't strong enough; an even more emphatic version would resolve it."
+        "text": "The instruction wasn't strong enough; an even more emphatic version, repeated at the end of the prompt, would resolve it."
       },
       {
         "key": "B",
-        "text": "The limitation isn't about instruction strength — the session retains the reasoning that produced the code, and that retained context, not weak wording, is what makes it less likely to challenge its own prior decisions."
+        "text": "Wording isn't the issue — the session retains the reasoning that produced the code, which makes it less likely to challenge its own decisions."
       },
       {
         "key": "C",
@@ -3597,7 +3597,7 @@
       },
       {
         "key": "D",
-        "text": "The instruction needs to be moved from the user prompt into the system prompt to take effect."
+        "text": "The instruction needs to be moved from the user prompt into the system prompt, where behavioral directives carry more weight, to take effect."
       }
     ],
     "correct": "B",
@@ -3627,15 +3627,15 @@
       },
       {
         "key": "B",
-        "text": "The integration pass needs its own distinct focus — explicitly reasoning about data flow and contracts between files (e.g., changed signatures and their call sites) — rather than reusing the per-file prompt's local-issue focus at a wider scope."
+        "text": "A distinct focus of its own: reasoning about cross-file data flow and contracts, such as changed signatures and their call sites."
       },
       {
         "key": "C",
-        "text": "The fix is to increase the model's context window so all files fit even more comfortably."
+        "text": "The fix is to increase the model's context window so all files fit even more comfortably and each caller stays in view."
       },
       {
         "key": "D",
-        "text": "The fix is to run the per-file pass a second time on every file, in addition to the first pass."
+        "text": "The fix is to run the per-file pass a second time on every file, in addition to the first pass, to catch what the first run missed."
       }
     ],
     "correct": "B",
@@ -3662,7 +3662,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Whether the fourth pass catches a genuinely distinct class of issue the existing three miss, against the real cost of more turnaround time; more passes aren't free, and adding one that only marginally improves coverage may not be worth the added latency given the existing complaint."
+        "text": "Whether it catches a distinct class of issue the existing three miss, weighed against the added turnaround time developers already complain about."
       },
       {
         "key": "B",
@@ -3701,7 +3701,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Running the per-file passes first and feeding their findings into the integration pass lets the integration pass build on already-established local context instead of re-deriving it, making the cross-file analysis more efficient and better-grounded."
+        "text": "Per-file passes run first and feed their findings in, so the integration pass builds on established local context instead of re-deriving it."
       },
       {
         "key": "B",
@@ -3713,7 +3713,7 @@
       },
       {
         "key": "D",
-        "text": "Both passes should be merged into a single combined pass to eliminate the ordering question entirely."
+        "text": "Both passes should be merged into a single combined pass that reviews each file and its cross-file links together, eliminating the ordering question."
       }
     ],
     "correct": "A",
@@ -3744,7 +3744,7 @@
       },
       {
         "key": "B",
-        "text": "Periodically prune facts that are no longer relevant to any open issue (e.g., a fully resolved and closed sub-issue's specifics), while still protecting the facts tied to currently open concerns."
+        "text": "Periodically prune facts no longer tied to any open issue, such as a closed sub-issue's specifics, while protecting facts for open concerns."
       },
       {
         "key": "C",
@@ -3779,7 +3779,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Ensure each conversation's context (history, case-facts block, etc.) is strictly isolated per conversation/session, never shared or pooled across concurrent conversations, so one customer's facts can never leak into another's."
+        "text": "Strictly isolate each conversation's context (history, case-facts block) per session, with nothing shared or pooled across concurrent conversations."
       },
       {
         "key": "B",
@@ -3787,7 +3787,7 @@
       },
       {
         "key": "C",
-        "text": "Add a case-facts block to every conversation, since the block itself prevents cross-contamination."
+        "text": "Add a case-facts block to every conversation, since the block itself prevents cross-contamination by keeping each customer's facts in one labeled place."
       },
       {
         "key": "D",
@@ -3818,15 +3818,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Prioritize keeping the case-facts block (exact amounts, order numbers, dates, commitments) and a concise summary of resolved context in full, and summarize or drop the lowest-value raw conversational turns first, rather than truncating indiscriminately from the start or end."
+        "text": "Keep the case-facts block and a concise summary of resolved context, and summarize or drop the lowest-value raw turns first."
       },
       {
         "key": "B",
-        "text": "Truncate the oldest turns until the token count fits, regardless of what they contain."
+        "text": "Truncate the oldest turns until the token count fits, regardless of what they contain, since recent turns matter most to the next reply."
       },
       {
         "key": "C",
-        "text": "Truncate the newest turns until the token count fits, keeping only the earliest history."
+        "text": "Truncate the newest turns until the token count fits, keeping only the earliest history where the case was originally set up."
       },
       {
         "key": "D",
@@ -3835,7 +3835,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "A hard budget forces a choice about what to keep; the right one prioritizes the load-bearing precise facts and a compact summary over verbose raw turns, rather than an indiscriminate cut that could just as easily remove the case-facts as any other content.",
+      "correct": "A hard budget forces a choice about what to keep; the right one prioritizes the load-bearing precise facts (exact amounts, order numbers, dates, commitments) and a compact summary over verbose raw turns, rather than an indiscriminate cut from the start or end that could just as easily remove the case-facts as any other content.",
       "distractors": {
         "B": "Truncating strictly by age can just as easily remove important early facts (like the original case-facts) as unimportant chatter — it isn't a targeted way to protect what matters.",
         "C": "Dropping the newest turns removes the most recent, often most relevant, context of the conversation.",
@@ -3857,7 +3857,7 @@
     "options": [
       {
         "key": "A",
-        "text": "A structured handoff summary — customer ID, the case's core facts, root cause, and any commitments already made — the same kind of structured, load-bearing information that matters when handing off within a single system, not the raw chat transcript."
+        "text": "A structured handoff summary — customer ID, core case facts, root cause, and commitments already made — rather than the raw chat transcript."
       },
       {
         "key": "B",
@@ -3865,7 +3865,7 @@
       },
       {
         "key": "C",
-        "text": "The full raw chat transcript, since more information is always better regardless of the receiving system."
+        "text": "The full raw chat transcript, since more information is always better regardless of the receiving system and nothing gets lost in translation."
       },
       {
         "key": "D",
@@ -3900,7 +3900,7 @@
       },
       {
         "key": "B",
-        "text": "As a request for a quick, low-stakes status lookup made while genuinely still wanting to be handed to a human — the explicit escalation request stands, and the agent should still route to a human (optionally after supplying the order status)."
+        "text": "As a quick lookup while waiting — the escalation request stands, so route to a human, optionally after giving the order status."
       },
       {
         "key": "C",
@@ -3939,7 +3939,7 @@
       },
       {
         "key": "B",
-        "text": "Proceed with the reshipment as offered, since the customer accepted the resolution and still has not requested a human — continued frustration alone remains insufficient grounds to escalate."
+        "text": "Proceed with the reshipment as offered, since the customer accepted it and hasn't asked for a human; frustration alone isn't grounds to escalate."
       },
       {
         "key": "C",
@@ -3978,7 +3978,7 @@
       },
       {
         "key": "B",
-        "text": "Ask for one more distinguishing identifier (e.g., email or billing zip code) specific to the two remaining candidates, continuing the same clarification approach rather than reverting to a guess."
+        "text": "Ask for one more distinguishing identifier, such as email or billing zip code, that separates the two remaining candidates."
       },
       {
         "key": "C",
@@ -4012,7 +4012,7 @@
     "options": [
       {
         "key": "A",
-        "text": "No — the customer's opinion about the policy's clarity is not one of the defined escalation triggers (explicit request, policy gap, capability limit, or genuine stall); the request itself is standard and within the agent's authority, so it should simply be processed."
+        "text": "No — a remark on the policy's clarity isn't an escalation trigger; this standard return is within the agent's authority."
       },
       {
         "key": "B",
@@ -4051,27 +4051,27 @@
     "options": [
       {
         "key": "A",
-        "text": "Structured error detail is being discarded at the intermediate hop; subagent B should forward (or meaningfully summarize while preserving) C's structured context to the coordinator, not collapse it into a generic string, the same principle that applies to a single hop."
+        "text": "Structured detail is discarded at the intermediate hop; B should forward (or summarize while preserving) C's structured context, not collapse it."
       },
       {
         "key": "B",
-        "text": "This is fine, since the coordinator only needs to know that something, somewhere, failed."
+        "text": "This is fine, since the coordinator only needs to know that something, somewhere, failed in order to decide whether to re-run the whole delegated task."
       },
       {
         "key": "C",
-        "text": "Subagent B should silently retry C's failed sub-task itself, without ever informing the coordinator anything happened."
+        "text": "Subagent B should silently retry C's failed sub-task itself, without informing the coordinator, since B is closest to the failure and best placed to fix it."
       },
       {
         "key": "D",
-        "text": "Subagent C should have propagated its error directly to the coordinator instead of going through B."
+        "text": "Subagent C should have propagated its error directly to the coordinator instead of going through B, so that no intermediate hop can lose the detail."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "The same principle that governs propagation to a coordinator applies at every hop: collapsing structured detail into a generic string strips the coordinator of the information it needs to decide how to recover, regardless of how many hops the error passed through to get there.",
+      "correct": "The same principle that governs propagation to a coordinator applies at every hop, including this intermediate one: collapsing structured detail into a generic string strips the coordinator of the information it needs to decide how to recover, regardless of how many hops the error passed through to get there.",
       "distractors": {
-        "B": "The coordinator's ability to make an intelligent recovery decision depends on the structured detail, not just the bare fact that a failure occurred somewhere.",
-        "C": "Silently retrying without informing the coordinator hides a real event from the level that's supposed to have visibility into recoverable failures.",
+        "B": "The coordinator's ability to make an intelligent recovery decision depends on the structured detail, not just the bare fact that a failure occurred somewhere; re-running everything blindly is not informed recovery.",
+        "C": "Silently retrying without informing the coordinator hides a real event from the level that's supposed to have visibility into recoverable failures, even if B is closest to it.",
         "D": "The delegation structure means C reports to B, which reports to the coordinator; the fix is for B to preserve C's detail when forwarding, not to bypass the actual chain of delegation."
       }
     },
@@ -4090,24 +4090,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Report which of its internal steps succeeded and which failed (fetch: ok, extract: ok, validate: failed, with the validation error detail), not just a single overall pass/fail — so the coordinator knows the extracted data exists and only validation needs attention."
+        "text": "Report per-step outcomes (fetch: ok, extract: ok, validate: failed, with the validation error detail) rather than a single overall pass/fail."
       },
       {
         "key": "B",
-        "text": "Report only a single overall 'failed' status, since one internal step failed."
+        "text": "Report a single overall 'failed' status, since one internal step failed and the coordinator should treat the run as unusable until it is redone."
       },
       {
         "key": "C",
-        "text": "Report only a single overall 'succeeded' status, since two of the three steps worked."
+        "text": "Report a single overall 'succeeded' status, since two of the three steps worked and the extracted data is already available downstream."
       },
       {
         "key": "D",
-        "text": "Discard the successfully extracted data along with the failure, since the run as a whole didn't fully complete."
+        "text": "Discard the successfully extracted data along with the failure, since the run as a whole didn't fully complete and partial output could mislead."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Collapsing a three-step internal process into one bare pass/fail loses exactly the information (which step failed, and that the earlier successful work still exists) the coordinator needs — reporting per-step outcomes gives it a much more useful, actionable picture.",
+      "correct": "Collapsing a three-step internal process into one bare pass/fail loses exactly the information (which step failed, and that the earlier successful work still exists) the coordinator needs. Reporting per-step outcomes tells it the extracted data exists and only validation needs attention, a much more useful, actionable picture.",
       "distractors": {
         "B": "A single 'failed' status obscures that real, usable work (the extraction) actually completed before the failure.",
         "C": "Calling the whole run a 'success' when validation genuinely failed misrepresents what actually happened and could let bad data flow downstream unflagged.",
@@ -4129,7 +4129,7 @@
     "options": [
       {
         "key": "A",
-        "text": "A signal that this is a repeat of the same underlying failure (e.g., a retry count or reference to the prior attempt), which matters because the coordinator needs to distinguish 'first transient hiccup, worth one more retry' from 'this specific request keeps failing the same way, retrying again probably won't help' before deciding what to do next."
+        "text": "A repeat-failure signal (e.g., a retry count or prior-attempt reference), so the coordinator can tell a transient hiccup from a stuck request."
       },
       {
         "key": "B",
@@ -4137,16 +4137,16 @@
       },
       {
         "key": "C",
-        "text": "The subagent should stop reporting failures altogether after the first one."
+        "text": "The subagent should stop reporting failures after the first one, since repeated identical reports add noise without giving the coordinator anything new."
       },
       {
         "key": "D",
-        "text": "The coordinator should ignore all failure reports after the first, since repeated timeouts are expected and unimportant."
+        "text": "The coordinator should ignore all failure reports after the first, since repeated timeouts are expected and unimportant on a busy upstream service."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Without a signal that this is the same failure recurring, the coordinator can't tell a one-off transient hiccup from a request that's genuinely stuck failing the same way — that distinction is exactly what should inform whether another retry is worth attempting or whether it's time to try something else.",
+      "correct": "Without a signal that this is the same failure recurring, the coordinator can't tell a one-off transient hiccup (worth one more retry) from a request that's genuinely stuck failing the same way (where retrying again probably won't help). That distinction is exactly what should inform whether another retry is worth attempting or whether it's time to try something else.",
       "distractors": {
         "B": "Treating every retry failure as brand-new information discards the pattern (repeated identical failures on the same request) that's actually useful for deciding whether to keep retrying.",
         "C": "Suppressing failure reporting after the first occurrence hides real, ongoing problems from the coordinator.",
@@ -4168,28 +4168,28 @@
     "options": [
       {
         "key": "A",
-        "text": "Recognize that this specific failure type can't be resolved by any action available to the agents themselves (retry, alternative query, partial results) and escalate it to a human who can actually grant or verify the needed access, rather than looping on approaches that can't succeed."
+        "text": "Recognize that no agent-level action (retry, rephrasing, partial results) can fix this failure type, and escalate to a human who can grant access."
       },
       {
         "key": "B",
-        "text": "Keep retrying with different query phrasings, since eventually one might bypass the permission requirement."
+        "text": "Keep retrying with different query phrasings, since a narrower or differently scoped request might hit a resource the current credentials can read."
       },
       {
         "key": "C",
-        "text": "Silently proceed without that data source and present the result as if nothing was missing."
+        "text": "Silently proceed without that data source and present the result as if nothing was missing, since the other sources already cover most of the topic."
       },
       {
         "key": "D",
-        "text": "Have a different subagent attempt the exact same request with the exact same credentials, hoping for a different outcome."
+        "text": "Have a different subagent attempt the exact same request with the exact same credentials, in case the first agent's session state caused the denial."
       }
     ],
     "correct": "A",
     "rationale": {
       "correct": "A permissions gap isn't the kind of failure that any amount of retrying, rephrasing, or trying a different subagent can fix — the actual constraint (insufficient access) doesn't change based on the approach taken. Recognizing which failure types are genuinely un-fixable by agent-level actions, and escalating those specifically to a human who controls access, is the correct behavior.",
       "distractors": {
-        "B": "No query phrasing works around an actual permissions restriction; retrying different wording doesn't change what credentials are actually authorized to access.",
-        "C": "Silently omitting the data and presenting the result as complete hides a real gap from whoever relies on the output.",
-        "D": "The same credentials will hit the same permission wall regardless of which subagent presents the request; changing which agent asks doesn't change what it's authorized to see."
+        "B": "No query phrasing or rescoping works around an actual permissions restriction on the needed data; retrying different wording doesn't change what credentials are actually authorized to access.",
+        "C": "Silently omitting the data and presenting the result as complete hides a real gap from whoever relies on the output, however much the other sources cover.",
+        "D": "The same credentials will hit the same permission wall regardless of which subagent or session presents the request; changing which agent asks doesn't change what it's authorized to see."
       }
     },
     "lab": "lab-20-error-propagation-provenance",
@@ -4207,11 +4207,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Read all files upfront to load complete context before answering questions."
+        "text": "Read all files upfront to load complete context before answering any questions about the code."
       },
       {
         "key": "B",
-        "text": "Start with Grep to find entry points, then use Read to follow imports and trace flows incrementally."
+        "text": "Use Grep to find entry points, then Read to follow imports and trace flows incrementally."
       },
       {
         "key": "C",
@@ -4219,7 +4219,7 @@
       },
       {
         "key": "D",
-        "text": "Glob every file and Read them in alphabetical order."
+        "text": "Glob every file and Read them in alphabetical order so no directory is skipped."
       }
     ],
     "correct": "B",
@@ -4246,24 +4246,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Yes to both — any 'typical patterns' phrasing is context degradation by definition, and a scratchpad always resolves it."
+        "text": "Yes to both: any 'typical patterns' phrasing is context degradation by definition, and a scratchpad of findings always resolves it."
       },
       {
         "key": "B",
-        "text": "No — with almost no session history yet, there's little context to have degraded; the more likely cause is that the agent hasn't actually explored the specific class yet, so grep/read the actual code first rather than reaching for a scratchpad."
+        "text": "No: with almost no session history, little context could have degraded; the agent likely hasn't read the class yet, so grep/read the code first."
       },
       {
         "key": "C",
-        "text": "Yes, but the fix is different — restart the session entirely rather than using a scratchpad."
+        "text": "Yes, but the fix is different: restart the session entirely rather than using a scratchpad, so the agent begins again with a clean, uncluttered context window."
       },
       {
         "key": "D",
-        "text": "No — this indicates the model is fundamentally incapable of understanding the codebase, regardless of session length."
+        "text": "No: this indicates the model is fundamentally incapable of understanding this codebase's architecture, regardless of session length."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "Context degradation describes specific findings getting diluted or pushed out over a long session; ten minutes into a fresh session with minimal history, there isn't much to have degraded. Falling back to general patterns this early more likely means the code hasn't actually been read yet — the fix is incremental exploration (grep then read), not a scratchpad meant for a different problem.",
+      "correct": "Context degradation describes specific findings getting diluted or pushed out over a long session; ten minutes into a fresh session with minimal history, there isn't much to have degraded. Falling back to general patterns this early more likely means the agent hasn't actually read the specific class yet; the fix is incremental exploration (grep then read), not a scratchpad meant for a different problem.",
       "distractors": {
         "A": "The phrasing alone doesn't establish the cause; session length and prior investigation depth matter, and both are minimal here.",
         "C": "Restarting a session that's already only ten minutes old addresses nothing, since there's little accumulated context to lose either way.",
@@ -4285,28 +4285,28 @@
     "options": [
       {
         "key": "A",
-        "text": "Whether you want to keep working within the same session's flow (favor `/compact`, which condenses in place but is lossy) versus whether a clean, deliberately-curated restart would better preserve exactly the findings that matter (favor a fresh session with an explicit summary, especially if some of the accumulated context is no longer relevant or has become noisy)."
+        "text": "Whether to stay in the same flow (`/compact`: condenses in place, lossy) or do a curated restart (fresh session with an explicit summary)."
       },
       {
         "key": "B",
-        "text": "Always use `/compact`, since it is strictly better than starting a new session in every situation."
+        "text": "Always use `/compact`, since it is strictly better than starting a new session in every situation and keeps the current flow and tool state intact."
       },
       {
         "key": "C",
-        "text": "Always start a fresh session, since compaction is never useful."
+        "text": "Always start a fresh session, since compaction is never useful once context has grown large enough to need reducing."
       },
       {
         "key": "D",
-        "text": "The choice makes no difference; both approaches produce identical results."
+        "text": "The choice makes no difference; both approaches produce identical results, because each simply reduces the tokens carried forward into later turns."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "The two tools solve overlapping but distinct problems: `/compact` condenses in place with some information loss, useful for continuing the same flow; starting fresh with an explicit, curated summary lets you deliberately choose what to carry forward and drop accumulated noise or staleness — which one fits better depends on the situation.",
+      "correct": "The two tools solve overlapping but distinct problems: `/compact` condenses in place with some information loss, useful for continuing the same flow; starting fresh with an explicit, curated summary lets you deliberately choose what to carry forward and drop accumulated noise or staleness, which matters especially when some accumulated context is no longer relevant. Which one fits better depends on the situation.",
       "distractors": {
         "B": "`/compact` is lossy and doesn't offer the deliberate curation a fresh, explicit summary can — it isn't strictly better in every case.",
         "C": "`/compact` is a real, useful tool for continuing within a session without losing the current flow; dismissing it entirely ignores a legitimate option.",
-        "D": "The two approaches have different tradeoffs (lossy in-place condensation vs. a deliberately curated restart) and can produce meaningfully different outcomes."
+        "D": "The two approaches have different tradeoffs (lossy in-place condensation vs. a deliberately curated restart) and can produce meaningfully different outcomes, even though both reduce what is carried forward."
       }
     },
     "lab": "lab-14-context-management",
@@ -4324,15 +4324,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Unbounded exploration can consume most or all of the available context before any actual work begins, leaving little room to act on what was learned; deliberately reserving a portion of the budget for the actual task (and using techniques like scratchpads or subagent delegation to keep exploration itself efficient) avoids that outcome."
+        "text": "Unbounded exploration can use up most of the context before work begins; reserve part of the budget for the task and keep exploration efficient."
       },
       {
         "key": "B",
-        "text": "There is no risk; exploration and the actual task always divide the available context evenly on their own."
+        "text": "There is no risk; exploration and the actual task always divide the available context evenly on their own as the session proceeds and the model manages its window."
       },
       {
         "key": "C",
-        "text": "The only fix is to skip exploration entirely and start acting on the codebase with no investigation."
+        "text": "The only fix is to skip exploration entirely and start acting on the codebase with no investigation, so context is spent on the task."
       },
       {
         "key": "D",
@@ -4341,7 +4341,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Without an explicit reservation, exploration can consume the lion's share of the available context before the actual task even starts, since nothing is automatically balancing the two; consciously allocating budget (and using efficient exploration techniques) protects room for the work exploration was meant to inform.",
+      "correct": "Without an explicit reservation, exploration can consume the lion's share of the available context before the actual task even starts, leaving little room to act on what was learned, since nothing is automatically balancing the two. Consciously allocating budget, and keeping exploration itself efficient with techniques like scratchpads or subagent delegation, protects room for the work exploration was meant to inform.",
       "distractors": {
         "B": "Context isn't automatically balanced between exploration and later work; an unbounded exploration phase can consume a disproportionate share.",
         "C": "Skipping exploration entirely trades one problem (context exhaustion) for another (acting on the codebase without understanding it).",
@@ -4367,7 +4367,7 @@
       },
       {
         "key": "B",
-        "text": "Breakdowns by document type and by individual field, since aggregate accuracy is a volume-weighted average that can hide a minority document type or a specific field performing far worse than the overall number suggests."
+        "text": "Breakdowns by document type and by individual field, since a volume-weighted aggregate can hide a minority type or field doing far worse."
       },
       {
         "key": "C",
@@ -4375,7 +4375,7 @@
       },
       {
         "key": "D",
-        "text": "No breakdown is more informative than another; any single cut is equally likely to reveal a problem."
+        "text": "No breakdown is more informative than another; any single cut is equally likely to reveal a problem hidden in the aggregate figure."
       }
     ],
     "correct": "B",
@@ -4401,15 +4401,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Skip calibration entirely and route based on raw model-reported confidence until a much larger labeled set exists."
+        "text": "Skip calibration entirely and route based on raw model-reported confidence until a much larger labeled set exists to calibrate against."
       },
       {
         "key": "B",
-        "text": "Use the 200 examples for an initial calibration, treat it as provisional, and expand the labeled set over time (e.g., by continuing to sample and label extractions) to refine the calibration as more data accumulates."
+        "text": "Use the 200 examples for an initial, provisional calibration, and expand the labeled set over time (e.g., by sampling and labeling) to refine it."
       },
       {
         "key": "C",
-        "text": "Wait until a labeled set of at least several thousand examples exists before doing any calibration work at all."
+        "text": "Wait until a labeled set of at least several thousand examples exists before doing any calibration work, so the first calibration is statistically reliable."
       },
       {
         "key": "D",
@@ -4421,7 +4421,7 @@
       "correct": "An initial, provisional calibration from the available data is more useful than none, as long as it's treated as a starting point to refine as the labeled set grows — this avoids both the unreliability of uncalibrated raw confidence and an indefinite wait for a large labeled set before doing anything.",
       "distractors": {
         "A": "Uncalibrated raw confidence is exactly the unreliable signal calibration is meant to fix; using it by default while waiting isn't the better option.",
-        "C": "Waiting for a large labeled set before any calibration work defers a usable improvement for no clear benefit over a provisional, refinable calibration.",
+        "C": "Waiting for a large labeled set before any calibration work defers a usable improvement for no clear benefit over a provisional, refinable calibration that can become reliable as data grows.",
         "D": "Treating an early calibration as permanent ignores that more labeled data becoming available is a reason to refine it, not a fact to ignore."
       }
     },
@@ -4440,24 +4440,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Reviewer corrections are a rich signal for improving the extraction prompt itself (e.g., patterns in what's commonly miscorrected can point to specific prompt gaps); periodically analyzing correction patterns and feeding them back into prompt refinement closes the loop, rather than only ever fixing one document at a time."
+        "text": "Reviewer corrections reveal prompt gaps; analyze correction patterns periodically and feed them back into the prompt rather than only fixing single documents."
       },
       {
         "key": "B",
-        "text": "Nothing is missing — using corrections solely to approve individual documents is the entire intended purpose of human review."
+        "text": "Nothing is missing; using corrections solely to approve individual documents is the entire intended purpose of human review in this extraction pipeline."
       },
       {
         "key": "C",
-        "text": "The fix is to stop using human review entirely, since it isn't improving the model on its own."
+        "text": "The fix is to stop using human review entirely, since it isn't improving the model on its own and adds cost to each flagged document."
       },
       {
         "key": "D",
-        "text": "Reviewer corrections should be discarded once a document is approved, since they have no further value."
+        "text": "Reviewer corrections should be discarded once a document is approved, since they have no further value after the record is finalized."
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Review corrections carry systematic information about where the extraction is weak — recurring correction patterns are exactly the kind of signal that should feed back into refining the prompt (new examples, tightened criteria, schema tweaks), not just fix one document at a time forever with the same underlying gaps.",
+      "correct": "Review corrections carry systematic information about where the extraction is weak: recurring correction patterns (for example, what's commonly miscorrected) point to specific prompt gaps and should feed back into refining the prompt (new examples, tightened criteria, schema tweaks). That closes the loop, rather than fixing one document at a time forever with the same underlying gaps.",
       "distractors": {
         "B": "Human review can serve both purposes — approving individual documents now, and improving the system going forward — and only using it for the former leaves real, available improvement on the table.",
         "C": "Review itself is working (documents are getting corrected); the missed opportunity is using its output more fully, not eliminating it.",
@@ -4479,15 +4479,15 @@
     "options": [
       {
         "key": "A",
-        "text": "The 'ground truth' labels themselves have real uncertainty where reviewers disagree; that uncertainty limits how precisely you can calibrate model confidence against those labels, and resolving reviewer disagreements (e.g., via a clear adjudication rule or a third reviewer) improves the quality of the labeled set the calibration depends on."
+        "text": "Labels are uncertain where reviewers disagree, limiting calibration precision; resolving disagreements (e.g., adjudication) improves the labeled set."
       },
       {
         "key": "B",
-        "text": "Reviewer disagreement is irrelevant to calibration, since only the model's confidence score matters."
+        "text": "Reviewer disagreement is irrelevant to calibration, since only the model's confidence score and the final approved label matter for the mapping."
       },
       {
         "key": "C",
-        "text": "The 15% disagreement rate should be added directly to the model's reported accuracy figure without further analysis."
+        "text": "The 15% disagreement rate should be added directly to the model's reported accuracy figure, since it represents error the model is not charged for."
       },
       {
         "key": "D",
@@ -4496,9 +4496,9 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Calibrating model confidence against human labels assumes those labels are a solid ground truth; when reviewers themselves disagree at a meaningful rate, that assumption weakens, and the calibration is only as good as the labeled set — improving reviewer agreement (via clearer guidelines or adjudication) strengthens the foundation the whole calibration effort rests on.",
+      "correct": "Calibrating model confidence against human labels assumes those labels are a solid ground truth; when reviewers themselves disagree at a meaningful rate, that assumption weakens and limits how precisely you can calibrate. The calibration is only as good as the labeled set, so resolving disagreements (via clearer guidelines, an adjudication rule, or a third reviewer) strengthens the foundation the whole calibration effort rests on.",
       "distractors": {
-        "B": "The labels calibration is checked against matter directly; unreliable ground truth undermines how much you can trust the resulting calibration.",
+        "B": "The labels calibration is checked against matter directly; if the approved label itself is uncertain, unreliable ground truth undermines how much you can trust the resulting calibration.",
         "C": "Disagreement rate and accuracy are different measurements; conflating them doesn't correctly characterize either the model's performance or the labels' reliability.",
         "D": "Reviewer disagreement is a signal to improve the human labeling process, not a reason to abandon human review and rely solely on the model's own, uncalibrated self-assessment."
       }
@@ -4518,28 +4518,28 @@
     "options": [
       {
         "key": "A",
-        "text": "Nothing additional; structured attribution only helps at synthesis time, not after a report has already shipped."
+        "text": "Nothing additional; structured attribution only helps at synthesis time, not after a report has already shipped to its intended readers."
       },
       {
         "key": "B",
-        "text": "Precisely identify every claim in the shipped report that depended on the retracted source, so those specific claims (and only those) can be flagged or revisited, rather than needing to re-examine the entire report."
+        "text": "Precisely identify each claim in the shipped report that depended on the retracted source, so only those are flagged or revisited."
       },
       {
         "key": "C",
-        "text": "Automatically and silently correct the retracted claims without any human review."
+        "text": "Automatically and silently correct the retracted claims without any human review, since the mappings show exactly which text needs rewriting."
       },
       {
         "key": "D",
-        "text": "Prevent the source from ever having been retracted in the first place."
+        "text": "Re-run the original synthesis with the retracted source removed, since the mappings let it regenerate the same report minus that source."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "Because each claim is explicitly tied to its source, a later problem with one source (like a retraction) can be traced to exactly the claims that depended on it — a targeted, traceable follow-up that a report without structured attribution couldn't support without re-reviewing everything from scratch.",
+      "correct": "Because each claim is explicitly tied to its source, a later problem with one source (like a retraction) can be traced to exactly the claims that depended on it, a targeted, traceable follow-up that a report without structured attribution couldn't support without re-examining the entire report.",
       "distractors": {
         "A": "The traceability structured attribution provides doesn't expire at synthesis time; it's exactly what makes a later audit like this possible.",
-        "C": "Structured attribution supports identifying affected claims; it doesn't itself make a correctness judgment or replace human review of what to do about them.",
-        "D": "Attribution structure has no bearing on whether an external publisher retracts a source; it only affects how traceable the consequences are."
+        "C": "Structured attribution supports identifying affected claims; knowing which text depends on a source doesn't itself make a correctness judgment or replace human review of what to do about them.",
+        "D": "Re-running synthesis regenerates the whole report instead of targeting the affected claims, and the new output isn't guaranteed to match the shipped one. The mappings are valuable because they pinpoint exactly which claims to revisit."
       }
     },
     "lab": "lab-20-error-propagation-provenance",
@@ -4561,7 +4561,7 @@
       },
       {
         "key": "B",
-        "text": "No in substance — the agent should still present all three figures with attribution and annotate the discrepancy, though it can note that two of the three are mutually consistent as part of that annotation, rather than silently discarding the outlier."
+        "text": "No in substance: still present all three figures with attribution and annotate the discrepancy, noting that two of the three are mutually consistent."
       },
       {
         "key": "C",
@@ -4569,16 +4569,16 @@
       },
       {
         "key": "D",
-        "text": "No — the agent should average all three figures into a single blended number to resolve the conflict."
+        "text": "No: the agent should average all three figures into a single blended number, weighting the agreeing pair, to resolve the conflict."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "Two sources agreeing doesn't establish that the third is factually wrong — it could reflect a different methodology or timeframe. The agent should still preserve all three with attribution, annotating that two are mutually consistent as useful context, rather than silently dropping or definitively excluding the outlier.",
+      "correct": "Two sources agreeing doesn't establish that the third is factually wrong; it could reflect a different methodology or timeframe. The agent should still preserve all three with attribution, annotating that two are mutually consistent as useful context, rather than silently dropping or definitively excluding the outlier.",
       "distractors": {
         "A": "Dropping the outlier silently discards information the reader may need, exactly as a two-source disagreement would.",
         "C": "Numeric agreement among sources isn't proof of correctness; the third source may reflect a legitimate methodological or temporal difference not yet understood.",
-        "D": "Averaging in a third figure produces a number none of the three sources actually reported and still hides the underlying disagreement."
+        "D": "Averaging in a third figure, weighted or not, produces a number none of the three sources actually reported and still hides the underlying disagreement."
       }
     },
     "lab": "lab-20-error-propagation-provenance",
@@ -4596,24 +4596,24 @@
     "options": [
       {
         "key": "A",
-        "text": "Add dates to the structured output, since that is always the fix for this class of problem."
+        "text": "Add dates to the structured output, since that is always the fix for this class of problem and makes the temporal context explicit to the reader."
       },
       {
         "key": "B",
-        "text": "Explicitly instruct the synthesis step to compare available date/collection metadata before labeling any two figures as contradictory, since the dates being present in the data doesn't guarantee the synthesis reasoning step actually uses them."
+        "text": "Explicitly instruct the synthesis step to compare available date/collection metadata before labeling any two figures as contradictory."
       },
       {
         "key": "C",
-        "text": "Remove all older data from consideration, since only the most recent figure should ever be reported."
+        "text": "Remove all older data from consideration, since only the most recent figure should ever be reported in a current-state summary."
       },
       {
         "key": "D",
-        "text": "Add a conflict_detected boolean field, since that will resolve the misclassification on its own."
+        "text": "Add a conflict_detected boolean field, since that will resolve the misclassification on its own by making conflicts explicit."
       }
     ],
     "correct": "B",
     "rationale": {
-      "correct": "The dates are already captured, so the gap has moved downstream: the synthesis step isn't using the metadata it has. The fix is to explicitly direct synthesis to check temporal metadata before calling two figures contradictory — capturing the data was necessary but not, on its own, sufficient.",
+      "correct": "The dates are already captured, so the gap has moved downstream: the synthesis step isn't using the metadata it has, and dates being present in the data doesn't guarantee the reasoning step uses them. The fix is to explicitly direct synthesis to check temporal metadata before calling two figures contradictory; capturing the data was necessary but not, on its own, sufficient.",
       "distractors": {
         "A": "Dates are already present in this scenario; re-adding data that already exists doesn't address why synthesis isn't using it.",
         "C": "Discarding older data throws away legitimate historical figures and doesn't address the actual reasoning gap.",
@@ -4635,15 +4635,15 @@
     "options": [
       {
         "key": "A",
-        "text": "Explicitly flag it as a synthesized inference (not something any single source directly stated), citing the three supporting findings, and characterize it with appropriate uncertainty rather than presenting it with the same confidence as a directly-sourced fact."
+        "text": "Flag it as a synthesized inference no single source stated, cite the three supporting findings, and give it appropriate uncertainty."
       },
       {
         "key": "B",
-        "text": "State the conclusion as a plain, directly-sourced fact, since it's supported by three real findings."
+        "text": "State the conclusion as a plain, directly-sourced fact, since it's supported by three real findings that each come from a cited source."
       },
       {
         "key": "C",
-        "text": "Omit the conclusion entirely, since no single source states it outright."
+        "text": "Omit the conclusion entirely, since no single source states it outright and the report should stick to what sources say."
       },
       {
         "key": "D",
@@ -4652,7 +4652,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "An inference drawn by combining multiple partial findings is a different kind of claim than something a source states directly — it should be labeled as synthesized reasoning, backed by its supporting findings, and given uncertainty appropriate to an inference rather than the confidence of a directly-cited fact.",
+      "correct": "An inference drawn by combining multiple partial findings is a different kind of claim than something a source states directly; it should be labeled as synthesized reasoning, backed by its supporting findings, and given uncertainty appropriate to an inference rather than the same confidence as a directly-cited fact.",
       "distractors": {
         "B": "Presenting an inferred conclusion with the same confidence as a directly-stated fact overstates what the sources actually established individually.",
         "C": "A well-supported inference is valuable information; omitting it discards a genuine synthesis insight rather than just correctly characterizing its nature.",
@@ -4869,7 +4869,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Send an idempotency key derived from the webhook ID with the create-ticket call, so a retried request is recognized as the same operation"
+        "text": "Send an idempotency key derived from the webhook ID with the create-ticket call so the server can deduplicate retries"
       },
       {
         "key": "B",
@@ -4877,16 +4877,16 @@
       },
       {
         "key": "C",
-        "text": "Retry the Claude classification call instead of the create-ticket call, since that is where the latency comes from"
+        "text": "Retry the Claude classification call instead of the create-ticket call, since that slow step is where the timeout latency comes from"
       },
       {
         "key": "D",
-        "text": "Increase the timeout to several minutes so the internal API never times out"
+        "text": "Increase the client timeout to several minutes so the slow internal ticketing API never times out mid-request"
       }
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Creating a ticket is not idempotent by default. An idempotency key lets the server deduplicate retries of the same logical request, so the system keeps resilience without double effects.",
+      "correct": "Creating a ticket is not idempotent by default. An idempotency key derived from the webhook ID lets the server recognize a retried request as the same logical operation and deduplicate it, so the system keeps resilience without double effects.",
       "distractors": {
         "B": "Dropping retries trades duplicates for lost tickets whenever the timeout is spurious.",
         "C": "The duplicate comes from retrying the non-idempotent write; moving retries elsewhere does not address it.",
@@ -4988,7 +4988,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Add `currency` as a new optional field, update consumers to read it while tolerating its absence, and version the schema so stored results can be interpreted"
+        "text": "Add `currency` as a new optional field, update consumers to read it when present, and version the schema"
       },
       {
         "key": "B",
@@ -5005,7 +5005,7 @@
     ],
     "correct": "A",
     "rationale": {
-      "correct": "Additive optional fields are backward compatible; consumers can adopt them gradually, and schema versioning keeps old and new records interpretable.",
+      "correct": "Additive optional fields are backward compatible; consumers can adopt them gradually while tolerating their absence in older records, and schema versioning keeps old and new stored results interpretable.",
       "distractors": {
         "B": "Renaming a field is a breaking change for every consumer of the old name.",
         "C": "Dropping the schema removes the validation that made the output reliable.",
@@ -5227,7 +5227,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Disable retries so failed requests return to users faster, and add more application servers."
+        "text": "Disable retries so failed requests return to users faster, and add more application servers to absorb the peak load."
       },
       {
         "key": "B",
@@ -5306,7 +5306,7 @@
     "options": [
       {
         "key": "A",
-        "text": "The default 5-minute cache, since its write premium is lower than the 1-hour option's."
+        "text": "The default 5-minute cache, since its write premium is lower than the 1-hour option's and reads cost the same."
       },
       {
         "key": "B",
@@ -5462,7 +5462,7 @@
     "options": [
       {
         "key": "A",
-        "text": "Delete the examples and switch to zero-shot, since examples are what cause the bias and they cost tokens."
+        "text": "Delete the examples and switch to zero-shot, since the examples are what cause the bias and they also add input tokens to each call."
       },
       {
         "key": "B",
@@ -5470,7 +5470,7 @@
       },
       {
         "key": "C",
-        "text": "Use a few diverse examples covering each label and hard cases like long emotional tickets, and cache the stable prompt prefix."
+        "text": "Use a few diverse examples covering each label and hard cases like long emotional tickets, and cache the stable prefix."
       },
       {
         "key": "D",
@@ -5505,7 +5505,7 @@
       },
       {
         "key": "B",
-        "text": "Re-record the expected answers on every failure so the suite only flags truly new behavior."
+        "text": "Re-record the expected answers on every failure so the suite only flags behavior that is truly new since the last run."
       },
       {
         "key": "C",
@@ -5513,7 +5513,7 @@
       },
       {
         "key": "D",
-        "text": "Grade each case on the properties that matter (schema, key facts, label) and track pass rates over several runs."
+        "text": "Grade each case on the properties that matter (schema, key facts, label) and track pass rates over runs."
       }
     ],
     "correct": "D",
@@ -5774,11 +5774,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Put an explicit breakpoint at the end of the shared preamble, before the per-request question."
+        "text": "Place an explicit breakpoint at the end of the shared preamble, before the question."
       },
       {
         "key": "B",
-        "text": "Switch to the 1-hour TTL so each written entry lives long enough to be read."
+        "text": "Switch to the 1-hour TTL so each written entry lives long enough to be read by a later request."
       },
       {
         "key": "C",
@@ -5817,7 +5817,7 @@
       },
       {
         "key": "B",
-        "text": "A breakpoint on every message so each turn writes its own entry, and check that `input_tokens` is near zero."
+        "text": "A breakpoint on every message so each turn writes its own cache entry, and check that `input_tokens` drops to near zero."
       },
       {
         "key": "C",
@@ -5825,7 +5825,7 @@
       },
       {
         "key": "D",
-        "text": "A breakpoint at the end of the static system prefix plus automatic caching for the growing tail, checking that cache reads dominate."
+        "text": "A breakpoint after the static system prefix plus automatic caching for the growing tail; check that cache reads dominate."
       }
     ],
     "correct": "D",
@@ -5896,7 +5896,7 @@
       },
       {
         "key": "B",
-        "text": "Derive the account ID from the authenticated session in the tool layer, ignoring or checking any ID the model supplies."
+        "text": "Bind the tool to the account ID from the authenticated session, ignoring or verifying any ID the model supplies."
       },
       {
         "key": "C",
@@ -5904,7 +5904,7 @@
       },
       {
         "key": "D",
-        "text": "Require the user to type their account ID twice so that typos and casual guessing become less likely."
+        "text": "Require the user to type their account ID twice in the chat so that typos and casual guessing become less likely."
       }
     ],
     "correct": "B",
@@ -5936,11 +5936,11 @@
       },
       {
         "key": "B",
-        "text": "Instruct the model to avoid mentioning details that might have come from someone else's conversation."
+        "text": "Instruct the model to avoid mentioning any details that might have come from someone else's conversation in its replies."
       },
       {
         "key": "C",
-        "text": "Partition memory by tenant and user, keyed to the authenticated identity, and load only the caller's own entries."
+        "text": "Partition memory by tenant and user, keyed to the authenticated identity, and load only the caller's entries."
       },
       {
         "key": "D",
@@ -6015,11 +6015,11 @@
       },
       {
         "key": "B",
-        "text": "Gate on the eval suite, release to a small traffic slice with monitoring, and keep the prior version ready to roll back."
+        "text": "Gate on the eval suite, release to a small monitored traffic slice, and keep the prior version ready to roll back."
       },
       {
         "key": "C",
-        "text": "Skip the eval suite and run a long A/B test in production, because real traffic is the only true measure."
+        "text": "Skip the eval suite and run a long A/B test in production instead, because real traffic is the only true measure of quality."
       },
       {
         "key": "D",

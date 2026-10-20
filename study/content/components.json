@@ -3,13 +3,13 @@
     {
       "id": "questions-standard",
       "kind": "questions",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "file": "questions-standard.json"
     },
     {
       "id": "questions-intermediate",
       "kind": "questions",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "file": "questions-intermediate.json"
     },
     {
