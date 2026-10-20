@@ -4,7 +4,7 @@
   "name": "Claude Certified Developer – Foundations",
   "guide": "anthropic-ccdvf-exam-guide-2026-10.md",
   "config": {
-    "questions_per_task_target": 6,
+    "questions_target_total": 150,
     "coverage_component": "questions-standard",
     "pass_threshold": 72
   },

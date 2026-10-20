@@ -742,7 +742,7 @@
   },
   {
     "id": "q-0260",
-    "scenario": "A PreToolUse hook intended to redact PII from `lookup_order` results was registered globally (for all tools) instead of scoped to just `lookup_order`. It now also fires on unrelated tools like `get_shipping_rates`, adding latency and occasionally stripping legitimate numeric fields it mistakes for PII.",
+    "scenario": "A PostToolUse hook intended to redact PII from `lookup_order` results was registered globally (for all tools) instead of scoped to just `lookup_order`. It now also fires on unrelated tools like `get_shipping_rates`, adding latency and occasionally stripping legitimate numeric fields it mistakes for PII.",
     "stem": "What is the correct fix?",
     "options": [
       {
@@ -774,7 +774,7 @@
     "lab": "lab-11-hooks-and-enforcement",
     "difficulty": 4,
     "tags": [
-      "pretooluse",
+      "posttooluse",
       "hook-scoping",
       "pii-redaction"
     ]
@@ -4665,6 +4665,1583 @@
       "provenance",
       "synthesized-inference",
       "uncertainty-characterization"
+    ]
+  },
+  {
+    "id": "q-0559",
+    "scenario": "An internal assistant handles HR, IT, and finance requests. Each domain has 15-20 tools and its own policies. Today a single agent holds all 50+ tools and one combined system prompt; it often picks a similarly named tool from the wrong domain. Most requests touch one domain, a few span two, and one extra model call of latency is acceptable.",
+    "stem": "Which architecture change best addresses the problem?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Keep the single agent and lengthen every tool description so the model can tell the 50+ similar tools apart."
+      },
+      {
+        "key": "B",
+        "text": "A supervisor agent that delegates to HR, IT, and finance subagents with scoped tools, then merges their results."
+      },
+      {
+        "key": "C",
+        "text": "Three peer domain agents that pass each request among themselves until one of them decides it owns it."
+      },
+      {
+        "key": "D",
+        "text": "A keyword router in code that sends each request to exactly one domain agent, with no supervising agent above them."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "A manager/supervisor hierarchy fits: each specialist sees only its own 15-20 tools and policies, which reduces tool-selection errors, and the supervisor can delegate to two specialists and merge their results for cross-domain requests. The extra supervisor call fits the stated latency budget.",
+      "distractors": {
+        "A": "Better descriptions help, but a 50+ tool surface with overlapping names stays error-prone, and the single combined prompt still mixes three domains' policies.",
+        "C": "Peer-to-peer handoffs lose central control: no one owns decomposition, error handling, or aggregation, and requests can bounce without an owner.",
+        "D": "A code router is a reasonable workflow for clean single-domain traffic, but keyword matching misroutes ambiguous requests and cannot handle the ones that span two domains."
+      }
+    },
+    "lab": "lab-19-multi-agent-orchestration",
+    "difficulty": 5,
+    "tags": [
+      "supervisor",
+      "hierarchy",
+      "agent-architecture"
+    ]
+  },
+  {
+    "id": "q-0560",
+    "scenario": "A healthcare company wants Claude Managed Agents for persisted, versioned agent configurations and sessions where Anthropic runs the agent loop. Compliance requires that code execution and file access against patient records happen inside the company's own VPC.",
+    "stem": "Which deployment model meets both goals?",
+    "options": [
+      {
+        "key": "A",
+        "text": "An Anthropic-hosted cloud environment with limited networking, allow-listing only the company's own internal hosts."
+      },
+      {
+        "key": "B",
+        "text": "Drop Managed Agents and run the Claude Agent SDK on company servers, rebuilding agent versioning and session state in-house."
+      },
+      {
+        "key": "C",
+        "text": "A self-hosted environment: the loop stays with Anthropic while tools execute in company containers via a polling worker."
+      },
+      {
+        "key": "D",
+        "text": "An Anthropic-hosted environment, with patient identifiers removed from the system prompt before each session."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "Managed Agents supports self-hosted environments: the agent loop runs on Anthropic's orchestration layer, but bash, file, and code tools execute in a container you control, reached by an outbound-polling worker. Tool execution against patient data stays in the VPC while the team keeps the managed agent and session model.",
+      "distractors": {
+        "A": "Limited networking restricts where the sandbox can connect, but the sandbox itself still runs on Anthropic's infrastructure, so file access and execution happen outside the VPC.",
+        "B": "Self-hosting the Agent SDK satisfies the data-locality rule, but it gives up the managed loop, versioned agents, and sessions the company wanted, and adds the work of rebuilding them.",
+        "D": "Removing identifiers from the prompt does not move tool execution; the agent would still read patient files inside an Anthropic-hosted container."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "managed-agents",
+      "self-hosted",
+      "deployment"
+    ]
+  },
+  {
+    "id": "q-0561",
+    "scenario": "A team is building two things. The first is a document-approval workflow with fixed stages, a conditional loop back to revision when a reviewer rejects, and a human sign-off step that can take days before the workflow resumes from where it paused. The second is a simple bot that answers policy questions using one lookup tool.",
+    "stem": "Which approach best matches tooling to need?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Hand-roll both as `while` loops, keeping workflow state in process memory until each sign-off arrives."
+      },
+      {
+        "key": "B",
+        "text": "Use a graph-based framework with checkpointed state for the approval flow, and a direct SDK call for the bot."
+      },
+      {
+        "key": "C",
+        "text": "Use the same graph framework for both, so the team has one consistent abstraction and tooling story across its agents."
+      },
+      {
+        "key": "D",
+        "text": "Build one autonomous agent with every tool and instruct it to wait in its conversation until sign-off."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Explicit stages, conditional edges, and pause-and-resume across days are exactly what graph-style orchestration with persisted checkpoints provides (LangGraph is a common example). The single-tool bot gains little from that abstraction, so a direct SDK call keeps it simple.",
+      "distractors": {
+        "A": "In-memory state does not survive a restart over a multi-day pause, and hand-rolling stages, branching, and checkpointing re-creates what the framework already provides.",
+        "C": "Consistency has some value, but wrapping a one-tool bot in a graph framework adds dependencies, indirection, and debugging surface with no matching benefit.",
+        "D": "A conversation cannot sit open for days waiting on a human, and handing fixed, auditable stages to an autonomous agent trades predictability for flexibility the process does not need."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "agent-frameworks",
+      "langgraph",
+      "workflow-state"
+    ]
+  },
+  {
+    "id": "q-0562",
+    "scenario": "A customer-support agent has two complaints against it. During long sessions, order-lookup tools return 40-field records that crowd out the conversation and degrade later answers. Separately, returning customers expect the agent to remember preferences (contact channel, prior escalations) from conversations weeks ago.",
+    "stem": "Which combination of patterns addresses both complaints?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Enable compaction for every session, relying on its summaries to carry each customer's preferences forward as well."
+      },
+      {
+        "key": "B",
+        "text": "Paste each customer's full prior transcripts into the system prompt at the start of every new session."
+      },
+      {
+        "key": "C",
+        "text": "Trim tool results to the fields the next step needs, and persist customer facts in memory read at session start."
+      },
+      {
+        "key": "D",
+        "text": "Move to the largest available context window so both the records and the history fit without changes."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "The two complaints need two different tools. Trimming verbose tool output is in-session context management, keeping only the fields the agent reasons over. Remembering preferences weeks later is cross-session persistence, which calls for a memory store the agent reads when a session begins.",
+      "distractors": {
+        "A": "Compaction helps the long-session problem, but a compaction summary belongs to one conversation and does not carry into a new session weeks later.",
+        "B": "Full transcripts are expensive, grow without bound, and bury the few facts that matter; they also do nothing about the 40-field records in the current session.",
+        "D": "A bigger window postpones the crowding but keeps paying for irrelevant fields, and it does not bring back last month's conversation at all."
+      }
+    },
+    "lab": "lab-14-context-management",
+    "difficulty": 6,
+    "tags": [
+      "memory",
+      "tool-result-trimming",
+      "context-window-management"
+    ]
+  },
+  {
+    "id": "q-0563",
+    "scenario": "Agent A's system prompt contains a paragraph about its `refund_order` tool: amounts are integers in cents, and order IDs must start with `ORD-`. It also has the rule \"Never refund more than $500 without manager approval.\" The team reuses the same tool in Agent B, which has a different system prompt. Agent B often passes amounts in dollars and IDs without the prefix. Meanwhile, Agent A has issued a few refunds over $500 without approval.",
+    "stem": "How should these instructions be redistributed across the application's components?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Copy Agent A's full refund paragraph, including the $500 rule, into Agent B's system prompt so both agents get identical guidance about the tool."
+      },
+      {
+        "key": "B",
+        "text": "Move both the parameter formats and the $500 rule into the tool description, since the model pays closer attention to tool descriptions than to system prompts."
+      },
+      {
+        "key": "C",
+        "text": "Put the parameter formats in the tool's description and input schema, and enforce the $500 limit in the tool's code or approval layer."
+      },
+      {
+        "key": "D",
+        "text": "Inject the parameter formats into the user turn whenever a refund looks likely, and restate the $500 rule in capital letters in each system prompt."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "Each instruction belongs in the component it applies to. Guidance about how to call a tool lives with the tool (its description and schema), so every agent that uses the tool gets it automatically. A hard business limit is not a prompting problem: the tool or an approval step must enforce it in code, because instructions in a prompt can be missed. A short policy note can stay in the system prompt for context.",
+      "distractors": {
+        "A": "Duplicating the paragraph fixes Agent B today, but the tool's usage rules now live in several prompts that will drift apart as more agents reuse the tool. It also leaves the $500 rule enforced only by prompt text, which is already failing in Agent A.",
+        "B": "Moving the formats into the tool description is right, but tool descriptions do not make a hard limit binding. A spending limit that matters must be checked in code, wherever the instruction text lives.",
+        "D": "Guessing when to inject per-turn guidance is fragile and still keeps tool usage out of the tool definition. Capital letters do not turn a policy into an enforced control."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "instruction-placement",
+      "tool-descriptions",
+      "prompt-components"
+    ]
+  },
+  {
+    "id": "q-0564",
+    "scenario": "A FastAPI endpoint receives a webhook, calls Claude to classify it, then calls an internal REST API to create a ticket. The internal API sometimes times out after it has already created the ticket, and the endpoint's retry then creates a duplicate.",
+    "stem": "Which change best prevents duplicates while keeping retries?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Send an idempotency key derived from the webhook ID with the create-ticket call, so a retried request is recognized as the same operation"
+      },
+      {
+        "key": "B",
+        "text": "Remove retries on the create-ticket call so a timeout is reported as a failure to the webhook sender"
+      },
+      {
+        "key": "C",
+        "text": "Retry the Claude classification call instead of the create-ticket call, since that is where the latency comes from"
+      },
+      {
+        "key": "D",
+        "text": "Increase the timeout to several minutes so the internal API never times out"
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Creating a ticket is not idempotent by default. An idempotency key lets the server deduplicate retries of the same logical request, so the system keeps resilience without double effects.",
+      "distractors": {
+        "B": "Dropping retries trades duplicates for lost tickets whenever the timeout is spurious.",
+        "C": "The duplicate comes from retrying the non-idempotent write; moving retries elsewhere does not address it.",
+        "D": "A longer timeout reduces but does not eliminate the race, and it ties up the request handler."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "rest",
+      "idempotency",
+      "retries"
+    ]
+  },
+  {
+    "id": "q-0565",
+    "scenario": "A team adds Claude Code to its SDLC: it drafts code from tickets, and a CI job runs `claude -p` to review each pull request. A lead proposes that PRs drafted by Claude can skip human review and the existing test suite, because Claude already reviewed them.",
+    "stem": "What is the best response?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Keep AI-drafted PRs on the same gates: tests, independent CI review, and human approval"
+      },
+      {
+        "key": "B",
+        "text": "Accept the proposal, since running the same model twice gives effectively the same assurance as tests"
+      },
+      {
+        "key": "C",
+        "text": "Remove the AI review instead, since a human review makes any automated review redundant"
+      },
+      {
+        "key": "D",
+        "text": "Run the tests but skip human review only for PRs under 500 lines, regardless of what they touch"
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Integrating Claude into the SDLC adds automation inside existing quality gates rather than replacing them; tests verify behavior and human approval keeps accountability.",
+      "distractors": {
+        "B": "A model review does not execute code, so it does not replace the test suite, and it shares blind spots with the generator.",
+        "C": "Automated review catches issues cheaply and consistently; the problem with the proposal is removing gates, not having the AI review.",
+        "D": "Size alone does not set risk; a small change to auth or billing can be high impact."
+      }
+    },
+    "lab": "lab-21-claude-code-cicd",
+    "difficulty": 4,
+    "tags": [
+      "sdlc",
+      "ci",
+      "code-review",
+      "quality-gates"
+    ]
+  },
+  {
+    "id": "q-0566",
+    "scenario": "A team shares one set of review instructions across three surfaces: Claude Code in the terminal, a claude.ai Project used by product managers, and an API-based Slack bot.",
+    "stem": "Which statement correctly describes how to deliver the instructions to each surface?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Claude Code: CLAUDE.md; claude.ai Project: project instructions; API bot: its own `system` prompt"
+      },
+      {
+        "key": "B",
+        "text": "Writing them once in CLAUDE.md is enough, since every Claude interface reads the repository's CLAUDE.md"
+      },
+      {
+        "key": "C",
+        "text": "Putting them in the claude.ai Project is enough, since Projects sync instructions to Claude Code and the API"
+      },
+      {
+        "key": "D",
+        "text": "The API bot inherits the organization's claude.ai instructions automatically, so only Claude Code needs configuring"
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Each interface has its own instruction channel: Claude Code loads memory files, claude.ai Projects have project instructions, and the API knows only what the request sends.",
+      "distractors": {
+        "B": "CLAUDE.md is a Claude Code (and SDK, when configured) mechanism; claude.ai and raw API calls do not read it.",
+        "C": "Project instructions live in claude.ai; they are not synced to other interfaces.",
+        "D": "API requests carry no organization-level claude.ai instructions; the bot must send its own system prompt."
+      }
+    },
+    "lab": null,
+    "difficulty": 4,
+    "tags": [
+      "interfaces",
+      "claude-code",
+      "claude-ai",
+      "messages-api"
+    ]
+  },
+  {
+    "id": "q-0567",
+    "scenario": "An extraction pipeline uses structured outputs with a JSON schema. The team must add a `currency` field. Older stored results lack it, and a downstream consumer validates strictly against the old schema.",
+    "stem": "Which schema-evolution approach is safest?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add `currency` as a new optional field, update consumers to read it while tolerating its absence, and version the schema so stored results can be interpreted"
+      },
+      {
+        "key": "B",
+        "text": "Rename the existing `amount` field to `amount_usd` and add `currency`, so the meaning of each field is explicit from day one"
+      },
+      {
+        "key": "C",
+        "text": "Replace the schema with a free-form JSON object so future fields never require schema changes"
+      },
+      {
+        "key": "D",
+        "text": "Add `currency` as required immediately and backfill historical results by asking Claude to guess the currency"
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Additive optional fields are backward compatible; consumers can adopt them gradually, and schema versioning keeps old and new records interpretable.",
+      "distractors": {
+        "B": "Renaming a field is a breaking change for every consumer of the old name.",
+        "C": "Dropping the schema removes the validation that made the output reliable.",
+        "D": "Making it required breaks old records, and guessed backfills put invented data into the store."
+      }
+    },
+    "lab": "lab-04-structured-output",
+    "difficulty": 5,
+    "tags": [
+      "schema-design",
+      "schema-evolution",
+      "structured-outputs"
+    ]
+  },
+  {
+    "id": "q-0568",
+    "scenario": "In a repository, `.claude/settings.json` (committed) allows `Bash(npm run deploy:*)`. A developer's `.claude/settings.local.json` denies it, and the company's managed settings policy also denies it. The developer passes `--allowedTools \"Bash(npm run deploy:*)\"` on the command line.",
+    "stem": "What is the effective result, and why?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Denied, because managed policy outranks command-line arguments and all other scopes"
+      },
+      {
+        "key": "B",
+        "text": "Deploy commands are allowed, because command-line arguments override every settings file"
+      },
+      {
+        "key": "C",
+        "text": "Deploy commands are allowed, because the committed project settings are the team's source of truth"
+      },
+      {
+        "key": "D",
+        "text": "The result is undefined, because Claude Code rejects configurations where scopes disagree"
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Claude Code settings layer with managed policy at the top, then command-line arguments, then local project, shared project, and user settings; organization policy cannot be overridden by a developer.",
+      "distractors": {
+        "B": "Command-line arguments override local, project, and user settings, but not managed policy.",
+        "C": "Shared project settings rank below local settings, command-line arguments, and managed policy.",
+        "D": "Scopes are expected to disagree; precedence resolves them rather than rejecting the configuration."
+      }
+    },
+    "lab": "lab-02-claude-code-config-foundations",
+    "difficulty": 5,
+    "tags": [
+      "settings-json",
+      "precedence",
+      "managed-settings",
+      "permissions"
+    ]
+  },
+  {
+    "id": "q-0569",
+    "scenario": "A team runs Claude Code headlessly from a Node.js service that shows progress to users while a long task runs. Today it calls `claude -p ... --output-format json` and users see nothing until the run finishes.",
+    "stem": "Which change lets the service surface progress as the run proceeds?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Use `--output-format stream-json` (with `--verbose`) to receive JSON events as they happen"
+      },
+      {
+        "key": "B",
+        "text": "Keep `--output-format json` and poll the output file every second for partial results"
+      },
+      {
+        "key": "C",
+        "text": "Drop `-p` and drive the interactive terminal UI through a pseudo-terminal, scraping the screen"
+      },
+      {
+        "key": "D",
+        "text": "Increase `--max-turns` so the run finishes in fewer, larger steps"
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Streaming JSON output emits events incrementally, which is what a calling service needs to show progress, while the final event still carries the result (print mode requires `--verbose` with stream-json).",
+      "distractors": {
+        "B": "The `json` format writes a single result object at the end, so there is nothing partial to poll.",
+        "C": "Screen-scraping the interactive UI is fragile; headless mode exists for programmatic use.",
+        "D": "Turn limits change how long the agent may run, not whether intermediate events are visible."
+      }
+    },
+    "lab": "lab-21-claude-code-cicd",
+    "difficulty": 5,
+    "tags": [
+      "headless",
+      "streaming",
+      "stream-json",
+      "output-format"
+    ]
+  },
+  {
+    "id": "q-0570",
+    "scenario": "A law firm wants Claude to review incoming vendor contracts (often around 300 pages) for risky clauses. Lawyers want findings by the next business day. The client agreements require that documents be handled as confidential, and the firm must be able to show how each finding was produced if a dispute arises.",
+    "stem": "Which set of derived requirements best fits this request?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Interactive streaming responses, the smallest model tier, and a 2-second p95 latency target for every contract."
+      },
+      {
+        "key": "B",
+        "text": "Async processing within the business day, long-context handling, a compliant access path, and an audit log."
+      },
+      {
+        "key": "C",
+        "text": "A synchronous call per page of each contract so no request approaches the context limit, with results merged by a script."
+      },
+      {
+        "key": "D",
+        "text": "Real-time processing on upload so lawyers see findings immediately, with confidentiality addressed in the system prompt."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Each part of the business ask maps to a requirement: next-business-day delivery means latency tolerance (asynchronous processing is fine), 300-page contracts mean long-context or chunking design, confidentiality drives the access path and retention settings, and defensibility in disputes means an audit trail. This set covers functional and infrastructure needs without inventing constraints.",
+      "distractors": {
+        "A": "It invents an interactive latency target the business never asked for and picks a model tier before the quality bar is known.",
+        "C": "Splitting per page loses cross-references between clauses, which hurts the review quality, and is an implementation choice rather than a derived requirement.",
+        "D": "Lawyers need findings the next business day, not instantly, and confidentiality cannot be enforced by a prompt instruction."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "requirements-analysis",
+      "long-context",
+      "confidentiality",
+      "audit"
+    ]
+  },
+  {
+    "id": "q-0571",
+    "scenario": "A bank wants a phone assistant that answers callers' policy questions using Claude. Product research shows callers hang up if the assistant is silent for more than about a second after they finish speaking, and that answers longer than a few sentences frustrate them.",
+    "stem": "Which requirement set and design direction fit best?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Optimize for total response time only, using a large model at high effort so answers are as complete as possible."
+      },
+      {
+        "key": "B",
+        "text": "A TTFT target and short answers: stream, cache a stable prefix, use the smallest tier that passes evals."
+      },
+      {
+        "key": "C",
+        "text": "Use the Message Batches API to cut cost, then play the answers back once each batch completes."
+      },
+      {
+        "key": "D",
+        "text": "Require exhaustive answers that cover every policy detail so callers never need a follow-up question."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "A voice interaction is judged by how quickly speech starts and whether it stays brief, so the requirements are a time-to-first-token target and a short output length. Those drive streaming (speech begins on the first tokens), a cacheable stable prefix to reduce prompt processing time, and model tier chosen by measured quality rather than by assumption.",
+      "distractors": {
+        "A": "Large models at high effort raise latency, and total response time matters less than when speech starts in a live call.",
+        "C": "Batch processing has no latency guarantee and could take hours, which is incompatible with a caller waiting on the line.",
+        "D": "Exhaustive answers lengthen output and delay completion; spoken channels need concise answers, with follow-ups handled in conversation."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "latency",
+      "time-to-first-token",
+      "streaming",
+      "requirements"
+    ]
+  },
+  {
+    "id": "q-0572",
+    "scenario": "Your production service sends a sampling parameter that the newer model in your tier no longer accepts; requests including it return a 400 error. The newer model also formats lists differently, which a downstream parser depends on.",
+    "stem": "What is the best way to carry out this upgrade?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Change the model ID in production and rely on the SDK's automatic retries to absorb any errors."
+      },
+      {
+        "key": "B",
+        "text": "Check migration notes, update parameters in a branch, run evals in staging, then canary with monitoring."
+      },
+      {
+        "key": "C",
+        "text": "Keep sending the old parameters but wrap every call in a try/except that silently falls back to the old model."
+      },
+      {
+        "key": "D",
+        "text": "Delay the upgrade until the old model is retired, since parameter changes can only be tested in production."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Newer models can reject parameters older ones accepted and can behave differently on the same prompt. Handling both means checking the migration notes for request changes, testing the updated code against the eval suite in staging, and releasing behind a canary with monitoring, so both a 400 error and a quality regression are caught before most users see them.",
+      "distractors": {
+        "A": "SDK retries handle transient errors such as 429 and 5xx; a 400 from an unsupported parameter fails the same way on every retry.",
+        "C": "Silent fallback hides the problem and stops working once the old model is retired, leaving the migration undone.",
+        "D": "Parameter changes are testable in staging, and waiting for retirement turns the migration into an emergency."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "model-upgrade",
+      "migration",
+      "canary",
+      "staging"
+    ]
+  },
+  {
+    "id": "q-0573",
+    "scenario": "Every weekday at 9 a.m., your Claude-backed service sees a burst of 429 and 529 errors for about twenty minutes. Users see failures, and the on-call engineer only learns of it from support tickets.",
+    "stem": "Which operational response addresses both the immediate failures and the recurrence?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Disable retries so failed requests return to users faster, and add more application servers."
+      },
+      {
+        "key": "B",
+        "text": "Back off honoring `retry-after`, queue non-urgent work, alert by status code, and check rate-limit headroom."
+      },
+      {
+        "key": "C",
+        "text": "Catch every API exception in one handler and return a generic apology to users."
+      },
+      {
+        "key": "D",
+        "text": "Switch to a different model on each failed request until one succeeds."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "429 (rate limited) and 529 (overloaded) are transient and retryable, so backoff that honors `retry-after` handles the immediate failures. Smoothing peaks with a queue, alerting by status code, and checking rate-limit headroom against measured peaks address the recurrence, which is an operate-phase capacity problem.",
+      "distractors": {
+        "A": "More application servers raise request volume and worsen rate limiting, and disabling retries turns transient errors into user-facing failures.",
+        "C": "A single catch-all loses the difference between retryable and non-retryable errors and gives the team nothing to monitor or fix.",
+        "D": "Model hopping changes behavior unpredictably per request and does not address the underlying capacity shortfall."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "operations",
+      "rate-limits",
+      "error-handling",
+      "monitoring"
+    ]
+  },
+  {
+    "id": "q-0574",
+    "scenario": "A report-writing feature produces long answers that take a minute or more to generate. Users complain about staring at a blank screen, and some non-streaming requests fail with client-side timeouts.",
+    "stem": "Which implementation best meets both concerns?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Use a non-streaming call with a very long client timeout and show a spinner until the full answer arrives."
+      },
+      {
+        "key": "B",
+        "text": "Stream the response, render deltas as they arrive, and read `stop_reason` from the final message."
+      },
+      {
+        "key": "C",
+        "text": "Use the Message Batches API and poll every few seconds until the answer is ready."
+      },
+      {
+        "key": "D",
+        "text": "Lower `max_tokens` so every answer finishes before the HTTP timeout."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Streaming addresses both concerns: users see text as soon as it is generated, and long generations do not sit on one idle HTTP request that can time out. The SDK's final-message helper still gives you the assembled message and its `stop_reason` for logging and continuation logic.",
+      "distractors": {
+        "A": "A longer timeout avoids errors but leaves users staring at a spinner for the whole generation, which is the complaint.",
+        "C": "Batch processing has no latency guarantee and is meant for asynchronous work, not a user waiting on the answer.",
+        "D": "Capping output would truncate the long reports that are the point of the feature."
+      }
+    },
+    "lab": null,
+    "difficulty": 4,
+    "tags": [
+      "streaming",
+      "timeouts",
+      "ux"
+    ]
+  },
+  {
+    "id": "q-0575",
+    "scenario": "An internal tool sends every request with the same 20,000-token prefix (instructions plus a policy manual) followed by the user's question. Traffic is light: requests sharing the prefix arrive roughly every 10 to 30 minutes throughout the day.",
+    "stem": "Which caching configuration fits this traffic pattern best?",
+    "options": [
+      {
+        "key": "A",
+        "text": "The default 5-minute cache, since its write premium is lower than the 1-hour option's."
+      },
+      {
+        "key": "B",
+        "text": "The 1-hour TTL on the shared prefix, since requests arrive more than 5 but well under 60 minutes apart."
+      },
+      {
+        "key": "C",
+        "text": "No caching, because users' questions differ and caching requires identical requests."
+      },
+      {
+        "key": "D",
+        "text": "Four breakpoints spread through the user's question, so part of each question is cached."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Cache entries refresh on each read, so the TTL only matters across gaps. Here requests sharing the prefix arrive 10 to 30 minutes apart, so a 5-minute entry would usually expire and be rewritten. The 1-hour TTL costs more to write (about 2x base input versus 1.25x) but turns those requests into cheap cache reads.",
+      "distractors": {
+        "A": "The cheaper write only pays off if a read follows within 5 minutes; with 10 to 30 minute gaps, most requests would pay the write again.",
+        "C": "Caching reuses a shared prefix, not whole requests; differing questions after the cached prefix are fine.",
+        "D": "The questions vary, so breakpoints inside them would not produce reusable prefixes; the shared prefix is what should be cached."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "prompt-caching",
+      "ttl",
+      "cost"
+    ]
+  },
+  {
+    "id": "q-0576",
+    "scenario": "A support platform does live triage of incoming tickets as customers submit them, and every night re-classifies the full archive of about 180,000 tickets with an updated taxonomy for next-day reports.",
+    "stem": "How should the two workloads be implemented?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Run both through the Message Batches API, submitting the live tickets in small batches every minute."
+      },
+      {
+        "key": "B",
+        "text": "Live triage on the synchronous API; the nightly job via Message Batches, split into batches of at most 100,000."
+      },
+      {
+        "key": "C",
+        "text": "Run both synchronously in parallel, since batching only helps with workloads over one million requests."
+      },
+      {
+        "key": "D",
+        "text": "Run the nightly job synchronously at low effort, which matches batch pricing without the 24-hour window."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Live triage has someone waiting on it, so it needs the synchronous API. The nightly reclassification is latency-tolerant and benefits from batch pricing, but a single batch is limited to 100,000 requests (or 256 MB), so 180,000 requests must be split across multiple batches, each correlated by `custom_id`.",
+      "distractors": {
+        "A": "Batches have no latency guarantee, so even small frequent batches can leave live tickets waiting for hours.",
+        "C": "Batch pricing applies at any volume; a 180,000-request overnight job is exactly the kind of work it suits.",
+        "D": "Lower effort reduces tokens but not the per-token price; batch pricing is a separate discount the synchronous path does not get."
+      }
+    },
+    "lab": "lab-17-batch-processing",
+    "difficulty": 5,
+    "tags": [
+      "realtime-vs-batch",
+      "batch-api",
+      "batch-limits"
+    ]
+  },
+  {
+    "id": "q-0577",
+    "scenario": "Claude requests three tool calls in one turn. Two succeed. The third, a call to an inventory service, times out.",
+    "stem": "What should the code send back to Claude?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Only the two successful `tool_result` blocks; omit the failed call so Claude is not confused."
+      },
+      {
+        "key": "B",
+        "text": "All three `tool_result` blocks in one user message, the failed one with `is_error: true`."
+      },
+      {
+        "key": "C",
+        "text": "Raise an exception and end the conversation, since a partial set of results is invalid."
+      },
+      {
+        "key": "D",
+        "text": "Retry the failed tool indefinitely until it succeeds before sending anything back."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Every `tool_use` block needs a matching `tool_result`. Returning the failure as a `tool_result` with `is_error: true` and a useful message lets Claude adapt (retry, try another approach, or tell the user), while the two successful results are used normally, all in one user message.",
+      "distractors": {
+        "A": "Leaving a `tool_use` without a matching `tool_result` makes the next request invalid, and Claude cannot reason about a failure it never sees.",
+        "C": "One failed lookup does not invalidate the turn; Claude can usually work with partial results and an explicit error.",
+        "D": "Unbounded retries can hang the request if the service stays down; report the error and let the loop decide."
+      }
+    },
+    "lab": "lab-01-claude-api-fundamentals",
+    "difficulty": 5,
+    "tags": [
+      "tool-use",
+      "error-handling",
+      "is_error"
+    ]
+  },
+  {
+    "id": "q-0578",
+    "scenario": "A team enables adaptive thinking at a high effort level on a document-analysis route that has `max_tokens: 1024`, a value chosen long ago for short answers. Many responses now come back with `stop_reason: \"max_tokens\"` and little or no visible answer text. Answers that do complete are better than before.",
+    "stem": "What is happening, and what should the team do?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Thinking counts toward `max_tokens` and output billing; raise the cap (streaming if large) or lower effort."
+      },
+      {
+        "key": "B",
+        "text": "Thinking runs outside the output budget, so the truncation is caused by the document being too long; shorten the document."
+      },
+      {
+        "key": "C",
+        "text": "The model cannot think and answer in the same response; split each request into a thinking call and an answer call."
+      },
+      {
+        "key": "D",
+        "text": "Adaptive thinking is incompatible with documents; disable it and add reasoning instructions to the prompt instead."
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Thinking is generated output: it counts against `max_tokens` and is billed as output tokens. A cap sized for short answers leaves no room once the model reasons first. Raise the cap (streaming keeps large caps clear of HTTP timeouts), or lower effort if the eval shows the extra depth isn't needed.",
+      "distractors": {
+        "B": "Thinking is part of the response's output budget, and the stop reason names the output cap, not the input size.",
+        "C": "A single response contains thinking blocks followed by text blocks; there is no need to split the call.",
+        "D": "Adaptive thinking works with document inputs and is improving quality here; removing it discards the gain to work around a budget setting."
+      }
+    },
+    "lab": "lab-01-claude-api-fundamentals",
+    "difficulty": 5,
+    "tags": [
+      "adaptive-thinking",
+      "max-tokens",
+      "stop-reason"
+    ]
+  },
+  {
+    "id": "q-0579",
+    "scenario": "A ticket classifier uses a few-shot prompt with four examples, all labeled `billing`, written in the same terse style. In production it over-assigns `billing`, and it struggles with long, emotional tickets. The team also notes the prompt is resent on every request.",
+    "stem": "Which revision best addresses both quality and cost?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Delete the examples and switch to zero-shot, since examples are what cause the bias and they cost tokens."
+      },
+      {
+        "key": "B",
+        "text": "Add twenty more terse `billing` examples so the model has a larger sample to learn from."
+      },
+      {
+        "key": "C",
+        "text": "Use a few diverse examples covering each label and hard cases like long emotional tickets, and cache the stable prompt prefix."
+      },
+      {
+        "key": "D",
+        "text": "Move the examples into the user message so they count less toward the prompt."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "Examples teach the label distribution and style, so a set that is all one label in one style biases the model toward it. Diverse examples spanning labels and edge cases fix the bias. Because the instructions and examples are identical across requests, caching them cuts the repeated-input cost.",
+      "distractors": {
+        "A": "Zero-shot removes the bias source but also the format and edge-case guidance, usually lowering accuracy on ambiguous tickets.",
+        "B": "More examples of the same label and style strengthen the bias rather than correcting it, and add tokens.",
+        "D": "Tokens cost the same wherever they appear in the prompt, and moving examples does not fix their lack of diversity."
+      }
+    },
+    "lab": "lab-06-few-shot-and-criteria",
+    "difficulty": 5,
+    "tags": [
+      "few-shot",
+      "example-bias",
+      "prompt-caching"
+    ]
+  },
+  {
+    "id": "q-0580",
+    "scenario": "A regression suite runs each prompt once and fails the build if any answer differs from the last recorded run. Builds fail randomly. A teammate proposes lowering randomness to make outputs repeatable; another proposes grading each case against criteria over several runs.",
+    "stem": "Which approach is most sound?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Lower randomness and keep exact comparison, since sampling settings make output fully deterministic."
+      },
+      {
+        "key": "B",
+        "text": "Re-record the expected answers on every failure so the suite only flags truly new behavior."
+      },
+      {
+        "key": "C",
+        "text": "Remove the LLM cases from CI entirely, since non-deterministic systems cannot be tested."
+      },
+      {
+        "key": "D",
+        "text": "Grade each case on the properties that matter (schema, key facts, label) and track pass rates over several runs."
+      }
+    ],
+    "correct": "D",
+    "rationale": {
+      "correct": "Sampling means identical inputs can yield different valid outputs. Property-based grading tolerates harmless variation and still catches real regressions, and pass rates over several runs separate a genuine drop from noise.",
+      "distractors": {
+        "A": "Reducing randomness (on models that expose sampling controls) narrows variation but does not guarantee identical outputs, so exact comparison stays flaky.",
+        "B": "Re-recording on failure accepts whatever the latest run produced, so real regressions get baked in as new expectations.",
+        "C": "LLM behavior is testable with criteria-based evals; dropping tests removes protection rather than fixing the method."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "non-determinism",
+      "evals",
+      "testing"
+    ]
+  },
+  {
+    "id": "q-0581",
+    "scenario": "A user-facing endpoint has a 30-second SLA. Its Claude client runs with the SDK defaults, and during an incident some requests hang for many minutes before failing. The team learns the SDK's default timeout is 10 minutes and that timeouts are retried.",
+    "stem": "What is the best configuration change?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Leave the client defaults and add a 30-second timer in the web framework that returns an error page."
+      },
+      {
+        "key": "B",
+        "text": "Set a per-request timeout and retry count that fit the SLA, since wall-clock can reach timeout times attempts."
+      },
+      {
+        "key": "C",
+        "text": "Set `max_retries` to 10 so a hung request has more chances to complete within the SLA."
+      },
+      {
+        "key": "D",
+        "text": "Disable streaming, since streaming requests are what keep connections open too long."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "The SDK's default timeout is generous, and retried timeouts mean worst-case wall-clock is roughly timeout times (retries plus one). For an SLA-bound route, set a shorter timeout and suitable retries on that call (for example via `with_options`) so failures surface in time to handle them.",
+      "distractors": {
+        "A": "A framework timer returns early but leaves the SDK call running and retrying in the background, wasting work and hiding the real config issue.",
+        "C": "More retries lengthen the worst case; each one can wait the full timeout.",
+        "D": "Streaming helps long generations avoid timeouts; disabling it does not bound how long a stalled request waits."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "timeouts",
+      "retries",
+      "sdk-config"
+    ]
+  },
+  {
+    "id": "q-0582",
+    "scenario": "A collaborative editor's browser client keeps a websocket open to the team's backend for presence and edits. They want to add an AI assistant whose responses appear token by token in the editor.",
+    "stem": "Which integration design is most appropriate?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Have the browser open its own websocket directly to the Claude API, authenticated with the team's API key."
+      },
+      {
+        "key": "B",
+        "text": "Make a non-streaming call on the backend and push the full answer over the websocket when it completes."
+      },
+      {
+        "key": "C",
+        "text": "Have the backend call Claude with the SDK's streaming helper and forward text deltas over the existing websocket."
+      },
+      {
+        "key": "D",
+        "text": "Have the browser poll the backend every 200 ms for a new text snapshot from a background job."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "The Claude API streams via server-sent events over HTTP, which the SDK consumes server-side; the backend already has a websocket to the client for bidirectional traffic. Forwarding deltas over it keeps the key on the server and gives token-by-token display.",
+      "distractors": {
+        "A": "The API offers no websocket endpoint, and putting the API key in the browser exposes it to every user.",
+        "B": "This works but loses incremental display, and long non-streaming generations risk HTTP timeouts.",
+        "D": "Polling adds latency and load and duplicates what the open websocket already provides."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "websockets",
+      "sse",
+      "streaming-architecture"
+    ]
+  },
+  {
+    "id": "q-0583",
+    "scenario": "A review of last month's API failures shows: 401s after a key rotation, 400s from a code path that sends an empty `messages` array, 429s at peak, 529s during a provider incident, and occasional connection resets.",
+    "stem": "Which handling policy is correct?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Retry 429, 529, and connection errors with backoff; fail fast and alert on 401 and 400."
+      },
+      {
+        "key": "B",
+        "text": "Retry all five with identical backoff, since any of them can clear on a later attempt."
+      },
+      {
+        "key": "C",
+        "text": "Fail fast on all five so a human reviews every error before the next attempt."
+      },
+      {
+        "key": "D",
+        "text": "Retry 400 and 401 with backoff, and fail fast on 429 and 529 to reduce load."
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Rate limits, overloads, and connection resets are transient and benefit from backoff. A 401 means the credential is wrong and a 400 means the request is malformed; neither changes on retry, so they should surface quickly with enough context to fix.",
+      "distractors": {
+        "B": "Retrying 400 and 401 wastes calls and delays the alert that something needs fixing.",
+        "C": "Failing fast on transient errors turns routine blips into user-facing failures and human toil.",
+        "D": "This inverts the policy: it retries the deterministic failures and gives up on the transient ones."
+      }
+    },
+    "lab": null,
+    "difficulty": 4,
+    "tags": [
+      "error-handling",
+      "status-codes",
+      "retries"
+    ]
+  },
+  {
+    "id": "q-0584",
+    "scenario": "A streaming chat endpoint occasionally shows users half an answer, then stops. Logs show the HTTP response status was 200, and the SDK raised an error partway through the stream with an `overloaded_error` type.",
+    "stem": "How should the application handle this case?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Treat a 200 status as success and display the partial text as the final answer."
+      },
+      {
+        "key": "B",
+        "text": "Disable streaming, since errors can occur only in streaming mode."
+      },
+      {
+        "key": "C",
+        "text": "Append the partial text to history as an assistant turn and ask the model to continue."
+      },
+      {
+        "key": "D",
+        "text": "Treat the error event as a failure: flag the partial output and retry with backoff."
+      }
+    ],
+    "correct": "D",
+    "rationale": {
+      "correct": "With SSE, the 200 status is sent before generation finishes, so errors such as overloads can arrive later as error events. The response is incomplete; flag it to the user and retry the request with backoff.",
+      "distractors": {
+        "A": "The status line only says the stream started; the error event says the message did not complete.",
+        "B": "Non-streaming requests also hit overloads, as a status error; turning off streaming loses incremental display without removing the failure.",
+        "C": "Continuing from a fragment can work for user-visible drafts, but recording a truncated message as a normal turn hides the failure and risks incoherent output."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "streaming",
+      "error-events",
+      "overloaded"
+    ]
+  },
+  {
+    "id": "q-0585",
+    "scenario": "A research agent orchestrates many subtasks: most read and extract facts from long documents, and a few synthesize conclusions. A teammate proposes Opus for orchestration and synthesis and Haiku for extraction workers. Another notes the workers share a large cached instruction prefix.",
+    "stem": "How should the team decide?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Adopt the split without testing, since cheaper workers always lower total cost."
+      },
+      {
+        "key": "B",
+        "text": "Use Haiku for every role, since extraction dominates volume and synthesis is rare."
+      },
+      {
+        "key": "C",
+        "text": "Measure the split against one capable model at lower effort, on cost per completed task."
+      },
+      {
+        "key": "D",
+        "text": "Use Opus for every role at maximum effort so quality never limits the research."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "A cheaper worker tier often pays off for extraction-heavy subtasks, but it should be measured, not assumed. Caches are scoped per model, so a multi-model design gives up some cache reuse, and a single capable model at lower effort can sometimes match the split. Compare both on cost per completed task and quality.",
+      "distractors": {
+        "A": "Cheaper workers that miss facts cause rework downstream, and splitting models fragments caching; the saving is plausible but not guaranteed.",
+        "B": "Synthesis is where reasoning quality matters most; putting it on the smallest tier risks the agent's final output.",
+        "D": "Uniform maximum effort on Opus maximizes cost and latency for the high-volume extraction work that rarely needs it."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "model-selection",
+      "multi-model",
+      "tradeoffs"
+    ]
+  },
+  {
+    "id": "q-0586",
+    "scenario": "A team plans to move a pinned production route to a newer model. In staging, two things change: requests that ended with an assistant-message prefill to force JSON now return 400 errors, and a prompt full of emphatic `CRITICAL` instructions now produces overly rigid answers.",
+    "stem": "What is the best migration plan?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Revert to the old model permanently, since breaking changes show the newer model is not production-ready."
+      },
+      {
+        "key": "B",
+        "text": "Replace prefill with structured outputs, soften emphasis, re-run evals, and roll out gradually."
+      },
+      {
+        "key": "C",
+        "text": "Keep the prefill but catch the 400 and retry until the new model accepts it."
+      },
+      {
+        "key": "D",
+        "text": "Switch all traffic now and fix issues as users report them, since staging differences are often noise."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Model releases can remove request features (prefill is rejected on newer models) and change how prompts land; aggressive emphasis written for an older model can overcorrect on a newer one. Migrate the API usage, tune the prompt, verify with evals, and roll out gradually with a pinned fallback.",
+      "distractors": {
+        "A": "Breaking changes are a normal part of model releases and usually come with a documented path; staying on an old model forever forgoes improvements and eventually hits deprecation.",
+        "C": "A 400 for an unsupported feature is deterministic; retries will never succeed.",
+        "D": "Shipping known staging failures to users turns a controlled migration into an incident."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "model-migration",
+      "breaking-changes",
+      "prefill"
+    ]
+  },
+  {
+    "id": "q-0587",
+    "scenario": "A Q&A service sends the same 12K-token knowledge preamble followed by a different user question on every request. The developer used top-level automatic caching, so the breakpoint lands on the last block. Usage shows `cache_creation_input_tokens` on every request and `cache_read_input_tokens` near zero, and the bill went up.",
+    "stem": "What is the fix?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Put an explicit breakpoint at the end of the shared preamble, before the per-request question."
+      },
+      {
+        "key": "B",
+        "text": "Switch to the 1-hour TTL so each written entry lives long enough to be read."
+      },
+      {
+        "key": "C",
+        "text": "Disable caching, since varying questions make caching impossible for this workload."
+      },
+      {
+        "key": "D",
+        "text": "Add a second automatic-caching flag so two entries are written per request."
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "The breakpoint at the end covers the unique question, so every request writes a distinct entry that is never read, paying the write premium for nothing. A breakpoint at the end of the shared preamble caches the common part, so later requests read it and only the question is uncached.",
+      "distractors": {
+        "B": "A longer TTL keeps unique entries around longer, but nothing will ever match them; it raises the write cost without creating reads.",
+        "C": "The large shared preamble is ideal for caching; only the breakpoint placement is wrong.",
+        "D": "Automatic caching is a single top-level setting placing one breakpoint; the shared boundary needs an explicit marker."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "prompt-caching",
+      "breakpoint-placement",
+      "cost"
+    ]
+  },
+  {
+    "id": "q-0588",
+    "scenario": "A coding agent has large static tool definitions and a system prompt, followed by a conversation that grows each turn. The team wants to minimize input cost over long sessions and verify that caching works.",
+    "stem": "Which setup and verification is best?",
+    "options": [
+      {
+        "key": "A",
+        "text": "One breakpoint on the first user message only, and check that total cost decreases month over month."
+      },
+      {
+        "key": "B",
+        "text": "A breakpoint on every message so each turn writes its own entry, and check that `input_tokens` is near zero."
+      },
+      {
+        "key": "C",
+        "text": "No explicit breakpoints, rebuilding the tools list on each turn, and check that latency drops."
+      },
+      {
+        "key": "D",
+        "text": "A breakpoint at the end of the static system prefix plus automatic caching for the growing tail, checking that cache reads dominate."
+      }
+    ],
+    "correct": "D",
+    "rationale": {
+      "correct": "A breakpoint after the static prefix guarantees a read point for the expensive shared part, and automatic caching checkpoints the growing conversation. On a warm loop, `cache_read_input_tokens` should dominate, with `cache_creation_input_tokens` about one turn's worth.",
+      "distractors": {
+        "A": "A breakpoint on the first user message misses the growing tail, and monthly cost is too coarse to verify caching.",
+        "B": "There is a limit of four breakpoints per request; one on every message is invalid. Low `input_tokens` alone does not prove reads either.",
+        "C": "Rebuilding tools can change their bytes and invalidate the prefix, and latency is a noisy proxy for cache behavior."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "prompt-caching",
+      "cache-checkpointing",
+      "agents"
+    ]
+  },
+  {
+    "id": "q-0589",
+    "scenario": "An agent loop intermittently fails with HTTP 400 invalid_request_error saying tool_use ids were found without tool_result blocks immediately after. Traces show the failures happen only on turns where the inventory tool raised an exception (for example, a timeout to the inventory service); in those cases the loop logged the exception and sent the next request.",
+    "stem": "What is the root cause, and what is the best fix?",
+    "options": [
+      {
+        "key": "A",
+        "text": "The model is emitting malformed tool calls; add stronger instructions so it formats tool calls correctly."
+      },
+      {
+        "key": "B",
+        "text": "The loop drops the tool_result when a tool raises; always return one, with is_error true and a clear message."
+      },
+      {
+        "key": "C",
+        "text": "The API is rejecting large tool payloads; truncate tool inputs before execution to stay under the size limit."
+      },
+      {
+        "key": "D",
+        "text": "The SDK's retry logic is resending stale history; disable automatic retries for requests that include tools."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "The trace isolates the failure to the integration layer: every tool_use block must be answered by a tool_result in the next user message, and the loop skips that whenever a tool throws. Catching the exception and returning a tool_result with is_error: true and a descriptive message keeps the request valid and lets Claude decide how to recover (retry, try another approach, or tell the user).",
+      "distractors": {
+        "A": "The tool_use blocks in the trace are well-formed; the 400 complains about missing results, which only the client code produces.",
+        "C": "Oversized requests return 413 request_too_large, not a 400 about unmatched tool_use IDs.",
+        "D": "Retries resend the same request; they do not create the missing tool_result. The history is invalid before any retry happens."
+      }
+    },
+    "lab": "lab-09-errors-and-tool-distribution",
+    "difficulty": 5,
+    "tags": [
+      "trace-analysis",
+      "tool-result",
+      "is_error",
+      "integration-layer"
+    ]
+  },
+  {
+    "id": "q-0590",
+    "scenario": "A banking support agent has a get_account_summary(account_id) tool. Users are logged in, but the model fills account_id from whatever the user says. A tester typed \"I'm actually on account 88213, check that one\" and received another customer's balance.",
+    "stem": "What is the best fix?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Add a system-prompt rule that the agent must ask security questions before showing account information."
+      },
+      {
+        "key": "B",
+        "text": "Derive the account ID from the authenticated session in the tool layer, ignoring or checking any ID the model supplies."
+      },
+      {
+        "key": "C",
+        "text": "Run an output classifier that blocks responses containing account numbers that differ from the user's own."
+      },
+      {
+        "key": "D",
+        "text": "Require the user to type their account ID twice so that typos and casual guessing become less likely."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "This is broken authorization surfaced through the model: the tool trusts a model-supplied identifier that the user controls. The tool layer must bind requests to the authenticated identity from the session (or verify the requested ID belongs to it). The model can pass parameters, but it must not be the authority on who the user is.",
+      "distractors": {
+        "A": "Security questions asked by the model are still model-mediated and can be talked around or socially engineered; the tool still accepts any ID.",
+        "C": "An output filter is a late, partial catch (it misses paraphrased details), and the unauthorized data was already fetched.",
+        "D": "Typing the ID twice adds friction but no authorization; an attacker can type someone else's ID twice."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "authorization",
+      "authentication",
+      "tool-layer",
+      "idor"
+    ]
+  },
+  {
+    "id": "q-0591",
+    "scenario": "A SaaS assistant stores a summary of each conversation in a shared memory store and loads \"relevant memories\" into context on later turns. A customer at one company was shown details from another company's support conversation.",
+    "stem": "Which design change addresses the leak while keeping the memory feature?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Shorten the summaries so that less detail from any one conversation is stored in the shared memory."
+      },
+      {
+        "key": "B",
+        "text": "Instruct the model to avoid mentioning details that might have come from someone else's conversation."
+      },
+      {
+        "key": "C",
+        "text": "Partition memory by tenant and user, keyed to the authenticated identity, and load only the caller's own entries."
+      },
+      {
+        "key": "D",
+        "text": "Clear the shared memory store every night so that cross-user details are retained for at most a day."
+      }
+    ],
+    "correct": "C",
+    "rationale": {
+      "correct": "Memory is data and needs the same access boundaries as any other store. Keying entries to the authenticated tenant and user, and loading only that caller's entries into context, prevents cross-user leakage by construction while keeping the feature.",
+      "distractors": {
+        "A": "Less detail is still other people's data; the boundary is still missing.",
+        "B": "Once another user's data is in the context, a prompt instruction is only a probabilistic filter on what comes out.",
+        "D": "A nightly purge shortens the window but leaks everything within the day."
+      }
+    },
+    "lab": null,
+    "difficulty": 4,
+    "tags": [
+      "data-leakage",
+      "multi-tenant",
+      "memory",
+      "confidentiality"
+    ]
+  },
+  {
+    "id": "q-0592",
+    "scenario": "A document-processing agent runs as a pod on a shared Kubernetes cluster. It reads files from one storage bucket, but it inherits the node's cloud IAM role, which can read and delete objects in every bucket in the account. A security review flags this before launch.",
+    "stem": "Which approach best fixes the identity and access design?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Keep the node role but add a system-prompt rule listing which buckets the agent is allowed to read."
+      },
+      {
+        "key": "B",
+        "text": "Give each agent workload its own identity with a role scoped to the buckets it needs and short-lived credentials."
+      },
+      {
+        "key": "C",
+        "text": "Move the role's permissions into a long-lived access key stored as a Kubernetes secret for the agent pod."
+      },
+      {
+        "key": "D",
+        "text": "Keep the node role and add bucket-access logging so that any misuse can be investigated afterwards."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Per-workload identity with least-privilege, short-lived credentials limits both blast radius and credential lifetime, and it makes audit logs attribute actions to the specific agent. An injected or buggy agent can only reach what its own role allows.",
+      "distractors": {
+        "A": "The agent still holds credentials for every bucket; a prompt rule cannot reduce what the credentials can do.",
+        "C": "This swaps temporary role credentials for a long-lived static key with the same broad permissions, which is strictly worse.",
+        "D": "Logging aids investigation but leaves the excessive access in place."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "iam",
+      "least-privilege",
+      "workload-identity"
+    ]
+  },
+  {
+    "id": "q-0593",
+    "scenario": "A team has rewritten the system prompt for a production support assistant that handles refunds. The new prompt passes the eval suite, including policy and refusal cases.",
+    "stem": "Which rollout plan best balances safety and speed?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Deploy the new prompt to all users at once, since the eval suite passed and rollbacks are rarely needed."
+      },
+      {
+        "key": "B",
+        "text": "Gate on the eval suite, release to a small traffic slice with monitoring, and keep the prior version ready to roll back."
+      },
+      {
+        "key": "C",
+        "text": "Skip the eval suite and run a long A/B test in production, because real traffic is the only true measure."
+      },
+      {
+        "key": "D",
+        "text": "Hold the release until the new prompt has been reviewed by every team that uses the support assistant."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Safe deployment combines pre-release gates (evals, including safety and policy cases) with a staged rollout: a canary slice, monitoring of quality and guardrail metrics, and a versioned prior prompt for instant rollback. That limits exposure if production behaves differently from the eval set.",
+      "distractors": {
+        "A": "Evals are not production; a full cutover exposes every user to any regression the suite missed.",
+        "C": "Dropping the pre-release gate exposes real users to an unvetted change for the duration of the test.",
+        "D": "Broad review can add value, but it is slow, does not measure behavior, and is no substitute for staged exposure and rollback."
+      }
+    },
+    "lab": null,
+    "difficulty": 4,
+    "tags": [
+      "safe-deployment",
+      "staged-rollout",
+      "rollback",
+      "evals"
+    ]
+  },
+  {
+    "id": "q-0594",
+    "scenario": "An internal operations agent can read customer records and, for some staff, issue account credits. Requirements: verify who each user is, allow credits only for users whose role permits them, and keep an auditable record of who did what.",
+    "stem": "Which design best meets the requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Embed a single service API key in the web front end and let the agent run every tool on behalf of whoever is connected."
+      },
+      {
+        "key": "B",
+        "text": "Authenticate users with SSO, pass their identity to the backend, check role per tool call, and audit-log calls by user."
+      },
+      {
+        "key": "C",
+        "text": "Give each employee their own Anthropic API key and let them run the agent locally against production systems."
+      },
+      {
+        "key": "D",
+        "text": "Authenticate users with SSO at login, then let the agent use one admin credential for all tools for the session."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "Identity validation (SSO), access-level verification on every privileged tool call (not just at login), and authorized-access monitoring (audit logs that record which user triggered which action) together meet all three requirements. The Anthropic key and backend credentials stay server-side.",
+      "distractors": {
+        "A": "A key in the front end is exposed to every browser, and no per-user authorization or attribution is possible.",
+        "C": "Per-user API keys say nothing about production-system entitlements, scatter credentials, and push production access onto laptops.",
+        "D": "SSO verifies who logged in, but a shared admin credential means tool calls are neither authorized nor attributable per user."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "identity",
+      "access-approval",
+      "audit-logging",
+      "sso"
+    ]
+  },
+  {
+    "id": "q-0595",
+    "scenario": "Your research feature calls the Messages API with Anthropic's server-side web search and web fetch tools enabled. On long research questions some responses come back with `stop_reason: \"pause_turn\"` and no final answer. Your loop currently treats any stop reason other than `tool_use` as finished and shows the partial text to the user.",
+    "stem": "How should the application handle `pause_turn`?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Treat it as an error and resend the original request from scratch with a higher `max_tokens` so the research can finish in one response."
+      },
+      {
+        "key": "B",
+        "text": "Send the conversation back with the paused assistant response appended and no new user message, so the server resumes its tool loop."
+      },
+      {
+        "key": "C",
+        "text": "Append a user message saying \"Continue\" after the paused response, so the model knows it should keep researching where it stopped."
+      },
+      {
+        "key": "D",
+        "text": "Execute the pending web search in your own code and return its results as a `tool_result` block, then call the API again."
+      }
+    ],
+    "correct": "B",
+    "rationale": {
+      "correct": "With server tools, the API runs its own sampling loop on Anthropic's side; when that loop hits its iteration limit it returns `stop_reason: \"pause_turn\"`. The client resumes by sending the conversation back with the paused assistant content included; the trailing server-tool block tells the API to pick up where it left off. The loop also needs to stop treating every non-`tool_use` stop reason as \"done\".",
+      "distractors": {
+        "A": "The pause is not a token-limit failure, and restarting throws away the searches already performed, repeating cost and latency.",
+        "C": "No extra user turn is needed; the API detects the paused server-tool use and resumes on its own. Adding a synthetic message changes the conversation for no benefit.",
+        "D": "Web search is a server tool executed by Anthropic, so there is no client-side `tool_use` for your code to answer; running your own search duplicates the platform's work."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "server-tools",
+      "pause_turn",
+      "client-vs-server-tools",
+      "agentic-loop"
+    ]
+  },
+  {
+    "id": "q-0596",
+    "scenario": "You wrote a stdio MCP server in Python. It behaves correctly when you exercise it with a test harness, but when Claude Code launches it, the connection fails intermittently with JSON parse errors. You recently added `print()` statements to trace each incoming request and enabled a library that logs warnings at startup.",
+    "stem": "What is the most likely cause, and the fix?",
+    "options": [
+      {
+        "key": "A",
+        "text": "The `print()` calls write to stdout, the JSON-RPC channel under stdio; send diagnostics to stderr or a log file instead."
+      },
+      {
+        "key": "B",
+        "text": "The server starts too slowly; raise the client's connection timeout so the initialization handshake has time to complete."
+      },
+      {
+        "key": "C",
+        "text": "stdio can't carry structured data reliably, so switch the server's tools to resources that the client reads as files."
+      },
+      {
+        "key": "D",
+        "text": "The tool input schemas are malformed; add `additionalProperties: false` to each schema so the client can parse the messages."
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "With the stdio transport the client and server exchange newline-delimited JSON-RPC messages over stdin/stdout. Anything else written to stdout (debug prints, library warnings) gets interleaved with protocol messages and the client fails to parse them. Logging to stderr (which hosts typically capture) or to a file keeps the channel clean; it also explains why the server works when tested on its own.",
+      "distractors": {
+        "B": "A slow start would produce timeouts, not JSON parse errors, and the errors started right after stdout output was added.",
+        "C": "stdio is a supported, widely used transport for local servers; the problem is extra bytes on the channel, not the transport.",
+        "D": "Schema strictness controls what arguments Claude may send; it doesn't affect whether the client can parse the protocol stream."
+      }
+    },
+    "lab": null,
+    "difficulty": 6,
+    "tags": [
+      "mcp",
+      "stdio",
+      "debugging",
+      "server-authoring"
+    ]
+  },
+  {
+    "id": "q-0597",
+    "scenario": "A support org wants Claude to triage new Jira tickets: read the ticket and its linked tickets from Jira, then apply the org's 40-line triage rubric (severity definitions, routing rules, required labels) consistently. The rubric changes monthly and is owned by the support-ops team. Jira access must use each agent user's own OAuth grant.",
+    "stem": "Which combination best fits these requirements?",
+    "options": [
+      {
+        "key": "A",
+        "text": "An MCP server for Jira with per-user OAuth, plus a Skill holding the triage rubric that support-ops maintains."
+      },
+      {
+        "key": "B",
+        "text": "A single Skill containing the rubric, a shared Jira API token, and a bundled script that calls the Jira REST API directly."
+      },
+      {
+        "key": "C",
+        "text": "An MCP server for Jira whose tool descriptions embed the full rubric, so the routing rules ship with each Jira tool."
+      },
+      {
+        "key": "D",
+        "text": "Custom Jira tools reimplemented inside each support app, plus the rubric pasted into each app's system prompt."
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "The two needs are different kinds of customization. Live, per-user-authenticated access to Jira is an integration problem, which an MCP server solves once for every client. The rubric is procedural knowledge that changes monthly and has its own owner, which a Skill packages so support-ops can update it without touching the integration.",
+      "distractors": {
+        "B": "One shared token defeats per-user OAuth and access auditing, and coupling credentials to the rubric means routine rubric edits touch secrets.",
+        "C": "Tool descriptions should say what a tool does and when to use it; stuffing a monthly-changing rubric into them bloats every listing and ties rubric changes to server releases.",
+        "D": "Duplicated integrations and prompts drift across apps, and each rubric change needs edits and redeploys in every app."
+      }
+    },
+    "lab": null,
+    "difficulty": 5,
+    "tags": [
+      "agentic-customization",
+      "mcp",
+      "skills",
+      "composition"
+    ]
+  },
+  {
+    "id": "q-0598",
+    "scenario": "A team added a community filesystem MCP server to Claude Code so Claude could \"read and write files better.\" Sessions now show two overlapping sets of file tools, Claude alternates between them, and edits made through the MCP tools aren't covered by the path-based deny rules the team wrote for the built-in Edit and Write tools.",
+    "stem": "What is the best change?",
+    "options": [
+      {
+        "key": "A",
+        "text": "Remove the redundant filesystem MCP server and use Claude Code's built-in file tools, which honor the team's permission rules."
+      },
+      {
+        "key": "B",
+        "text": "Keep both tool sets and add a CLAUDE.md instruction telling Claude which of the two file toolsets to use for each kind of file."
+      },
+      {
+        "key": "C",
+        "text": "Disable the built-in file tools so only the MCP versions remain, then write equivalent permission rules for the MCP tools later."
+      },
+      {
+        "key": "D",
+        "text": "Wrap the filesystem MCP server in a Skill so that its tools are loaded only when Claude detects a file-related task."
+      }
+    ],
+    "correct": "A",
+    "rationale": {
+      "correct": "Built-in tools should be the default when they already cover a capability. Claude Code's Read, Edit, and Write are integrated with its permission system, so the team's deny rules apply to them. A second, overlapping set of file tools adds selection ambiguity and a path around those rules, with no capability gained.",
+      "distractors": {
+        "B": "A routing instruction is soft guidance; Claude may still pick either set, and the MCP tools stay outside the rules written for Edit and Write.",
+        "C": "This throws away well-integrated built-ins and leaves the repository unprotected until replacement rules exist, to keep a tool that adds nothing.",
+        "D": "Skills package instructions and files; they don't gate when an MCP server's tools are available, so the overlap and the permission gap remain."
+      }
+    },
+    "lab": "lab-02-claude-code-config-foundations",
+    "difficulty": 5,
+    "tags": [
+      "agentic-customization",
+      "built-in-tools",
+      "mcp",
+      "permissions"
     ]
   }
 ]

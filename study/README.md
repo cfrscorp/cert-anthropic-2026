@@ -1,12 +1,12 @@
 # Claude Certification Study App
 
 A **local, offline, single-user**, **multi-exam** study app for Claude certification
-exams. It currently covers the **Claude Certified Architect – Foundations (CCAR-F)**
-exam (the **Claude Certified Developer – Foundations (CCDV-F)** exam is planned —
-see `BACKLOG.md`): a **3-tier practice-question bank** (435 questions —
+exams. It covers the **Claude Certified Architect – Foundations (CCAR-F)** and
+**Claude Certified Developer – Foundations (CCDV-F)** exams: a **3-tier
+practice-question bank** (CCAR-F 435 questions, CCDV-F 322 —
 Standard/Intermediate/Hard, including real multi-response "Select N" items),
-**flashcards** (135 cards, with self-graded recall tracking), **concept
-explainers**, and a **readiness dashboard** that tracks your progress over time.
+**flashcards** (135 / 93 cards, with self-graded recall tracking), **concept
+explainers** (30 / 25), and a **readiness dashboard** that tracks your progress over time.
 Switch exams from the header (each exam keeps its own progress); links name the
 exam and section, e.g. `#/ccarf/quiz`, so bookmarks stay on the right exam.
 No cloud, no accounts, no backend — everything runs on your machine and your
@@ -166,12 +166,12 @@ toward. One item can serve several exams, each under its own task.
 | `exams/index.json` | The available exams, by slug (the first is the default). |
 | `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (per-task question target, pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
 | `exams/ccarf/map.json` | The CCAR-F item map: per kind (`questions`, `flashcards`, `concepts`), each pool item CCAR-F uses → its task statement (e.g. `"q-0001": "1.1"`). Items not listed aren't part of the exam. |
-| `exams/ccdvf/exam.json`, `exams/ccdvf/map.json` | The CCDV-F exam (8 domains, 25 skills numbered 1.1–8.3 in guide order, with the guide's fractional domain and skill weights) and its item map — in development: not yet listed in `exams/index.json`, so not shown in the app, but validated by the tests. Guide: `exams/ccdvf/anthropic-ccdvf-exam-guide-2026-10.md`. |
+| `exams/ccdvf/exam.json`, `exams/ccdvf/map.json` | The CCDV-F exam (8 domains, 25 skills numbered 1.1–8.3 in guide order, with the guide's fractional domain and skill weights) and its item map. Its `config` uses a weight-scaled question target (`questions_target_total`: each skill needs ⌈150 × weight / 100⌉ + 1 Standard questions). Guide: `exams/ccdvf/anthropic-ccdvf-exam-guide-2026-10.md`. |
 | `exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` | The CCAR-F exam guide — source of truth for its content (`-2026-06` is the prior edition). |
 | `content/components.json` | Registry of every pool component: `{id, kind, version, file}`. |
-| `content/questions-standard.json` (240), `content/questions-intermediate.json` (120), `content/questions-hard.json` (75, incl. 10 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
-| `content/flashcards.json` | Front/back fact-recall cards (135), each testing a single concept. |
-| `content/concepts.json` | Concept explainers (30; CCAR-F maps one to each task statement). |
+| `content/questions-standard.json` (363), `content/questions-intermediate.json` (160), `content/questions-hard.json` (116, incl. 26 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
+| `content/flashcards.json` | Front/back fact-recall cards (196), each testing a single concept. |
+| `content/concepts.json` | Concept explainers (55; each exam maps one to each of its task statements). |
 | `content/labs.json` | The labs catalog, generated from `../labs/` by `tools/build_labs.py`. |
 | `migrations/pool-ids-2026-10.json` | Historical: the old exam-prefixed IDs (`ccarf-q-1.1-001`) → pool IDs, used once to re-key saved progress, exports, and CLI/TUI history. Never edited. |
 | `schema/*.schema.json` | JSON Schemas; every manifest, map, and component is validated against these. |

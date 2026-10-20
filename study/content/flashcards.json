@@ -1213,5 +1213,566 @@
     "tags": [
       "content-type-rendering"
     ]
+  },
+  {
+    "id": "fc-0136",
+    "front": "Workflow vs. agent: what is the difference, and how do you choose?",
+    "back": "A workflow orchestrates LLM calls through predefined code paths; an agent lets the model dynamically direct its own steps and tool use. Choose a workflow when the steps are known in advance; choose an agent only when they cannot be specified up front, the value justifies the extra cost and latency, and errors can be caught and recovered."
+  },
+  {
+    "id": "fc-0137",
+    "front": "Claude Managed Agents: Anthropic-hosted vs. self-hosted environment?",
+    "back": "In both, Anthropic runs the agent loop and agents are persisted, versioned configs. Anthropic-hosted: tools (bash, files, code) run in an Anthropic-hosted per-session container. Self-hosted: tools run in a container you control, reached by an outbound-polling worker, so data and egress stay in your infrastructure."
+  },
+  {
+    "id": "fc-0138",
+    "front": "PreToolUse vs. PostToolUse hooks: when does each fire, and what is each for?",
+    "back": "PreToolUse fires before a tool runs and can deny it, ask for approval, or modify its input, so use it for deterministic policy enforcement. PostToolUse fires after the tool has run: use it to log or audit the call, give the model feedback or extra context, or (for MCP tools) replace the output. It cannot prevent the action."
+  },
+  {
+    "id": "fc-0139",
+    "front": "What does an agentic abstraction framework (Strands, LangGraph, PydanticAI) give you over a hand-rolled loop, and what does it cost?",
+    "back": "Gives: reusable loop, tool registration, state/graph orchestration, persistence, multi-agent composition, tracing. Costs: a dependency and indirection; it may inject prompt text or reshape history, so inspect the actual requests when debugging. The underlying model calls are the same."
+  },
+  {
+    "id": "fc-0140",
+    "front": "Context editing vs. compaction vs. memory?",
+    "back": "Context editing clears stale content (e.g., old tool results) within a session. Compaction summarizes earlier history when a session nears its context limit. Memory persists information across sessions in storage outside the conversation. Long-running agents often combine all three."
+  },
+  {
+    "id": "fc-0141",
+    "front": "System prompt vs. user turn: which instructions belong where?",
+    "back": "The system prompt holds stable, conversation-wide instructions: role, tone, policies, output constraints. The user turn holds the specific request and its data. Keeping them apart separates operator instructions from user-supplied text and gives prompt caching a stable prefix.",
+    "tags": [
+      "system-prompt",
+      "instruction-placement"
+    ]
+  },
+  {
+    "id": "fc-0142",
+    "front": "How should you put untrusted input (uploaded documents, emails, user text) into a prompt?",
+    "back": "Wrap it in clearly labeled delimiters (such as XML tags), state that tagged content is data, not instructions, and escape or strip delimiter sequences inside the input so it cannot close the block. This reduces injection without eliminating it, so also validate the output and gate sensitive actions in code.",
+    "tags": [
+      "input-sanitization",
+      "delimiters"
+    ]
+  },
+  {
+    "id": "fc-0143",
+    "front": "What should code check before parsing a Claude response as structured data?",
+    "back": "Check `stop_reason`. `\"max_tokens\"` means the output was cut off, so do not parse or patch it; raise the limit or split the work. `\"refusal\"` means there is no answer to parse. After parsing, validate the result against the schema and your business rules.",
+    "tags": [
+      "defensive-parsing",
+      "stop-reason"
+    ]
+  },
+  {
+    "id": "fc-0144",
+    "front": "Which Claude API HTTP errors are worth retrying, and which are not?",
+    "back": "Retry 429 (rate limit), 529 (overloaded), and 5xx with exponential backoff, honoring `retry-after`. Do not retry 4xx client errors such as 400, 401, or 404; fix the request or credentials.",
+    "tags": [
+      "rest",
+      "retries",
+      "http-status"
+    ]
+  },
+  {
+    "id": "fc-0145",
+    "front": "How do you run many Claude API calls concurrently in Python without overwhelming rate limits?",
+    "back": "Use `AsyncAnthropic`, create tasks and `asyncio.gather` them, and bound in-flight requests with an `asyncio.Semaphore`. Avoid blocking calls inside coroutines; they stall the event loop.",
+    "tags": [
+      "async",
+      "asyncio",
+      "concurrency"
+    ]
+  },
+  {
+    "id": "fc-0146",
+    "front": "Small vs. large refactor with Claude Code: what changes in approach?",
+    "back": "Small, well-scoped change: direct execution and a normal review. Large refactor: pin behavior with tests first, plan, then proceed in small reviewable steps (separate PRs or commits) on a branch, with CI checking each step.",
+    "tags": [
+      "refactoring",
+      "version-control"
+    ]
+  },
+  {
+    "id": "fc-0147",
+    "front": "Why does a prompt behave differently in claude.ai than in a raw Messages API call?",
+    "back": "claude.ai adds its own system prompt, features, and conversation state. The API is stateless and sends only the `system` prompt and `messages` you provide, so behavior and history must be supplied explicitly.",
+    "tags": [
+      "interfaces",
+      "messages-api",
+      "claude-ai"
+    ]
+  },
+  {
+    "id": "fc-0148",
+    "front": "What is a content boundary in a Claude application?",
+    "back": "A clear separation between trusted instructions and untrusted content: instructions in the system prompt, external content delimited (e.g. in XML tags) and treated as data, and sensitive tools gated so content cannot trigger them.",
+    "tags": [
+      "content-boundaries",
+      "untrusted-input"
+    ]
+  },
+  {
+    "id": "fc-0149",
+    "front": "Three schema-design rules that reduce bad tool or extraction output?",
+    "back": "Use enums for closed sets (plus an `other` option where needed); make fields nullable or optional when the source may lack them; use precise types and formats (ISO dates, integers, arrays) and strict validation.",
+    "tags": [
+      "schema-design",
+      "enum",
+      "nullable"
+    ]
+  },
+  {
+    "id": "fc-0150",
+    "front": "What does managing Claude Code plugins well involve?",
+    "back": "Enable only the plugins a project needs (each adds context and tools), review third-party plugins before trusting them (hooks and MCP servers run locally), standardize the team set in committed project settings, and use namespaced names when commands overlap.",
+    "tags": [
+      "plugins",
+      "plugin-management"
+    ]
+  },
+  {
+    "id": "fc-0151",
+    "front": "Claude Code settings files: who shares them, and which wins?",
+    "back": "User `~/.claude/settings.json` (personal), project `.claude/settings.json` (committed, shared), project `.claude/settings.local.json` (personal, not committed), plus managed policy. Precedence: managed > command-line args > local > project > user.",
+    "tags": [
+      "settings-json",
+      "precedence"
+    ]
+  },
+  {
+    "id": "fc-0152",
+    "front": "Why pin model IDs and version prompts?",
+    "back": "Both change application behavior. Keep them in versioned config, change one at a time, run evals before promoting, and record which model and prompt version served each request so regressions can be traced and rolled back.",
+    "tags": [
+      "model-pinning",
+      "prompt-versioning"
+    ]
+  },
+  {
+    "id": "fc-0153",
+    "front": "Name the core Claude Code customization components and what each is for.",
+    "back": "CLAUDE.md: always-loaded project memory. Rules (`.claude/rules/`): conventions, optionally path-scoped. Commands: user-invoked prompt shortcuts. Skills: on-demand capabilities Claude loads when relevant. Agents (subagents): delegated workers with their own context and tools. Agent memory: notes that persist across sessions.",
+    "tags": [
+      "claude-code-components",
+      "rules",
+      "skills",
+      "subagents"
+    ]
+  },
+  {
+    "id": "fc-0154",
+    "front": "Functional vs. infrastructure requirement for a Claude-powered system: what is the difference?",
+    "back": "Functional requirements state what the system does (outputs, behaviors, business rules, the output schema). Infrastructure (non-functional) requirements state what it must run on and carry: throughput, latency, availability, data residency, security controls, and cost ceilings.",
+    "tags": [
+      "functional-vs-infrastructure",
+      "requirements"
+    ]
+  },
+  {
+    "id": "fc-0155",
+    "front": "How do you turn a vague business goal like \"make it fast\" into a requirement for a Claude application?",
+    "back": "Make it measurable: for example a p95 time-to-first-token target (interactive) or an end-to-end completion deadline (asynchronous). The number then drives design choices such as streaming, model tier, caching, or batch.",
+    "tags": [
+      "acceptance-criteria",
+      "latency",
+      "requirements-elicitation"
+    ]
+  },
+  {
+    "id": "fc-0156",
+    "front": "How do you size throughput and cost requirements for a Claude workload?",
+    "back": "Measure tokens per request on representative samples (token counting or `usage`), multiply by volume, and compare against rate limits (requests and tokens per minute) and per-model prices. Size for peak load, not the average.",
+    "tags": [
+      "throughput",
+      "rate-limits",
+      "cost-requirements"
+    ]
+  },
+  {
+    "id": "fc-0157",
+    "front": "What is the difference between a deprecated and a retired Claude model, and what should you do in between?",
+    "back": "A deprecated model still works but has an announced retirement date; once retired, requests to it fail. Use the window to evaluate the replacement against your eval suite, update prompts and parameters, and roll out gradually before the date.",
+    "tags": [
+      "deprecation",
+      "retirement",
+      "model-upgrade"
+    ]
+  },
+  {
+    "id": "fc-0158",
+    "front": "Which signals should you monitor while operating a Claude application?",
+    "back": "Latency (including time-to-first-token), error rates by status code (429, 529, other 5xx, 400), token usage and cost from `usage`, the distribution of `stop_reason` values (for example `max_tokens` truncation), and output quality on sampled traffic.",
+    "tags": [
+      "monitoring",
+      "operations",
+      "observability"
+    ]
+  },
+  {
+    "id": "fc-0159",
+    "front": "How do you make a prompt or model change easy to roll back?",
+    "back": "Keep the model ID and prompt version in versioned configuration, release changes through the normal pipeline behind an eval gate, and roll out in stages. Rollback is then a revert to the last known good configuration.",
+    "tags": [
+      "rollback",
+      "release-management",
+      "configuration"
+    ]
+  },
+  {
+    "id": "fc-0160",
+    "front": "What is the order of events in a streamed Messages API response?",
+    "back": "`message_start`, then for each content block `content_block_start`, `content_block_delta` (repeated), `content_block_stop`; then `message_delta` (carries `stop_reason` and final usage) and finally `message_stop`.",
+    "tags": [
+      "streaming",
+      "stream-events"
+    ]
+  },
+  {
+    "id": "fc-0161",
+    "front": "What do prompt cache writes and reads cost relative to base input tokens, and what breaks a cache hit?",
+    "back": "Writes cost about 1.25x for the 5-minute TTL or 2x for the 1-hour TTL; reads cost about 0.1x (lower on some models). Hits require an identical prefix in render order tools, system, messages, so any byte change earlier in the prefix invalidates everything after it.",
+    "tags": [
+      "prompt-caching",
+      "ttl",
+      "pricing"
+    ]
+  },
+  {
+    "id": "fc-0162",
+    "front": "How does a client keep conversation state with the Messages API, and how do you reuse a large document across requests?",
+    "back": "The API is stateless: resend the full history of user and assistant turns on each request. For a large file used repeatedly, upload it once with the Files API and reference its `file_id`, and cache the stable prefix.",
+    "tags": [
+      "messages-api",
+      "stateless",
+      "files-api",
+      "data-access-patterns"
+    ]
+  },
+  {
+    "id": "fc-0163",
+    "front": "How do you call Claude through Amazon Bedrock or Google Vertex AI, and what should you check first?",
+    "back": "Use the SDK's platform client (Bedrock or Vertex) with that cloud's credentials, region, and model IDs; the request surface matches the Messages API. Check feature availability first: some features, such as the Message Batches and Files endpoints, are not offered on every platform.",
+    "tags": [
+      "third-party-platforms",
+      "bedrock",
+      "vertex-ai"
+    ]
+  },
+  {
+    "id": "fc-0164",
+    "front": "What is a token, and how should you count tokens for a Claude request?",
+    "back": "A token is a model-specific subword unit (not a word or character). Count with the token counting endpoint (`messages.count_tokens`) using the same model and request content; other providers' tokenizers miscount Claude.",
+    "tags": [
+      "tokens",
+      "count-tokens"
+    ]
+  },
+  {
+    "id": "fc-0165",
+    "front": "What shares a model's context window in a Messages API request?",
+    "back": "Everything: tool definitions, system prompt, the full resent message history, and the output generated for this request (including thinking). The API is stateless, so history grows with every turn.",
+    "tags": [
+      "context-window",
+      "stateless"
+    ]
+  },
+  {
+    "id": "fc-0166",
+    "front": "Adaptive thinking vs a fixed thinking budget, and where effort fits",
+    "back": "Adaptive thinking lets Claude decide per request whether and how much to reason; it replaces fixed `budget_tokens` on current models. Effort (`output_config.effort`, low to max) sets overall thoroughness vs token spend.",
+    "tags": [
+      "adaptive-thinking",
+      "effort"
+    ]
+  },
+  {
+    "id": "fc-0167",
+    "front": "What does fast mode trade, and what doesn't it change?",
+    "back": "Fast mode runs the same model at higher output speed for premium per-token pricing (research preview, on supported Opus models via the Claude API). It does not change model quality or reasoning depth.",
+    "tags": [
+      "fast-mode",
+      "latency"
+    ]
+  },
+  {
+    "id": "fc-0168",
+    "front": "Zero-shot vs one-shot vs few-shot (multi-shot) prompting",
+    "back": "Zero-shot: instructions only. One-shot: one example, which the model may over-copy. Few-shot: several diverse examples that pin down format and edge cases; vary incidental features so the model learns the real pattern.",
+    "tags": [
+      "few-shot",
+      "zero-shot",
+      "prompting"
+    ]
+  },
+  {
+    "id": "fc-0169",
+    "front": "Which failures do the Anthropic SDKs retry automatically, and how many times by default?",
+    "back": "Connection errors and 408, 409, 429, and 5xx responses (including 529 overloaded), with exponential backoff; 2 retries by default, configurable with `max_retries`. 400/401/403/404 are not retried.",
+    "tags": [
+      "sdk",
+      "retries"
+    ]
+  },
+  {
+    "id": "fc-0170",
+    "front": "SDK timeout defaults and units",
+    "back": "Default request timeout is 10 minutes. Python and Ruby take seconds; TypeScript takes milliseconds. Timeouts are retried, so worst-case wall-clock is roughly timeout x (retries + 1).",
+    "tags": [
+      "timeouts",
+      "sdk-config"
+    ]
+  },
+  {
+    "id": "fc-0171",
+    "front": "How does Messages API streaming work: SSE or websockets?",
+    "back": "Server-sent events over one HTTP response (server to client only). Events: `message_start`, `content_block_start`/`delta`/`stop`, `message_delta` (stop_reason, usage), `message_stop`. Use websockets only between your own server and clients if you need bidirectional traffic.",
+    "tags": [
+      "streaming",
+      "sse",
+      "websockets"
+    ]
+  },
+  {
+    "id": "fc-0172",
+    "front": "Headers a raw HTTP call to the Messages API needs that the SDK sets for you",
+    "back": "`x-api-key` (or `Authorization: Bearer` for OAuth tokens), `anthropic-version`, and `content-type: application/json`; `anthropic-beta` only when opting into beta features. Log the `request-id` response header for support.",
+    "tags": [
+      "headers",
+      "raw-http"
+    ]
+  },
+  {
+    "id": "fc-0173",
+    "front": "How should you call Claude on Amazon Bedrock, Vertex AI, or Microsoft Foundry from an SDK?",
+    "back": "Use the SDK's dedicated client class for that platform, which handles its auth and endpoints, not the first-party client with a `base_url` override. After construction the `messages` surface is the same.",
+    "tags": [
+      "sdk",
+      "cloud-platforms"
+    ]
+  },
+  {
+    "id": "fc-0174",
+    "front": "Opus vs Sonnet vs Haiku: typical use cases",
+    "back": "Opus: most demanding reasoning and long-horizon agentic work. Sonnet: balanced speed, capability, and cost for everyday coding and agent workloads. Haiku: fastest, lowest cost; high-volume, latency-sensitive, well-specified tasks and subagent workers.",
+    "tags": [
+      "model-selection",
+      "model-tiers"
+    ]
+  },
+  {
+    "id": "fc-0175",
+    "front": "Two rules for changing models in production",
+    "back": "Pin a specific model ID (so upgrades are deliberate), and re-run your evals on the new model, comparing quality, latency, and cost per task, before switching traffic.",
+    "tags": [
+      "model-versioning",
+      "evals"
+    ]
+  },
+  {
+    "id": "fc-0176",
+    "front": "What kinds of breaking changes can a new Claude model release bring?",
+    "back": "Rejected or changed parameters (e.g. prefill, sampling, or thinking settings), different defaults (e.g. effort), a different tokenizer (changed token counts), and behavioral shifts that make old prompts over- or under-steer.",
+    "tags": [
+      "breaking-changes",
+      "model-migration"
+    ]
+  },
+  {
+    "id": "fc-0177",
+    "front": "Prompt caching economics and TTLs",
+    "back": "Cache reads cost a small fraction of base input. Writes cost a premium: about 1.25x for the default 5-minute TTL, 2x for the 1-hour TTL. Reads refresh the timer. Max 4 breakpoints; prefixes below the model's minimum silently don't cache.",
+    "tags": [
+      "prompt-caching",
+      "ttl",
+      "pricing"
+    ]
+  },
+  {
+    "id": "fc-0178",
+    "front": "Which `usage` fields track tokens, and how do you get total prompt size?",
+    "back": "`input_tokens` (uncached remainder), `cache_creation_input_tokens` (written), `cache_read_input_tokens` (read), `output_tokens` (includes thinking). Total prompt = input + cache_creation + cache_read.",
+    "tags": [
+      "usage",
+      "token-tracking"
+    ]
+  },
+  {
+    "id": "fc-0179",
+    "front": "Where should a `cache_control` breakpoint go when requests share a prefix but end differently?",
+    "back": "At the end of the shared portion, before the per-request content. A breakpoint after the unique tail writes a new entry each time that is never read: pure write premium.",
+    "tags": [
+      "prompt-caching",
+      "breakpoint-placement"
+    ]
+  },
+  {
+    "id": "fc-0180",
+    "front": "Which Claude API errors should you retry, and which should you fix instead?",
+    "back": "Retry with backoff: 429 rate_limit_error (honor retry-after), 500 api_error, 529 overloaded_error, and connection errors/timeouts. Do not retry: 400, 401, 403, 404, 413. They fail the same way until you fix the request, credential, or input size.",
+    "tags": [
+      "error-types",
+      "retryable-vs-not"
+    ]
+  },
+  {
+    "id": "fc-0181",
+    "front": "Output looks broken (truncated JSON, missing answer). How do you tell an integration problem from a model problem?",
+    "back": "Check the response metadata before blaming the model. stop_reason \"max_tokens\" means your limit cut generation off; a 4xx means your request was wrong; a missing tool_result means your loop dropped it. Only when the request was valid and the model stopped normally (end_turn) is it a prompt or model issue.",
+    "tags": [
+      "problem-isolation",
+      "stop_reason",
+      "trace-analysis"
+    ]
+  },
+  {
+    "id": "fc-0182",
+    "front": "Direct vs. indirect prompt injection",
+    "back": "Direct: the person talking to the model types the malicious instruction. Indirect: the instruction is hidden in content the model processes (web pages, emails, documents, tool results). Treat all retrieved and tool-returned content as untrusted data, not instructions.",
+    "tags": [
+      "prompt-injection",
+      "untrusted-input"
+    ]
+  },
+  {
+    "id": "fc-0183",
+    "front": "Where must authorization for user data be enforced in a Claude application?",
+    "back": "In code at the data or tool layer, keyed to the authenticated identity from the session, not in the prompt. Never let a model-supplied ID decide whose data is fetched; anything that reaches the context can potentially be disclosed.",
+    "tags": [
+      "authorization",
+      "confidentiality"
+    ]
+  },
+  {
+    "id": "fc-0184",
+    "front": "Why treat Claude's output as untrusted input?",
+    "back": "A crafted input can steer what the model writes. Before output drives a system (SQL, shell, HTML, API calls), validate it and constrain it: parameterize or allowlist operations, escape for the target context, and run it with least-privilege credentials.",
+    "tags": [
+      "untrusted-output",
+      "integrity"
+    ]
+  },
+  {
+    "id": "fc-0185",
+    "front": "What are the typical layers of a guardrail stack for a Claude deployment?",
+    "back": "1) Input screening (e.g. a fast classifier); 2) system-prompt scope and content policy; 3) code-enforced tool permissions and hooks; 4) output checks before display or action; 5) monitoring, logging, and human escalation. Each catches failures the others miss.",
+    "tags": [
+      "guardrail-layering",
+      "defense-in-depth"
+    ]
+  },
+  {
+    "id": "fc-0186",
+    "front": "Least privilege for an AI agent: what does it cover?",
+    "back": "Give the agent only the tools its role needs, credentials scoped to only the resources and actions those tools need (ideally per-workload and short-lived), and only the data the task requires. Then a mistake or injection is bounded by permissions, not by the model's judgment.",
+    "tags": [
+      "least-privilege",
+      "iam"
+    ]
+  },
+  {
+    "id": "fc-0187",
+    "front": "Claude Code hook exit codes: what does each mean for a PreToolUse hook?",
+    "back": "Exit 0: success, and the tool call proceeds. Exit 2: blocking error; the call is prevented and stderr is fed back to Claude. Any other non-zero code: non-blocking error; stderr is shown to the user and execution continues. A hook can also return JSON with a deny permission decision.",
+    "tags": [
+      "claude-code-hooks",
+      "exit-codes",
+      "pretooluse"
+    ]
+  },
+  {
+    "id": "fc-0188",
+    "front": "Where should Claude API keys and other secrets live, and where must they never appear?",
+    "back": "In environment variables populated from a secret manager (or an untracked .env locally), or as short-lived federated credentials. Never in source code, prompts, CLAUDE.md, front-end code, container images, or literal values in committed MCP config (use ${VAR} expansion).",
+    "tags": [
+      "secrets-management",
+      "api-keys"
+    ]
+  },
+  {
+    "id": "fc-0189",
+    "front": "Why use separate workspaces (and keys) for development and production?",
+    "back": "Workspace-scoped keys, limits, and membership contain blast radius: a leaked dev or CI key cannot touch production spend or data, keys can be rotated per environment, and usage is attributable per environment.",
+    "tags": [
+      "workspaces",
+      "environment-separation"
+    ]
+  },
+  {
+    "id": "fc-0190",
+    "front": "How does a client (user-defined) tool differ from a server tool such as web search or code execution?",
+    "back": "Client tool: you define the schema, Claude returns a `tool_use` block, and your code executes it and replies with a matching `tool_result`. Server tool: Anthropic executes it on its infrastructure and the results arrive in the same response, so your loop doesn't run it (but should handle `pause_turn` when the server-side loop pauses).",
+    "tags": [
+      "client-vs-server-tools",
+      "server-tools",
+      "tool-use"
+    ]
+  },
+  {
+    "id": "fc-0191",
+    "front": "What are MCP's three server primitives, and who controls each?",
+    "back": "Tools: model-controlled actions Claude decides to call. Resources: application-controlled, URI-addressed data the client reads or attaches. Prompts: user-controlled, parameterized templates the user picks (e.g. surfaced as slash commands in Claude Code).",
+    "tags": [
+      "mcp",
+      "primitives",
+      "tools",
+      "resources",
+      "prompts"
+    ]
+  },
+  {
+    "id": "fc-0192",
+    "front": "stdio vs Streamable HTTP: when do you use each MCP transport?",
+    "back": "stdio: the client launches the server as a local subprocess and exchanges JSON-RPC over stdin/stdout. Good for local, single-user tools (log to stderr, not stdout). Streamable HTTP: the server runs independently at a URL, serves many remote clients (including the Messages API MCP connector), and needs its own authentication.",
+    "tags": [
+      "mcp",
+      "transports",
+      "stdio",
+      "streamable-http"
+    ]
+  },
+  {
+    "id": "fc-0193",
+    "front": "Built-in tool, custom tool, Skill, or MCP server: what is each one for?",
+    "back": "Built-in tool: a capability the platform already provides (Claude Code's Read/Edit/Bash, or server-side web search and code execution), so there's nothing to host. Custom tool: an action one app's own code executes in its own context. Skill: on-demand instructions, files, and scripts (procedural knowledge). MCP server: a reusable, independently maintained connection to an external system, shared by many clients.",
+    "tags": [
+      "agentic-customization",
+      "built-in-tools",
+      "custom-tools",
+      "skills",
+      "mcp"
+    ]
+  },
+  {
+    "id": "fc-0194",
+    "front": "When should you choose a Skill over an MCP server?",
+    "back": "When the need is procedural knowledge (how to do a task, checklists, templates, helper scripts) and not live access to an external system. Choose an MCP server when Claude needs authenticated, up-to-date access to a system such as a database, ticketing tool, or internal API.",
+    "tags": [
+      "agentic-customization",
+      "skills",
+      "mcp"
+    ]
+  },
+  {
+    "id": "fc-0195",
+    "front": "Why prefer a built-in tool when it covers the need?",
+    "back": "There's no code to build, host, or secure, and it's already integrated with the platform (permissions, hooks, citations). Re-creating it as a custom or MCP tool adds maintenance and overlapping tools that make selection less reliable.",
+    "tags": [
+      "agentic-customization",
+      "built-in-tools",
+      "tool-selection"
+    ]
+  },
+  {
+    "id": "fc-0196",
+    "front": "Custom tool or MCP server: what tips the decision?",
+    "back": "Custom tool: one application needs the capability and it depends on that app's in-process context (current user session, transaction, internal objects). MCP server: several apps or clients should share one integration that is maintained and deployed independently of any single app.",
+    "tags": [
+      "agentic-customization",
+      "custom-tools",
+      "mcp"
+    ]
   }
 ]

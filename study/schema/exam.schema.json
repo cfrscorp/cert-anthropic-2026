@@ -13,9 +13,11 @@
     "config": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["questions_per_task_target", "coverage_component", "pass_threshold"],
+      "required": ["coverage_component", "pass_threshold"],
+      "oneOf": [{ "required": ["questions_per_task_target"] }, { "required": ["questions_target_total"] }],
       "properties": {
-        "questions_per_task_target": { "type": "integer", "minimum": 1 },
+        "questions_per_task_target": { "description": "Flat per-task question target (every task statement needs this many).", "type": "integer", "minimum": 1 },
+        "questions_target_total": { "description": "Weight-scaled target: each task statement needs ceil(total × task weight / 100) + 1 questions (the +1 is a safety margin). Requires per-task weights.", "type": "integer", "minimum": 1 },
         "coverage_component": { "description": "The questions component the per-task target applies to.", "type": "string" },
         "pass_threshold": { "description": "Readiness % shown as the pass cue.", "type": "integer", "minimum": 1, "maximum": 100 }
       }

@@ -25,6 +25,7 @@ Mirrors the labs' philosophy: the content cannot silently break the web app.
 from __future__ import annotations
 
 import json
+import math
 import re
 import tomllib
 from pathlib import Path
@@ -356,9 +357,27 @@ def test_question_coverage_meets_target(slug):
     counts = {tid: 0 for tid in _task_ids(slug)}
     for _, task in _mapped_in(slug, config["coverage_component"]):
         counts[task] += 1
-    target = config["questions_per_task_target"]
-    shortfalls = {tid: n for tid, n in counts.items() if n < target}
-    assert not shortfalls, f"{slug}: task statements below target {target}: {shortfalls}"
+    targets = _question_targets(EXAMS[slug])
+    shortfalls = {tid: f"{n}/{targets[tid]}" for tid, n in counts.items() if n < targets[tid]}
+    assert not shortfalls, f"{slug}: task statements below their question target: {shortfalls}"
+
+
+def _question_targets(exam):
+    """Per-task question target: flat, or scaled by task weight plus a margin of one."""
+    config = exam["config"]
+    if "questions_per_task_target" in config:
+        return {t["id"]: config["questions_per_task_target"] for t in exam["task_statements"]}
+    total = config["questions_target_total"]
+    # round() first so float noise (e.g. 150 * 4.1 / 100) can't push ceil() up a whole question.
+    return {t["id"]: math.ceil(round(total * t["weight"] / 100, 6)) + 1 for t in exam["task_statements"]}
+
+
+@pytest.mark.parametrize("slug", ALL_EXAMS)
+def test_scaled_target_needs_task_weights(slug):
+    exam = EXAMS[slug]
+    if "questions_target_total" in exam["config"]:
+        missing = [t["id"] for t in exam["task_statements"] if "weight" not in t]
+        assert not missing, f"{slug}: questions_target_total needs every task weighted; unweighted: {missing}"
 
 
 @pytest.mark.parametrize("slug", EXAM_SLUGS)

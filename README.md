@@ -10,7 +10,7 @@ switch between exams.
 | Exam | Code | Status |
 |------|------|--------|
 | Claude Certified Architect – Foundations | **CCAR-F** | Complete — guide, 25 labs, full study content |
-| Claude Certified Developer – Foundations | **CCDV-F** | Planned (BL-048, pending its exam guide) |
+| Claude Certified Developer – Foundations | **CCDV-F** | Complete — guide, full study content; links the 19 labs that fit its skills |
 
 **CCAR-F** validates practical judgment about building production applications with
 **Claude Code, the Claude Agent SDK, the Claude API, and the Model Context Protocol
@@ -21,19 +21,25 @@ concept explainers, browsable labs, and a readiness dashboard) — so you gain
 hands-on experience with *every* feature, concept, and topic the exam covers,
 not just read about them.
 
-## By the Numbers (CCAR-F)
+## By the Numbers
 
-| Practice Questions | Flashcards | Concept Explainers | Hands-On Labs |
-|:--:|:--:|:--:|:--:|
-| **435** | **135** | **30** | **25** |
+| Exam | Practice Questions | Flashcards | Concept Explainers | Hands-On Labs |
+|:--|:--:|:--:|:--:|:--:|
+| **CCAR-F** | **435** | **135** | **30** | **25** |
+| **CCDV-F** | **322** | **93** | **25** | **19** linked |
 
-Questions span three difficulty tiers — **Standard** (240), **Intermediate** (120),
-and **Hard** (75, including 10 multi-response "Select N" items calibrated to the
-real exam's format) — dynamically selectable in the Web UI, or chosen with
-`--set` (any combination) in the CLI/TUI. Covering all **5 exam domains** and **30 task
-statements**, with **40** syntax-highlighted code samples across the concept
-explainers — and every question and concept links to the lab that drills it. The
-whole study app runs locally and offline, with zero runtime dependencies.
+Both exams draw from one shared content pool (**639** questions, **196** flashcards,
+**55** concept explainers; 150 items serve both exams), each through its own item map.
+Questions span three difficulty tiers — CCAR-F: **Standard** (240), **Intermediate**
+(120), and **Hard** (75, including 10 multi-response "Select N" items calibrated to the
+real exam's format); CCDV-F: Standard (192), Intermediate (65), and Hard (65, including
+18 "Select N") — dynamically selectable in the Web UI, or chosen with `--set` (any
+combination) in the CLI/TUI. CCAR-F covers all **5 exam domains** and **30 task
+statements** (40 syntax-highlighted code samples across its concept explainers);
+CCDV-F covers all **8 domains** and **25 skills**, with Standard-tier questions per
+skill scaled to the skill's exam weight (24 code samples). Questions and concepts
+link to the lab that drills them where one exists. The whole study app runs locally
+and offline, with zero runtime dependencies.
 
 ## Study Materials
 
