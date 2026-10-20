@@ -6,7 +6,8 @@ exams. It covers the **Claude Certified Architect – Foundations (CCAR-F)** and
 practice-question bank** (CCAR-F 435 questions, CCDV-F 322 —
 Standard/Intermediate/Hard, including real multi-response "Select N" items),
 **flashcards** (135 / 93 cards, with self-graded recall tracking), **concept
-explainers** (30 / 25), and a **readiness dashboard** that tracks your progress over time.
+explainers** (30 / 25), **browsable labs**, and a **readiness dashboard** that tracks
+your progress over time.
 Switch exams from the header (each exam keeps its own progress); links name the
 exam and section, e.g. `#/ccarf/quiz`, so bookmarks stay on the right exam.
 No cloud, no accounts, no backend — everything runs on your machine and your
@@ -22,7 +23,7 @@ section; the Web UI (`web/`, dependency-free HTML/CSS/JS) and the CLI/TUI tools
 Everything here runs through [uv](https://docs.astral.sh/uv/) — see the
 [install guide](https://docs.astral.sh/uv/getting-started/installation/) for all options:
 
-- **macOS** — `curl -LsSf https://astral.sh/uv/install.sh | sh`  (or `brew install uv`)
+- **macOS / Linux** — `curl -LsSf https://astral.sh/uv/install.sh | sh`  (or, on macOS, `brew install uv`)
 - **Windows** — in PowerShell: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 
 ## Run It
@@ -139,10 +140,13 @@ stays in their own browser).
   limits, `stop_reason`, …), each card testing one single concept. Filter by
   domain and task statement, shuffle, and self-grade each card (✓ Got It / ✗ Missed
   It) to drive a "review missed" mode, tracked separately from quiz mastery.
-- **Concepts** — one explainer per exam task statement (1.1–5.6): the idea, why it
-  matters, the common trap, and a link to the relevant hands-on lab in `../labs/`.
-- **Readiness** — a cumulative dashboard: overall readiness % (weighted by the exam's
-  domain weights), per-domain and per-task mastery bars, a readiness-over-time
+- **Concepts** — one explainer per task statement of the selected exam (CCAR-F's
+  1.1–5.6, CCDV-F's 25 skills 1.1–8.3): the idea, why it matters, the common trap,
+  code samples where the topic is code-shaped, and a link to the relevant hands-on lab.
+- **Labs** — the 25 hands-on labs from `../labs/`, browsable in the app: read a lab's
+  instructions, then reveal its solution write-up to check your work.
+- **Readiness** — a cumulative dashboard for the selected exam and question set:
+  overall readiness % (weighted by the exam's domain weights), per-domain and per-task mastery bars, a readiness-over-time
   sparkline, and "revisit lab-NN" suggestions for weak areas.
 
 ### Progress Tracking
@@ -164,7 +168,7 @@ toward. One item can serve several exams, each under its own task.
 |------|------|
 | `app.json` | Engine metadata: `app_version` (shown in the Web UI footer; kept in lockstep with `pyproject.toml` and `serve.py`). |
 | `exams/index.json` | The available exams, by slug (the first is the default). |
-| `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (per-task question target, pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
+| `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (a flat per-task question target, `questions_per_task_target`; pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
 | `exams/ccarf/map.json` | The CCAR-F item map: per kind (`questions`, `flashcards`, `concepts`), each pool item CCAR-F uses → its task statement (e.g. `"q-0001": "1.1"`). Items not listed aren't part of the exam. |
 | `exams/ccdvf/exam.json`, `exams/ccdvf/map.json` | The CCDV-F exam (8 domains, 25 skills numbered 1.1–8.3 in guide order, with the guide's fractional domain and skill weights) and its item map. Its `config` uses a weight-scaled question target (`questions_target_total`: each skill needs ⌈150 × weight / 100⌉ + 1 Standard questions). Guide: `exams/ccdvf/anthropic-ccdvf-exam-guide-2026-10.md`. |
 | `exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` | The CCAR-F exam guide — source of truth for its content (`-2026-06` is the prior edition). |
@@ -194,12 +198,14 @@ cd study && uv run pytest
 
 The tests check schema validity; component integrity (valid answer keys, complete
 distractor rationales, neutral unique IDs, resolvable lab links, the registry staying
-in sync with the files on disk); exam integrity for every exam directory, listed or not (domain weights summing to 100 and any per-task weights to their domain's, the guide
+in sync with the files on disk); exam integrity for every exam directory, listed or
+not (domain weights summing to 100 and any per-task weights to their domain's, the guide
 existing, every pin resolving to a component of the right kind and version); map
 integrity (every mapped item exists in a component the exam pins and counts toward a
-real task statement; no item listed twice; no pinned component left unused); and
+real task statement; no item listed twice; no pinned component left unused);
 coverage per listed exam, through its map (question count per task statement, per-tier
-minimums, one concept per task statement). Deleting an item an exam still maps fails
+minimums, one concept per task statement); and no answer-length tell (no correct option
+1.1× or more longer than every distractor). Deleting an item an exam still maps fails
 the tests.
 
 ### What Uses What (`tools/content_map.py`)
@@ -231,7 +237,9 @@ pre-multi-exam `.working/quiz_history.json` / `flashcards_history.json` is migra
 into the CCAR-F file (the original is left in place), and any history file still
 using the pre-pool `ccarf-q-…` IDs is re-keyed to pool IDs once (the original is
 kept beside it as `<name>.v1.json`). Pool items take their domain/task from the
-exam's map; a personal question file can carry its own `domain` + `task_statement`. Each pair shares one "core" module (`quiz_tui.py` and `flashcards_tui.py`
+exam's map; a personal question file can carry its own `domain` + `task_statement`.
+
+Each pair shares one "core" module (`quiz_tui.py` and `flashcards_tui.py`
 just add a fixed-layout, full-screen rendering mode — same flags, same history
 file), and all four share `exam_manifest.py` for exam/set resolution.
 
