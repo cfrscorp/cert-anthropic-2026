@@ -1,6 +1,6 @@
 # D3 · Claude Code Configuration & Workflows — Video Resources
 
-Videos that explain or demonstrate the [Concept Explainers](../data/concepts.json) for
+Videos that explain or demonstrate the [Concept Explainers](../content/ccarf-concepts.json) for
 Domain 3. See [`README.md`](README.md) for scope and how these were sourced.
 
 ### 3.1 CLAUDE.md Hierarchy, Scoping, and Modular Organization

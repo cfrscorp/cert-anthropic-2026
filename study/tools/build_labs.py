@@ -5,12 +5,12 @@
 #   "markdown>=3.5",
 # ]
 # ///
-"""Generate study/data/labs.json so the study app can browse the labs offline.
+"""Generate study/content/labs.json so the study app can browse the labs offline.
 
 Walks ../labs/lab-*/, renders each lab's README.md and SOLUTION.md from Markdown
 to HTML at BUILD TIME (so the browser needs no Markdown parser and the app keeps
 its zero-runtime-dependency, fully-offline model), and writes a single
-study/data/labs.json the Labs view reads. Re-run whenever the labs change.
+study/content/labs.json the Labs view reads. Re-run whenever the labs change.
 """
 
 from __future__ import annotations
@@ -23,11 +23,11 @@ from pathlib import Path
 
 import markdown
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 STUDY = Path(__file__).resolve().parent.parent
 LABS = STUDY.parent / "labs"
-OUT = STUDY / "data" / "labs.json"
+OUT = STUDY / "content" / "labs.json"
 
 _MD_EXTENSIONS = ["fenced_code", "tables", "sane_lists"]
 _SCRIPT_RE = re.compile(r"<script.*?>.*?</script>", re.S | re.I)
@@ -59,10 +59,10 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="build_labs.py",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="Render the labs' README/SOLUTION to HTML into study/data/labs.json for the Labs view.",
+        description="Render the labs' README/SOLUTION to HTML into study/content/labs.json for the Labs view.",
         epilog=(
             "Examples:\n"
-            "  # Regenerate study/data/labs.json from the current labs/:\n"
+            "  # Regenerate study/content/labs.json from the current labs/:\n"
             "  uv run study/tools/build_labs.py\n\n"
             "  # Print the version:\n"
             "  uv run study/tools/build_labs.py --version\n"

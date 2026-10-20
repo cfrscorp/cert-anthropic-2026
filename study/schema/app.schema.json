@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Study app (engine) metadata",
+  "description": "Engine-level settings, independent of any exam or component. app_version must match study/pyproject.toml and serve.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["app_version"],
+  "properties": {
+    "app_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+  }
+}

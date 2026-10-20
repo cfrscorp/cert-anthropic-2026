@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CCAF practice questions",
+  "title": "Practice-question component (one difficulty tier)",
   "type": "array",
   "items": {
     "type": "object",
     "additionalProperties": false,
     "required": ["id", "domain", "task_statement", "stem", "options", "correct", "rationale", "difficulty"],
     "properties": {
-      "id": { "type": "string", "pattern": "^q-[1-5]\\.[0-9]+-[0-9]{3}$" },
-      "domain": { "type": "integer", "minimum": 1, "maximum": 5 },
-      "task_statement": { "type": "string", "pattern": "^[1-5]\\.[0-9]+$" },
+      "id": { "type": "string", "pattern": "^[a-z0-9]+-q-[0-9]+\\.[0-9]+-[0-9]{3}$" },
+      "domain": { "type": "integer", "minimum": 1 },
+      "task_statement": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
       "scenario": { "type": ["string", "null"] },
       "stem": { "type": "string", "minLength": 10 },
       "options": {

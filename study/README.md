@@ -8,9 +8,10 @@ explainers**, and a **readiness dashboard** that tracks your progress over time.
 No cloud, no accounts, no backend — everything runs on your machine and your
 progress lives in your browser (or in a local history file for the CLI/TUI tools).
 
-The content is plain, schema-validated **JSON** (`data/`), driven by a manifest
-(`data/sets.json`) that lists every available question/flashcard set; the Web UI
-(`web/`, dependency-free HTML/CSS/JS) and the CLI/TUI tools (`tools/`) both read it.
+The content is plain, schema-validated **JSON**: reusable, versioned content
+*components* (`content/`) that each *exam* (`exams/<slug>/exam.json`) pins per
+section; the Web UI (`web/`, dependency-free HTML/CSS/JS) and the CLI/TUI tools
+(`tools/`) both read it.
 
 ## Install uv
 
@@ -147,30 +148,45 @@ Progress is cumulative and persists across sessions in your browser's `localStor
 site data starts fresh — use **Export** / **Import** on the Readiness view to back up
 or move your progress, or **Reset** to start over.
 
-## Content Model (`data/`)
+## Content Model (`content/` + `exams/`)
+
+Content is split into **components** (a question tier, a flashcard deck, a concept
+set, the labs catalog) and **exams** that pin the components each of their sections
+uses, so components can be reused and versioned independently of any one exam.
 
 | File | What |
 |------|------|
-| `meta.json` | Domains + exam weights, the 30 task statements, the task → lab map, and `config.app_version` (shown in the Web UI footer). |
-| `sets.json` | Manifest of every question/flashcard set (`{id, label, file}`), driving the Web UI's set-picker dropdowns; `quiz.py`/`quiz_tui.py`/`flashcards.py`/`flashcards_tui.py` instead take file paths directly. |
-| `questions-standard.json` (240), `questions-intermediate.json` (120), `questions-hard.json` (75, incl. 10 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
-| `flashcards.json` | Front/back fact-recall cards (135), each testing a single concept. |
-| `concepts.json` | One explainer per task statement (30). |
-| `schema/*.schema.json` | JSON Schemas; every data file is validated against these. |
+| `app.json` | Engine metadata: `app_version` (shown in the Web UI footer; kept in lockstep with `pyproject.toml` and `serve.py`). |
+| `exams/index.json` | The available exams, by slug (the first is the default). |
+| `exams/ccarf/exam.json` | The CCAR-F exam: code, name, guide, domains + weights, the 30 task statements and their labs, `config` (per-task question target, pass threshold), and `sections` — the components each section pins by id + version range (e.g. `"ccarf-questions-hard"` at `^1.0`). Section entries' labels drive the Web UI's set pickers. |
+| `exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` | The CCAR-F exam guide — source of truth for its content (`-2026-06` is the prior edition). |
+| `content/components.json` | Registry of every component: `{id, kind, version, file, task_scheme}`. `task_scheme` names the exam whose task-statement IDs the component's items use. |
+| `content/ccarf-questions-standard.json` (240), `content/ccarf-questions-intermediate.json` (120), `content/ccarf-questions-hard.json` (75, incl. 10 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
+| `content/ccarf-flashcards.json` | Front/back fact-recall cards (135), each testing a single concept. |
+| `content/ccarf-concepts.json` | One explainer per task statement (30). |
+| `content/labs.json` | The labs catalog, generated from `../labs/` by `tools/build_labs.py`. |
+| `schema/*.schema.json` | JSON Schemas; every manifest and component is validated against these. |
+
+Item IDs are prefixed with their exam slug and globally unique (`ccarf-q-1.1-001`,
+`ccarf-fc-1.1-001`, `ccarf-concept-1.1`), since progress is keyed by them.
 
 ### Adding or Editing Content
 
-Edit the JSON in `data/` (and `sets.json` if adding/removing a whole set), then validate:
+Edit a component in `content/`; to add one, also register it in
+`content/components.json` and pin it in the exam's `sections`. Bump the component's
+`version` (major for breaking changes such as re-keyed IDs or changed task tags, and
+the exam's pin to match). Then validate:
 
 ```bash
 cd study && uv run pytest
 ```
 
-The tests check schema validity, integrity (valid answer keys, complete distractor
-rationales, real task statements, resolvable lab links, weights summing to 100,
-the manifest staying in sync with the files on disk), and coverage (question count
-per task statement, per-tier minimums) across all three question tiers, all five
-domains.
+The tests check schema validity; component integrity (valid answer keys, complete
+distractor rationales, prefixed and unique IDs, real task statements, resolvable lab
+links, the registry staying in sync with the files on disk); exam integrity (weights
+summing to 100, the guide existing, every pin resolving to a component of the right
+kind and version); and coverage per exam (question count per task statement, per-tier
+minimums, one concept per task statement).
 
 ## Command-Line & TUI Tools (`tools/`)
 
@@ -182,18 +198,18 @@ just add a fixed-layout, full-screen rendering mode — same flags, same history
 
 ```bash
 # Quiz: shuffle 20 Hard-tier questions, scoped to one domain
-uv run study/tools/quiz.py study/data/questions-hard.json --shuffle --num 20 --domain 1
+uv run study/tools/quiz.py study/content/ccarf-questions-hard.json --shuffle --num 20 --domain 1
 
 # Combine tiers, or drill everything you've missed before
-uv run study/tools/quiz.py study/data/questions-standard.json study/data/questions-intermediate.json
-uv run study/tools/quiz.py study/data/questions-standard.json --review-missed
+uv run study/tools/quiz.py study/content/ccarf-questions-standard.json study/content/ccarf-questions-intermediate.json
+uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --review-missed
 
 # Fixed-layout TUI variant (same flags)
-uv run study/tools/quiz_tui.py study/data/questions-hard.json --task 4.3
+uv run study/tools/quiz_tui.py study/content/ccarf-questions-hard.json --task 4.3
 
 # Flashcards: self-graded recall, filtered to one task statement
-uv run study/tools/flashcards.py study/data/flashcards.json --task 3.2
-uv run study/tools/flashcards_tui.py study/data/flashcards.json --review-missed
+uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --task 3.2
+uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --review-missed
 
 # Full flag reference for any of the four
 uv run study/tools/quiz.py --help

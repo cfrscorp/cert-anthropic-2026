@@ -1,6 +1,6 @@
 [
   {
-    "id": "fc-1.1-001",
+    "id": "ccarf-fc-1.1-001",
     "domain": 1,
     "task_statement": "1.1",
     "front": "In the agentic loop, what does a `stop_reason` of `\"tool_use\"` mean, and what should the loop do?",
@@ -12,7 +12,7 @@
     ]
   },
   {
-    "id": "fc-1.1-004",
+    "id": "ccarf-fc-1.1-004",
     "domain": 1,
     "task_statement": "1.1",
     "front": "In the agentic loop, what does a `stop_reason` of `\"end_turn\"` mean, and what should the loop do?",
@@ -24,7 +24,7 @@
     ]
   },
   {
-    "id": "fc-1.1-002",
+    "id": "ccarf-fc-1.1-002",
     "domain": 1,
     "task_statement": "1.1",
     "front": "How are tool results incorporated so Claude can reason about the next action?",
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "id": "fc-1.1-003",
+    "id": "ccarf-fc-1.1-003",
     "domain": 1,
     "task_statement": "1.1",
     "front": "Name the three agentic-loop termination anti-patterns.",
@@ -46,7 +46,7 @@
     ]
   },
   {
-    "id": "fc-1.2-001",
+    "id": "ccarf-fc-1.2-001",
     "domain": 1,
     "task_statement": "1.2",
     "front": "In a hub-and-spoke multi-agent system, how does work get from the coordinator to the subagents?",
@@ -58,7 +58,7 @@
     ]
   },
   {
-    "id": "fc-1.2-004",
+    "id": "ccarf-fc-1.2-004",
     "domain": 1,
     "task_statement": "1.2",
     "front": "Besides delegating work, what two coordination duties belong solely to the hub, not to subagents?",
@@ -70,7 +70,7 @@
     ]
   },
   {
-    "id": "fc-1.2-002",
+    "id": "ccarf-fc-1.2-002",
     "domain": 1,
     "task_statement": "1.2",
     "front": "Do subagents inherit the coordinator's conversation history or other agents' findings?",
@@ -81,7 +81,7 @@
     ]
   },
   {
-    "id": "fc-1.2-003",
+    "id": "ccarf-fc-1.2-003",
     "domain": 1,
     "task_statement": "1.2",
     "front": "What is the overly-narrow-decomposition failure mode in multi-agent task decomposition?",
@@ -91,7 +91,7 @@
     ]
   },
   {
-    "id": "fc-1.2-005",
+    "id": "ccarf-fc-1.2-005",
     "domain": 1,
     "task_statement": "1.2",
     "front": "How does a coordinator fix overly-narrow decomposition once it's detected?",
@@ -102,7 +102,7 @@
     ]
   },
   {
-    "id": "fc-1.3-001",
+    "id": "ccarf-fc-1.3-001",
     "domain": 1,
     "task_statement": "1.3",
     "front": "What must a coordinator's `allowedTools` include to spawn subagents, and what tool actually does the spawning?",
@@ -114,7 +114,7 @@
     ]
   },
   {
-    "id": "fc-1.3-002",
+    "id": "ccarf-fc-1.3-002",
     "domain": 1,
     "task_statement": "1.3",
     "front": "How do subagents receive the context they need from the coordinator?",
@@ -125,7 +125,7 @@
     ]
   },
   {
-    "id": "fc-1.3-003",
+    "id": "ccarf-fc-1.3-003",
     "domain": 1,
     "task_statement": "1.3",
     "front": "How do you spawn multiple subagents in PARALLEL rather than sequentially?",
@@ -136,7 +136,7 @@
     ]
   },
   {
-    "id": "fc-1.3-004",
+    "id": "ccarf-fc-1.3-004",
     "domain": 1,
     "task_statement": "1.3",
     "front": "What does an `AgentDefinition` configure for a subagent type?",
@@ -147,7 +147,7 @@
     ]
   },
   {
-    "id": "fc-1.4-001",
+    "id": "ccarf-fc-1.4-001",
     "domain": 1,
     "task_statement": "1.4",
     "front": "When must you use a programmatic prerequisite gate instead of a prompt instruction for workflow ordering?",
@@ -158,7 +158,7 @@
     ]
   },
   {
-    "id": "fc-1.4-002",
+    "id": "ccarf-fc-1.4-002",
     "domain": 1,
     "task_statement": "1.4",
     "front": "What belongs in a structured handoff summary when escalating to a human who lacks the conversation transcript?",
@@ -169,7 +169,7 @@
     ]
   },
   {
-    "id": "fc-1.4-003",
+    "id": "ccarf-fc-1.4-003",
     "domain": 1,
     "task_statement": "1.4",
     "front": "How should an agent handle a customer message containing several distinct problems?",
@@ -179,7 +179,7 @@
     ]
   },
   {
-    "id": "fc-1.5-001",
+    "id": "ccarf-fc-1.5-001",
     "domain": 1,
     "task_statement": "1.5",
     "front": "What does a PostToolUse hook do?",
@@ -189,7 +189,7 @@
     ]
   },
   {
-    "id": "fc-1.5-004",
+    "id": "ccarf-fc-1.5-004",
     "domain": 1,
     "task_statement": "1.5",
     "front": "What is the canonical use of a PostToolUse hook for MCP tools?",
@@ -200,7 +200,7 @@
     ]
   },
   {
-    "id": "fc-1.5-002",
+    "id": "ccarf-fc-1.5-002",
     "domain": 1,
     "task_statement": "1.5",
     "front": "Hooks vs. prompt instructions: when do you need a hook?",
@@ -211,7 +211,7 @@
     ]
   },
   {
-    "id": "fc-1.5-003",
+    "id": "ccarf-fc-1.5-003",
     "domain": 1,
     "task_statement": "1.5",
     "front": "How should a tool-call interception hook handle a policy-violating action (e.g., a $900 refund over the $500 limit)?",
@@ -222,7 +222,7 @@
     ]
   },
   {
-    "id": "fc-1.6-001",
+    "id": "ccarf-fc-1.6-001",
     "domain": 1,
     "task_statement": "1.6",
     "front": "When do you use a fixed sequential pipeline (prompt chaining) versus dynamic adaptive decomposition?",
@@ -233,7 +233,7 @@
     ]
   },
   {
-    "id": "fc-1.6-002",
+    "id": "ccarf-fc-1.6-002",
     "domain": 1,
     "task_statement": "1.6",
     "front": "Why split a large multi-file review into per-file passes plus a cross-file integration pass?",
@@ -245,7 +245,7 @@
     ]
   },
   {
-    "id": "fc-1.6-003",
+    "id": "ccarf-fc-1.6-003",
     "domain": 1,
     "task_statement": "1.6",
     "front": "How do you decompose an open-ended task like \"add comprehensive tests to a legacy codebase\"?",
@@ -257,7 +257,7 @@
     ]
   },
   {
-    "id": "fc-1.7-001",
+    "id": "ccarf-fc-1.7-001",
     "domain": 1,
     "task_statement": "1.7",
     "front": "How do you continue a specific prior Claude Code conversation by name?",
@@ -268,7 +268,7 @@
     ]
   },
   {
-    "id": "fc-1.7-004",
+    "id": "ccarf-fc-1.7-004",
     "domain": 1,
     "task_statement": "1.7",
     "front": "When is resuming a named session (rather than starting fresh) the right choice?",
@@ -279,7 +279,7 @@
     ]
   },
   {
-    "id": "fc-1.7-002",
+    "id": "ccarf-fc-1.7-002",
     "domain": 1,
     "task_statement": "1.7",
     "front": "What does `fork_session` do?",
@@ -290,7 +290,7 @@
     ]
   },
   {
-    "id": "fc-1.7-005",
+    "id": "ccarf-fc-1.7-005",
     "domain": 1,
     "task_statement": "1.7",
     "front": "Give a use case for `fork_session`.",
@@ -301,7 +301,7 @@
     ]
   },
   {
-    "id": "fc-1.7-003",
+    "id": "ccarf-fc-1.7-003",
     "domain": 1,
     "task_statement": "1.7",
     "front": "Resume vs. start fresh with an injected summary: how do you decide?",
@@ -313,7 +313,7 @@
     ]
   },
   {
-    "id": "fc-2.1-001",
+    "id": "ccarf-fc-2.1-001",
     "domain": 2,
     "task_statement": "2.1",
     "front": "What is the primary mechanism an LLM uses to select which tool to call?",
@@ -324,7 +324,7 @@
     ]
   },
   {
-    "id": "fc-2.1-004",
+    "id": "ccarf-fc-2.1-004",
     "domain": 2,
     "task_statement": "2.1",
     "front": "What should a strong tool description include?",
@@ -335,7 +335,7 @@
     ]
   },
   {
-    "id": "fc-2.1-002",
+    "id": "ccarf-fc-2.1-002",
     "domain": 2,
     "task_statement": "2.1",
     "front": "Two tools misroute because their descriptions are near-identical (e.g., `analyze_content` vs `analyze_document`). What are the two canonical fixes?",
@@ -347,7 +347,7 @@
     ]
   },
   {
-    "id": "fc-2.1-003",
+    "id": "ccarf-fc-2.1-003",
     "domain": 2,
     "task_statement": "2.1",
     "front": "The tool descriptions are good, but the agent keeps picking the wrong tool. What non-description cause should you check?",
@@ -359,7 +359,7 @@
     ]
   },
   {
-    "id": "fc-2.2-001",
+    "id": "ccarf-fc-2.2-001",
     "domain": 2,
     "task_statement": "2.2",
     "front": "In MCP, how does a tool tell the agent that a call failed?",
@@ -369,7 +369,7 @@
     ]
   },
   {
-    "id": "fc-2.2-004",
+    "id": "ccarf-fc-2.2-004",
     "domain": 2,
     "task_statement": "2.2",
     "front": "What four error categories should a failed tool call distinguish, and why?",
@@ -379,7 +379,7 @@
     ]
   },
   {
-    "id": "fc-2.2-002",
+    "id": "ccarf-fc-2.2-002",
     "domain": 2,
     "task_statement": "2.2",
     "front": "Why is a uniform `\"Operation failed\"` response an anti-pattern?",
@@ -389,7 +389,7 @@
     ]
   },
   {
-    "id": "fc-2.2-006",
+    "id": "ccarf-fc-2.2-006",
     "domain": 2,
     "task_statement": "2.2",
     "front": "What structured metadata should replace a uniform `\"Operation failed\"` response?",
@@ -400,7 +400,7 @@
     ]
   },
   {
-    "id": "fc-2.2-003",
+    "id": "ccarf-fc-2.2-003",
     "domain": 2,
     "task_statement": "2.2",
     "front": "How should a subagent handle failures before reporting anything to the coordinator?",
@@ -410,7 +410,7 @@
     ]
   },
   {
-    "id": "fc-2.2-005",
+    "id": "ccarf-fc-2.2-005",
     "domain": 2,
     "task_statement": "2.2",
     "front": "How does an access failure differ from a valid empty result, and how should each be reported?",
@@ -421,7 +421,7 @@
     ]
   },
   {
-    "id": "fc-2.3-001",
+    "id": "ccarf-fc-2.3-001",
     "domain": 2,
     "task_statement": "2.3",
     "front": "Why does giving one agent 18 tools instead of a focused 4-5 hurt performance?",
@@ -431,7 +431,7 @@
     ]
   },
   {
-    "id": "fc-2.3-004",
+    "id": "ccarf-fc-2.3-004",
     "domain": 2,
     "task_statement": "2.3",
     "front": "What is the fix for an agent having too many available tools?",
@@ -442,7 +442,7 @@
     ]
   },
   {
-    "id": "fc-2.3-002",
+    "id": "ccarf-fc-2.3-002",
     "domain": 2,
     "task_statement": "2.3",
     "front": "What are the three `tool_choice` modes and when do you use each?",
@@ -455,7 +455,7 @@
     ]
   },
   {
-    "id": "fc-2.3-003",
+    "id": "ccarf-fc-2.3-003",
     "domain": 2,
     "task_statement": "2.3",
     "front": "Two patterns for tightening tool access without removing needed capability?",
@@ -467,7 +467,7 @@
     ]
   },
   {
-    "id": "fc-2.4-001",
+    "id": "ccarf-fc-2.4-001",
     "domain": 2,
     "task_statement": "2.4",
     "front": "When do you put an MCP server in project-level `.mcp.json` versus user-level `~/.claude.json`?",
@@ -478,7 +478,7 @@
     ]
   },
   {
-    "id": "fc-2.4-002",
+    "id": "ccarf-fc-2.4-002",
     "domain": 2,
     "task_statement": "2.4",
     "front": "How do you keep an auth token like `GITHUB_TOKEN` out of a committed `.mcp.json`?",
@@ -489,7 +489,7 @@
     ]
   },
   {
-    "id": "fc-2.4-003",
+    "id": "ccarf-fc-2.4-003",
     "domain": 2,
     "task_statement": "2.4",
     "front": "What problem do MCP tools solve?",
@@ -500,7 +500,7 @@
     ]
   },
   {
-    "id": "fc-2.4-004",
+    "id": "ccarf-fc-2.4-004",
     "domain": 2,
     "task_statement": "2.4",
     "front": "What problem do MCP resources solve?",
@@ -510,7 +510,7 @@
     ]
   },
   {
-    "id": "fc-2.5-001",
+    "id": "ccarf-fc-2.5-001",
     "domain": 2,
     "task_statement": "2.5",
     "front": "When do you reach for Grep versus Glob?",
@@ -522,7 +522,7 @@
     ]
   },
   {
-    "id": "fc-2.5-002",
+    "id": "ccarf-fc-2.5-002",
     "domain": 2,
     "task_statement": "2.5",
     "front": "Edit fails because the anchor text is not unique in the file. What is the recommended fallback?",
@@ -534,7 +534,7 @@
     ]
   },
   {
-    "id": "fc-2.5-003",
+    "id": "ccarf-fc-2.5-003",
     "domain": 2,
     "task_statement": "2.5",
     "front": "What is the incremental approach to understanding an unfamiliar codebase with built-in tools?",
@@ -546,7 +546,7 @@
     ]
   },
   {
-    "id": "fc-3.1-001",
+    "id": "ccarf-fc-3.1-001",
     "domain": 3,
     "task_statement": "3.1",
     "front": "Why does a teammate not receive instructions that work fine on a colleague's machine when those instructions live in `~/.claude/CLAUDE.md`?",
@@ -558,7 +558,7 @@
     ]
   },
   {
-    "id": "fc-3.1-002",
+    "id": "ccarf-fc-3.1-002",
     "domain": 3,
     "task_statement": "3.1",
     "front": "What are the three levels of the CLAUDE.md hierarchy?",
@@ -569,7 +569,7 @@
     ]
   },
   {
-    "id": "fc-3.1-004",
+    "id": "ccarf-fc-3.1-004",
     "domain": 3,
     "task_statement": "3.1",
     "front": "When a root CLAUDE.md and a subdirectory CLAUDE.md conflict, which one wins?",
@@ -580,7 +580,7 @@
     ]
   },
   {
-    "id": "fc-3.1-003",
+    "id": "ccarf-fc-3.1-003",
     "domain": 3,
     "task_statement": "3.1",
     "front": "What is `@import` used for in CLAUDE.md?",
@@ -590,7 +590,7 @@
     ]
   },
   {
-    "id": "fc-3.1-006",
+    "id": "ccarf-fc-3.1-006",
     "domain": 3,
     "task_statement": "3.1",
     "front": "What is `.claude/rules/` used for?",
@@ -600,7 +600,7 @@
     ]
   },
   {
-    "id": "fc-3.1-005",
+    "id": "ccarf-fc-3.1-005",
     "domain": 3,
     "task_statement": "3.1",
     "front": "How do you check which memory files are currently loaded in a session?",
@@ -610,7 +610,7 @@
     ]
   },
   {
-    "id": "fc-3.2-001",
+    "id": "ccarf-fc-3.2-001",
     "domain": 3,
     "task_statement": "3.2",
     "front": "Where do team-shared custom slash commands live?",
@@ -621,7 +621,7 @@
     ]
   },
   {
-    "id": "fc-3.2-006",
+    "id": "ccarf-fc-3.2-006",
     "domain": 3,
     "task_statement": "3.2",
     "front": "Where do personal custom slash commands live?",
@@ -632,7 +632,7 @@
     ]
   },
   {
-    "id": "fc-3.2-002",
+    "id": "ccarf-fc-3.2-002",
     "domain": 3,
     "task_statement": "3.2",
     "front": "What does the `context: fork` SKILL.md frontmatter field do?",
@@ -643,7 +643,7 @@
     ]
   },
   {
-    "id": "fc-3.2-004",
+    "id": "ccarf-fc-3.2-004",
     "domain": 3,
     "task_statement": "3.2",
     "front": "What does the `allowed-tools` SKILL.md frontmatter field do?",
@@ -654,7 +654,7 @@
     ]
   },
   {
-    "id": "fc-3.2-005",
+    "id": "ccarf-fc-3.2-005",
     "domain": 3,
     "task_statement": "3.2",
     "front": "What does the `argument-hint` SKILL.md frontmatter field do?",
@@ -665,7 +665,7 @@
     ]
   },
   {
-    "id": "fc-3.2-003",
+    "id": "ccarf-fc-3.2-003",
     "domain": 3,
     "task_statement": "3.2",
     "front": "When do you use CLAUDE.md rather than a skill?",
@@ -676,7 +676,7 @@
     ]
   },
   {
-    "id": "fc-3.2-007",
+    "id": "ccarf-fc-3.2-007",
     "domain": 3,
     "task_statement": "3.2",
     "front": "When do you use a skill rather than CLAUDE.md?",
@@ -687,7 +687,7 @@
     ]
   },
   {
-    "id": "fc-3.3-001",
+    "id": "ccarf-fc-3.3-001",
     "domain": 3,
     "task_statement": "3.3",
     "front": "Which YAML frontmatter field in a `.claude/rules/` file controls conditional activation, and what does it contain?",
@@ -699,7 +699,7 @@
     ]
   },
   {
-    "id": "fc-3.3-002",
+    "id": "ccarf-fc-3.3-002",
     "domain": 3,
     "task_statement": "3.3",
     "front": "For test files scattered throughout the codebase (e.g., `Button.test.tsx` beside `Button.tsx`), why choose a glob path rule over a subdirectory CLAUDE.md?",
@@ -711,7 +711,7 @@
     ]
   },
   {
-    "id": "fc-3.3-003",
+    "id": "ccarf-fc-3.3-003",
     "domain": 3,
     "task_statement": "3.3",
     "front": "Why do path-scoped rules beat skills or slash commands when conventions must apply automatically based on the file being edited?",
@@ -723,7 +723,7 @@
     ]
   },
   {
-    "id": "fc-3.4-001",
+    "id": "ccarf-fc-3.4-001",
     "domain": 3,
     "task_statement": "3.4",
     "front": "When should you choose plan mode over direct execution?",
@@ -735,7 +735,7 @@
     ]
   },
   {
-    "id": "fc-3.4-002",
+    "id": "ccarf-fc-3.4-002",
     "domain": 3,
     "task_statement": "3.4",
     "front": "If a task's complexity is already stated in the requirements, why not just start in direct execution and switch to plan mode later?",
@@ -747,7 +747,7 @@
     ]
   },
   {
-    "id": "fc-3.4-003",
+    "id": "ccarf-fc-3.4-003",
     "domain": 3,
     "task_statement": "3.4",
     "front": "What is the Explore subagent for?",
@@ -758,7 +758,7 @@
     ]
   },
   {
-    "id": "fc-3.4-004",
+    "id": "ccarf-fc-3.4-004",
     "domain": 3,
     "task_statement": "3.4",
     "front": "What is the common pattern for combining the Explore subagent with plan mode and direct execution?",
@@ -769,7 +769,7 @@
     ]
   },
   {
-    "id": "fc-3.5-001",
+    "id": "ccarf-fc-3.5-001",
     "domain": 3,
     "task_statement": "3.5",
     "front": "When a prose description of a transformation is interpreted inconsistently across runs, what is the most effective fix?",
@@ -780,7 +780,7 @@
     ]
   },
   {
-    "id": "fc-3.5-002",
+    "id": "ccarf-fc-3.5-002",
     "domain": 3,
     "task_statement": "3.5",
     "front": "How does test-driven iteration drive progressive improvement, and what makes it work?",
@@ -791,7 +791,7 @@
     ]
   },
   {
-    "id": "fc-3.5-003",
+    "id": "ccarf-fc-3.5-003",
     "domain": 3,
     "task_statement": "3.5",
     "front": "What is the interview pattern?",
@@ -801,7 +801,7 @@
     ]
   },
   {
-    "id": "fc-3.5-005",
+    "id": "ccarf-fc-3.5-005",
     "domain": 3,
     "task_statement": "3.5",
     "front": "When is the interview pattern most useful?",
@@ -811,7 +811,7 @@
     ]
   },
   {
-    "id": "fc-3.5-004",
+    "id": "ccarf-fc-3.5-004",
     "domain": 3,
     "task_statement": "3.5",
     "front": "When do you bundle multiple issues into one message vs. fix them sequentially?",
@@ -821,7 +821,7 @@
     ]
   },
   {
-    "id": "fc-3.6-001",
+    "id": "ccarf-fc-3.6-001",
     "domain": 3,
     "task_statement": "3.6",
     "front": "Which Claude Code flag prevents a CI job from hanging on interactive input?",
@@ -832,7 +832,7 @@
     ]
   },
   {
-    "id": "fc-3.6-004",
+    "id": "ccarf-fc-3.6-004",
     "domain": 3,
     "task_statement": "3.6",
     "front": "What do `--output-format json` and `--json-schema` add for CI pipelines?",
@@ -843,7 +843,7 @@
     ]
   },
   {
-    "id": "fc-3.6-002",
+    "id": "ccarf-fc-3.6-002",
     "domain": 3,
     "task_statement": "3.6",
     "front": "Why is the Claude session that generated code a poor reviewer of its own diff?",
@@ -853,7 +853,7 @@
     ]
   },
   {
-    "id": "fc-3.6-006",
+    "id": "ccarf-fc-3.6-006",
     "domain": 3,
     "task_statement": "3.6",
     "front": "What is the fix for self-review bias in Claude-generated code review?",
@@ -864,7 +864,7 @@
     ]
   },
   {
-    "id": "fc-3.6-003",
+    "id": "ccarf-fc-3.6-003",
     "domain": 3,
     "task_statement": "3.6",
     "front": "In CI, how do you stop a re-run from re-posting the same old findings?",
@@ -875,7 +875,7 @@
     ]
   },
   {
-    "id": "fc-3.6-005",
+    "id": "ccarf-fc-3.6-005",
     "domain": 3,
     "task_statement": "3.6",
     "front": "How does CLAUDE.md improve CI-driven review/test-generation output?",
@@ -885,7 +885,7 @@
     ]
   },
   {
-    "id": "fc-3.6-007",
+    "id": "ccarf-fc-3.6-007",
     "domain": 3,
     "task_statement": "3.6",
     "front": "How do existing test files improve CI-driven test-generation output?",
@@ -895,7 +895,7 @@
     ]
   },
   {
-    "id": "fc-4.1-001",
+    "id": "ccarf-fc-4.1-001",
     "domain": 4,
     "task_statement": "4.1",
     "front": "Why do \"be conservative\" or \"only report high-confidence findings\" fail to improve a review agent's precision?",
@@ -907,7 +907,7 @@
     ]
   },
   {
-    "id": "fc-4.1-002",
+    "id": "ccarf-fc-4.1-002",
     "domain": 4,
     "task_statement": "4.1",
     "front": "How do high false-positive categories affect trust in a code-review tool?",
@@ -918,7 +918,7 @@
     ]
   },
   {
-    "id": "fc-4.1-004",
+    "id": "ccarf-fc-4.1-004",
     "domain": 4,
     "task_statement": "4.1",
     "front": "What is the recommended interim fix for a code-review category with a high false-positive rate?",
@@ -929,7 +929,7 @@
     ]
   },
   {
-    "id": "fc-4.1-003",
+    "id": "ccarf-fc-4.1-003",
     "domain": 4,
     "task_statement": "4.1",
     "front": "What is the most reliable way to get consistent severity classification from a review agent?",
@@ -941,7 +941,7 @@
     ]
   },
   {
-    "id": "fc-4.2-001",
+    "id": "ccarf-fc-4.2-001",
     "domain": 4,
     "task_statement": "4.2",
     "front": "When detailed instructions alone produce inconsistent output, what is the most effective technique for consistently formatted, actionable results?",
@@ -952,7 +952,7 @@
     ]
   },
   {
-    "id": "fc-4.2-004",
+    "id": "ccarf-fc-4.2-004",
     "domain": 4,
     "task_statement": "4.2",
     "front": "How many few-shot examples should you use for ambiguous scenarios, and what should each one show?",
@@ -963,7 +963,7 @@
     ]
   },
   {
-    "id": "fc-4.2-002",
+    "id": "ccarf-fc-4.2-002",
     "domain": 4,
     "task_statement": "4.2",
     "front": "Why do few-shot examples handle novel inputs that were never explicitly shown?",
@@ -975,7 +975,7 @@
     ]
   },
   {
-    "id": "fc-4.2-003",
+    "id": "ccarf-fc-4.2-003",
     "domain": 4,
     "task_statement": "4.2",
     "front": "How do few-shot examples reduce hallucination and empty/null fields in extraction from varied documents?",
@@ -987,7 +987,7 @@
     ]
   },
   {
-    "id": "fc-4.3-001",
+    "id": "ccarf-fc-4.3-001",
     "domain": 4,
     "task_statement": "4.3",
     "front": "What do the three `tool_choice` modes each guarantee: `\"auto\"`, `\"any\"`, and `{\"type\":\"tool\",\"name\":...}`?",
@@ -998,7 +998,7 @@
     ]
   },
   {
-    "id": "fc-4.3-002",
+    "id": "ccarf-fc-4.3-002",
     "domain": 4,
     "task_statement": "4.3",
     "front": "Tool use with a strict JSON schema eliminates which class of errors, and which class does it NOT prevent?",
@@ -1009,7 +1009,7 @@
     ]
   },
   {
-    "id": "fc-4.3-003",
+    "id": "ccarf-fc-4.3-003",
     "domain": 4,
     "task_statement": "4.3",
     "front": "In structured extraction, how do you prevent the model from fabricating a value when information is absent?",
@@ -1020,7 +1020,7 @@
     ]
   },
   {
-    "id": "fc-4.3-004",
+    "id": "ccarf-fc-4.3-004",
     "domain": 4,
     "task_statement": "4.3",
     "front": "In structured extraction, how do you design a schema field for a category that isn't fully known in advance?",
@@ -1031,7 +1031,7 @@
     ]
   },
   {
-    "id": "fc-4.4-001",
+    "id": "ccarf-fc-4.4-001",
     "domain": 4,
     "task_statement": "4.4",
     "front": "When does retry-with-error-feedback help an extraction, and when is it futile?",
@@ -1042,7 +1042,7 @@
     ]
   },
   {
-    "id": "fc-4.4-002",
+    "id": "ccarf-fc-4.4-002",
     "domain": 4,
     "task_statement": "4.4",
     "front": "Semantic validation errors vs. schema syntax errors: what's the difference and which does tool use eliminate?",
@@ -1054,7 +1054,7 @@
     ]
   },
   {
-    "id": "fc-4.4-003",
+    "id": "ccarf-fc-4.4-003",
     "domain": 4,
     "task_statement": "4.4",
     "front": "Name two structured fields used in extraction pipelines to support automatic validation of the extracted data.",
@@ -1065,7 +1065,7 @@
     ]
   },
   {
-    "id": "fc-4.4-004",
+    "id": "ccarf-fc-4.4-004",
     "domain": 4,
     "task_statement": "4.4",
     "front": "What is `detected_pattern` used for in a code-review findings pipeline?",
@@ -1076,7 +1076,7 @@
     ]
   },
   {
-    "id": "fc-4.5-001",
+    "id": "ccarf-fc-4.5-001",
     "domain": 4,
     "task_statement": "4.5",
     "front": "What are the key trade-offs of the Message Batches API, and which workloads is it (in)appropriate for?",
@@ -1087,7 +1087,7 @@
     ]
   },
   {
-    "id": "fc-4.5-002",
+    "id": "ccarf-fc-4.5-002",
     "domain": 4,
     "task_statement": "4.5",
     "front": "How do you correlate Message Batches API responses back to their original requests?",
@@ -1097,7 +1097,7 @@
     ]
   },
   {
-    "id": "fc-4.5-004",
+    "id": "ccarf-fc-4.5-004",
     "domain": 4,
     "task_statement": "4.5",
     "front": "How should you handle failed items in a Message Batches API run?",
@@ -1108,7 +1108,7 @@
     ]
   },
   {
-    "id": "fc-4.5-003",
+    "id": "ccarf-fc-4.5-003",
     "domain": 4,
     "task_statement": "4.5",
     "front": "Does the Message Batches API support multi-turn tool calling within a single batch request?",
@@ -1118,7 +1118,7 @@
     ]
   },
   {
-    "id": "fc-4.5-005",
+    "id": "ccarf-fc-4.5-005",
     "domain": 4,
     "task_statement": "4.5",
     "front": "How do you compute the required batch-submission cadence to meet a given SLA?",
@@ -1129,7 +1129,7 @@
     ]
   },
   {
-    "id": "fc-4.6-001",
+    "id": "ccarf-fc-4.6-001",
     "domain": 4,
     "task_statement": "4.6",
     "front": "Why is an independent Claude instance better at reviewing generated code than self-review in the same session?",
@@ -1141,7 +1141,7 @@
     ]
   },
   {
-    "id": "fc-4.6-002",
+    "id": "ccarf-fc-4.6-002",
     "domain": 4,
     "task_statement": "4.6",
     "front": "A single-pass review of a large multi-file PR gives inconsistent depth, misses bugs, and produces contradictory findings. How do you restructure it?",
@@ -1153,7 +1153,7 @@
     ]
   },
   {
-    "id": "fc-4.6-003",
+    "id": "ccarf-fc-4.6-003",
     "domain": 4,
     "task_statement": "4.6",
     "front": "What is a verification pass with self-reported confidence used for?",
@@ -1165,7 +1165,7 @@
     ]
   },
   {
-    "id": "fc-5.1-001",
+    "id": "ccarf-fc-5.1-001",
     "domain": 5,
     "task_statement": "5.1",
     "front": "Why does progressive summarization endanger critical support information?",
@@ -1175,7 +1175,7 @@
     ]
   },
   {
-    "id": "fc-5.1-005",
+    "id": "ccarf-fc-5.1-005",
     "domain": 5,
     "task_statement": "5.1",
     "front": "How do you preserve critical transactional facts across progressive summarization?",
@@ -1185,7 +1185,7 @@
     ]
   },
   {
-    "id": "fc-5.1-002",
+    "id": "ccarf-fc-5.1-002",
     "domain": 5,
     "task_statement": "5.1",
     "front": "What is the \"lost in the middle\" effect?",
@@ -1196,7 +1196,7 @@
     ]
   },
   {
-    "id": "fc-5.1-006",
+    "id": "ccarf-fc-5.1-006",
     "domain": 5,
     "task_statement": "5.1",
     "front": "How do you mitigate the \"lost in the middle\" effect?",
@@ -1207,7 +1207,7 @@
     ]
   },
   {
-    "id": "fc-5.1-003",
+    "id": "ccarf-fc-5.1-003",
     "domain": 5,
     "task_statement": "5.1",
     "front": "How do you protect a limited context budget from verbose raw tool results?",
@@ -1217,7 +1217,7 @@
     ]
   },
   {
-    "id": "fc-5.1-004",
+    "id": "ccarf-fc-5.1-004",
     "domain": 5,
     "task_statement": "5.1",
     "front": "What should an upstream agent return to a downstream agent, instead of its verbose content and reasoning chain?",
@@ -1227,7 +1227,7 @@
     ]
   },
   {
-    "id": "fc-5.2-001",
+    "id": "ccarf-fc-5.2-001",
     "domain": 5,
     "task_statement": "5.2",
     "front": "What are the three appropriate escalation triggers for a support agent?",
@@ -1238,7 +1238,7 @@
     ]
   },
   {
-    "id": "fc-5.2-002",
+    "id": "ccarf-fc-5.2-002",
     "domain": 5,
     "task_statement": "5.2",
     "front": "Why are sentiment-based escalation and self-reported confidence scores poor bases for escalation?",
@@ -1250,7 +1250,7 @@
     ]
   },
   {
-    "id": "fc-5.2-003",
+    "id": "ccarf-fc-5.2-003",
     "domain": 5,
     "task_statement": "5.2",
     "front": "How should an agent respond to an explicit customer request to speak to a human?",
@@ -1260,7 +1260,7 @@
     ]
   },
   {
-    "id": "fc-5.2-004",
+    "id": "ccarf-fc-5.2-004",
     "domain": 5,
     "task_statement": "5.2",
     "front": "How should an agent handle a tool call that returns multiple possible customer matches?",
@@ -1271,7 +1271,7 @@
     ]
   },
   {
-    "id": "fc-5.3-001",
+    "id": "ccarf-fc-5.3-001",
     "domain": 5,
     "task_statement": "5.3",
     "front": "What four elements make up useful structured error context returned from a subagent to the coordinator?",
@@ -1282,7 +1282,7 @@
     ]
   },
   {
-    "id": "fc-5.3-002",
+    "id": "ccarf-fc-5.3-002",
     "domain": 5,
     "task_statement": "5.3",
     "front": "How does an access failure differ from a valid empty result, and why does the distinction matter?",
@@ -1293,7 +1293,7 @@
     ]
   },
   {
-    "id": "fc-5.3-003",
+    "id": "ccarf-fc-5.3-003",
     "domain": 5,
     "task_statement": "5.3",
     "front": "Name the two error-propagation anti-patterns in a multi-agent system.",
@@ -1303,7 +1303,7 @@
     ]
   },
   {
-    "id": "fc-5.3-004",
+    "id": "ccarf-fc-5.3-004",
     "domain": 5,
     "task_statement": "5.3",
     "front": "What is the subagent recovery-and-propagation rule for handling failures?",
@@ -1314,7 +1314,7 @@
     ]
   },
   {
-    "id": "fc-5.3-005",
+    "id": "ccarf-fc-5.3-005",
     "domain": 5,
     "task_statement": "5.3",
     "front": "How does synthesis handle gaps left by unavailable sources or unresolved errors?",
@@ -1324,7 +1324,7 @@
     ]
   },
   {
-    "id": "fc-5.4-001",
+    "id": "ccarf-fc-5.4-001",
     "domain": 5,
     "task_statement": "5.4",
     "front": "What are the tell-tale symptoms of context degradation in an extended exploration session?",
@@ -1334,7 +1334,7 @@
     ]
   },
   {
-    "id": "fc-5.4-005",
+    "id": "ccarf-fc-5.4-005",
     "domain": 5,
     "task_statement": "5.4",
     "front": "What counteracts context degradation in an extended exploration session?",
@@ -1344,7 +1344,7 @@
     ]
   },
   {
-    "id": "fc-5.4-002",
+    "id": "ccarf-fc-5.4-002",
     "domain": 5,
     "task_statement": "5.4",
     "front": "Why delegate verbose sub-investigations (e.g., 'find all test files,' 'trace refund flow dependencies') to subagents?",
@@ -1355,7 +1355,7 @@
     ]
   },
   {
-    "id": "fc-5.4-003",
+    "id": "ccarf-fc-5.4-003",
     "domain": 5,
     "task_statement": "5.4",
     "front": "How does manifest-based crash recovery let a multi-agent session resume after a crash?",
@@ -1366,7 +1366,7 @@
     ]
   },
   {
-    "id": "fc-5.4-004",
+    "id": "ccarf-fc-5.4-004",
     "domain": 5,
     "task_statement": "5.4",
     "front": "What does `/compact` do to manage context in a long session?",
@@ -1376,7 +1376,7 @@
     ]
   },
   {
-    "id": "fc-5.5-001",
+    "id": "ccarf-fc-5.5-001",
     "domain": 5,
     "task_statement": "5.5",
     "front": "Why can a 97% aggregate extraction accuracy be dangerous?",
@@ -1387,7 +1387,7 @@
     ]
   },
   {
-    "id": "fc-5.5-004",
+    "id": "ccarf-fc-5.5-004",
     "domain": 5,
     "task_statement": "5.5",
     "front": "What must you check before automating high-confidence extractions based on an aggregate accuracy number?",
@@ -1397,7 +1397,7 @@
     ]
   },
   {
-    "id": "fc-5.5-002",
+    "id": "ccarf-fc-5.5-002",
     "domain": 5,
     "task_statement": "5.5",
     "front": "Why can't you trust a raw model confidence score (e.g., 0.90) at face value?",
@@ -1407,7 +1407,7 @@
     ]
   },
   {
-    "id": "fc-5.5-005",
+    "id": "ccarf-fc-5.5-005",
     "domain": 5,
     "task_statement": "5.5",
     "front": "What does it mean to calibrate field-level confidence scores?",
@@ -1419,7 +1419,7 @@
     ]
   },
   {
-    "id": "fc-5.5-003",
+    "id": "ccarf-fc-5.5-003",
     "domain": 5,
     "task_statement": "5.5",
     "front": "How do stratified random sampling and confidence-based routing work together in a human-review workflow?",
@@ -1432,7 +1432,7 @@
     ]
   },
   {
-    "id": "fc-5.6-001",
+    "id": "ccarf-fc-5.6-001",
     "domain": 5,
     "task_statement": "5.6",
     "front": "Why does source attribution get lost during multi-agent synthesis?",
@@ -1442,7 +1442,7 @@
     ]
   },
   {
-    "id": "fc-5.6-005",
+    "id": "ccarf-fc-5.6-005",
     "domain": 5,
     "task_statement": "5.6",
     "front": "How do you prevent source attribution from being lost during multi-agent synthesis?",
@@ -1453,7 +1453,7 @@
     ]
   },
   {
-    "id": "fc-5.6-002",
+    "id": "ccarf-fc-5.6-002",
     "domain": 5,
     "task_statement": "5.6",
     "front": "How should an agent handle conflicting statistics from credible sources?",
@@ -1465,7 +1465,7 @@
     ]
   },
   {
-    "id": "fc-5.6-003",
+    "id": "ccarf-fc-5.6-003",
     "domain": 5,
     "task_statement": "5.6",
     "front": "How do you keep temporal differences between sources from being misread as contradictions?",
@@ -1475,7 +1475,7 @@
     ]
   },
   {
-    "id": "fc-5.6-004",
+    "id": "ccarf-fc-5.6-004",
     "domain": 5,
     "task_statement": "5.6",
     "front": "How should different content types be rendered in a synthesized output?",

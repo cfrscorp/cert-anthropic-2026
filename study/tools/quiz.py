@@ -5,7 +5,7 @@
 # ///
 """A colorful, offline terminal quiz runner for CCAF-style practice question sets.
 
-Reads one or more JSON files matching the schema of study/data/questions-standard.json
+Reads one or more JSON files matching the schema of study/content/ccarf-questions-standard.json
 (scenario, stem, four options, correct key, rationale, domain, task_statement,
 difficulty, tags), runs an interactive multiple-choice session in the
 terminal, and tracks personal correct/incorrect results across sessions in a
@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # Personal progress is scratch state, not project content, so it defaults into
 # the repo's gitignored .working/ directory (study/tools/ -> study/ -> repo root)
@@ -486,43 +486,43 @@ def print_list(questions):
 EPILOG = """\
 Examples (run from the repo root):
   # Quiz on the main study bank, questions in file order
-  uv run study/tools/quiz.py study/data/questions-standard.json
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json
 
   # Shuffle and cap the session at 20 random questions
-  uv run study/tools/quiz.py study/data/questions-standard.json --shuffle --num 20
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --shuffle --num 20
 
   # Drill just one domain (Agentic Architecture & Orchestration)
-  uv run study/tools/quiz.py study/data/questions-standard.json --domain 1
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --domain 1
 
   # Drill one task statement
-  uv run study/tools/quiz.py study/data/questions-standard.json --task 4.3
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --task 4.3
 
   # Filter by tag
-  uv run study/tools/quiz.py study/data/questions-standard.json --tag hooks
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --tag hooks
 
   # Combine the main bank with your own personal question set
-  uv run study/tools/quiz.py study/data/questions-standard.json .working/my-questions.json --shuffle
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json .working/my-questions.json --shuffle
 
   # Re-drill only the questions you've gotten wrong before
-  uv run study/tools/quiz.py study/data/questions-standard.json --review-missed
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --review-missed
 
   # Reproducible shuffle order (useful for comparing runs)
-  uv run study/tools/quiz.py study/data/questions-standard.json --shuffle --seed 42
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --shuffle --seed 42
 
   # View cumulative stats without starting a quiz
-  uv run study/tools/quiz.py study/data/questions-standard.json --stats
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --stats
 
   # See what's available (domains/tasks/tags) in a file without quizzing
-  uv run study/tools/quiz.py study/data/questions-standard.json --list
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --list
 
   # Use a separate history file, e.g. to keep two question banks' progress apart
   uv run study/tools/quiz.py .working/my-questions.json --history .working/my-questions_history.json
 
   # Wipe saved progress for the current history file
-  uv run study/tools/quiz.py study/data/questions-standard.json --reset-history
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --reset-history
 
   # Disable color (e.g. piping output to a file)
-  uv run study/tools/quiz.py study/data/questions-standard.json --no-color
+  uv run study/tools/quiz.py study/content/ccarf-questions-standard.json --no-color
 
   # Show the script version
   uv run study/tools/quiz.py --version

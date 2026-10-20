@@ -1,6 +1,6 @@
 /* ==========================================================================
    CCAF Study — app (vanilla JS, no dependencies)
-   Loads data/*.json, routes 4 views by hash, tracks cumulative progress in
+   Loads exams/ + content/ JSON, routes 4 views by hash, tracks cumulative progress in
    localStorage, and renders a readiness dashboard. Serve over http://localhost
    (see ../serve.py) so fetch() of the local JSON works.
    ========================================================================== */
@@ -9,7 +9,7 @@
 
   var PROGRESS_KEY = "ccaf-study-progress-v1";
   var THEME_KEY = "ccaf-study-theme";
-  var PASS_THRESHOLD = 72; // exam scaled pass ≈ 720/1000; used for the readiness cue
+  var PASS_THRESHOLD = 72; // readiness pass cue; replaced at boot by the exam's config.pass_threshold
 
   var DATA = { meta: null, questions: [], flashcards: [], concepts: [], labs: [] };
   var view = document.getElementById("view");
@@ -668,7 +668,7 @@
       '<div class="card"><div class="gauge">' +
         '<div class="gauge__ring-wrap"><div class="gauge__ring" style="--p:' + r.overall + ';--gauge-color:' + readinessColor(r.overall) + '"></div><span class="gauge__pct">' + r.overall + "%</span></div>" +
         '<div><div class="gauge__num">' + r.overall + '%<span style="font-size:1rem;color:var(--ink-muted);font-weight:500"> readiness</span></div>' +
-        '<div class="muted">' + (r.overall >= PASS_THRESHOLD ? "At or above the ~72% pass line. Keep reinforcing weak areas." : "Below the ~72% pass line — focus on the weak domains below.") + "</div></div>" +
+        '<div class="muted">' + (r.overall >= PASS_THRESHOLD ? "At or above the ~" + PASS_THRESHOLD + "% pass line. Keep reinforcing weak areas." : "Below the ~" + PASS_THRESHOLD + "% pass line — focus on the weak domains below.") + "</div></div>" +
       "</div>" +
       '<div class="stat-tiles" style="margin-top:1rem">' +
         tile(answered + "/" + totalQ, "questions attempted") +
@@ -867,7 +867,7 @@
   }
 
   /* ---- set picker (Quiz question sets, Flashcards sets) ----------------- */
-  // Every set listed in sets.json is eager-loaded at boot (small files, no
+  // Every set the exam pins is eager-loaded at boot (small files, no
   // per-selection fetch/loading-state complexity); switching sets just swaps
   // which already-loaded array DATA.questions/DATA.flashcards points at.
   var QUESTION_SET_KEY = "ccaf-study-question-set";
@@ -899,24 +899,53 @@
   function fetchJSON(u) {
     return fetch(u).then(function (r) { if (!r.ok) throw new Error(u + " " + r.status); return r.json(); });
   }
+  // Content is resolved through manifests: exams/index.json lists exam slugs;
+  // exams/<slug>/exam.json holds the exam's domains/tasks and the components
+  // each section pins; content/components.json maps component ids to files.
+  // Pin versions are checked by the test suite, not at runtime.
+  function resolvePins(pins, registry) {
+    return pins.map(function (pin) {
+      var comp = registry[pin.component];
+      if (!comp) throw new Error("exam pins unknown component " + pin.component);
+      return { id: comp.id, label: pin.label || comp.id, file: comp.file };
+    });
+  }
+  function fetchAll(entries) {
+    return Promise.all(entries.map(function (e) { return fetchJSON("../content/" + e.file); }));
+  }
+  function concatAll(lists) { return [].concat.apply([], lists); }
   function boot() {
     initTheme();
-    Promise.all(["../data/meta.json", "../data/sets.json", "../data/concepts.json", "../data/labs.json"].map(fetchJSON))
+    var registry = {}, appMeta;
+    Promise.all(["../app.json", "../exams/index.json", "../content/components.json"].map(fetchJSON))
       .then(function (res) {
-        DATA.meta = res[0]; DATA.sets = res[1]; DATA.concepts = res[2]; DATA.labs = res[3];
+        appMeta = res[0];
+        res[2].components.forEach(function (c) { registry[c.id] = c; });
+        return fetchJSON("../exams/" + res[1].exams[0] + "/exam.json"); // exam picker: BL-045
+      })
+      .then(function (exam) {
+        DATA.meta = exam;
+        if (exam.config && exam.config.pass_threshold) PASS_THRESHOLD = exam.config.pass_threshold;
+        DATA.sets = {
+          questions: resolvePins(exam.sections.questions, registry),
+          flashcards: resolvePins(exam.sections.flashcards, registry),
+        };
         return Promise.all([
-          Promise.all(DATA.sets.questions.map(function (e) { return fetchJSON("../data/" + e.file); })),
-          Promise.all(DATA.sets.flashcards.map(function (e) { return fetchJSON("../data/" + e.file); })),
+          fetchAll(DATA.sets.questions),
+          fetchAll(DATA.sets.flashcards),
+          fetchAll(resolvePins(exam.sections.concepts, registry)),
+          fetchAll(resolvePins(exam.sections.labs, registry)),
         ]);
       })
       .then(function (loaded) {
+        DATA.concepts = concatAll(loaded[2]); DATA.labs = concatAll(loaded[3]);
         DATA.questionSets = {}; DATA.flashcardSets = {};
         DATA.sets.questions.forEach(function (e, i) { DATA.questionSets[e.id] = loaded[0][i]; });
         DATA.sets.flashcards.forEach(function (e, i) { DATA.flashcardSets[e.id] = loaded[1][i]; });
         selectQuestionSet(pickInitialSetId("questions", QUESTION_SET_KEY));
         selectFlashcardSet(pickInitialSetId("flashcards", FLASHCARD_SET_KEY));
 
-        var appVersion = DATA.meta.config && DATA.meta.config.app_version;
+        var appVersion = appMeta && appMeta.app_version;
         if (appVersion) {
           document.getElementById("app-version").textContent = "v" + appVersion;
           document.getElementById("app-version").hidden = false;

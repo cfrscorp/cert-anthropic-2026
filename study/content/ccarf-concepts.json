@@ -1,5 +1,6 @@
 [
   {
+    "id": "ccarf-concept-1.1",
     "task_statement": "1.1",
     "domain": 1,
     "title": "The Agentic Loop and stop_reason",
@@ -26,6 +27,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-1.2",
     "task_statement": "1.2",
     "domain": 1,
     "title": "Coordinator-subagent orchestration in hub-and-spoke multi-agent systems",
@@ -45,6 +47,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-1.3",
     "task_statement": "1.3",
     "domain": 1,
     "title": "Subagent invocation, context passing, and spawning",
@@ -76,6 +79,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-1.4",
     "task_statement": "1.4",
     "domain": 1,
     "title": "Enforcement and handoff patterns in multi-step workflows",
@@ -98,6 +102,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-1.5",
     "task_statement": "1.5",
     "domain": 1,
     "title": "Agent SDK Hooks for Tool Interception and Data Normalization",
@@ -129,6 +134,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-1.6",
     "task_statement": "1.6",
     "domain": 1,
     "title": "Task decomposition strategies: prompt chaining vs. dynamic adaptive decomposition",
@@ -148,6 +154,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-1.7",
     "task_statement": "1.7",
     "domain": 1,
     "title": "Managing session state: resumption, forking, and knowing when context is stale",
@@ -179,6 +186,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-2.1",
     "task_statement": "2.1",
     "domain": 2,
     "title": "Tool descriptions as the primary tool-selection mechanism",
@@ -210,6 +218,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-2.2",
     "task_statement": "2.2",
     "domain": 2,
     "title": "Structured Error Responses for MCP Tools",
@@ -237,6 +246,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-2.3",
     "task_statement": "2.3",
     "domain": 2,
     "title": "Distributing tools across agents and configuring tool_choice",
@@ -263,6 +273,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-2.4",
     "task_statement": "2.4",
     "domain": 2,
     "title": "Integrating MCP servers: scoping, secrets, simultaneous tools, and resources",
@@ -293,6 +304,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-2.5",
     "task_statement": "2.5",
     "domain": 2,
     "title": "Selecting and applying built-in tools (Read, Write, Edit, Grep, Glob)",
@@ -324,6 +336,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-3.1",
     "task_statement": "3.1",
     "domain": 3,
     "title": "CLAUDE.md Hierarchy, Scoping, and Modular Organization",
@@ -359,6 +372,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-3.2",
     "task_statement": "3.2",
     "domain": 3,
     "title": "Custom slash commands and skills: scope, SKILL.md frontmatter, and skills vs CLAUDE.md",
@@ -389,6 +403,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-3.3",
     "task_statement": "3.3",
     "domain": 3,
     "title": "Path-Specific Rules for Conditional Convention Loading",
@@ -411,6 +426,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-3.4",
     "task_statement": "3.4",
     "domain": 3,
     "title": "Plan mode vs. direct execution, and the Explore subagent",
@@ -434,6 +450,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-3.5",
     "task_statement": "3.5",
     "domain": 3,
     "title": "Iterative refinement techniques: examples, test-driven iteration, the interview pattern, and batching interacting issues",
@@ -464,6 +481,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-3.6",
     "task_statement": "3.6",
     "domain": 3,
     "title": "Running Claude Code non-interactively in CI/CD with structured, deduplicated, independent review",
@@ -494,6 +512,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-4.1",
     "task_statement": "4.1",
     "domain": 4,
     "title": "Explicit criteria and severity rubrics to improve precision and reduce false positives",
@@ -525,6 +544,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-4.2",
     "task_statement": "4.2",
     "domain": 4,
     "title": "Few-shot prompting for output consistency and quality",
@@ -551,6 +571,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-4.3",
     "task_statement": "4.3",
     "domain": 4,
     "title": "Enforcing structured output with tool use and JSON schemas",
@@ -586,6 +607,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-4.4",
     "task_statement": "4.4",
     "domain": 4,
     "title": "Validation, retry, and feedback loops for extraction quality",
@@ -617,6 +639,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-4.5",
     "task_statement": "4.5",
     "domain": 4,
     "title": "Designing efficient batch processing strategies with the Message Batches API",
@@ -644,6 +667,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-4.6",
     "task_statement": "4.6",
     "domain": 4,
     "title": "Multi-instance and multi-pass review architectures",
@@ -679,6 +703,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-5.1",
     "task_statement": "5.1",
     "domain": 5,
     "title": "Managing conversation context to preserve critical information across long interactions",
@@ -710,6 +735,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-5.2",
     "task_statement": "5.2",
     "domain": 5,
     "title": "Escalation Triggers and Ambiguity Resolution",
@@ -732,6 +758,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-5.3",
     "task_statement": "5.3",
     "domain": 5,
     "title": "Error propagation strategies across multi-agent systems",
@@ -767,6 +794,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-5.4",
     "task_statement": "5.4",
     "domain": 5,
     "title": "Managing context in large codebase exploration",
@@ -786,6 +814,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-5.5",
     "task_statement": "5.5",
     "domain": 5,
     "title": "Human review workflows and confidence calibration: seeing past aggregate accuracy",
@@ -808,6 +837,7 @@
     ]
   },
   {
+    "id": "ccarf-concept-5.6",
     "task_statement": "5.6",
     "domain": 5,
     "title": "Preserving provenance and handling uncertainty in multi-source synthesis",

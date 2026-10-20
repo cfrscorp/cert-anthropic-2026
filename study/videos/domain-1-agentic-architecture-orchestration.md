@@ -1,6 +1,6 @@
 # D1 · Agentic Architecture & Orchestration — Video Resources
 
-Videos that explain or demonstrate the [Concept Explainers](../data/concepts.json) for
+Videos that explain or demonstrate the [Concept Explainers](../content/ccarf-concepts.json) for
 Domain 1. See [`README.md`](README.md) for scope and how these were sourced.
 
 ### 1.1 The Agentic Loop and stop_reason

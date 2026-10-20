@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Exam index",
+  "description": "Slugs of the available exams, in display order; the first is the default. Each slug has study/exams/<slug>/exam.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["exams"],
+  "properties": {
+    "exams": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z0-9]+$" } }
+  }
+}

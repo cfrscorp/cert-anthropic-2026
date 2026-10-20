@@ -32,7 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import flashcards as core  # noqa: E402
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 # --------------------------------------------------------------------------
@@ -242,27 +242,27 @@ def run_tui_session(cards, history, history_path, source_files, filters):
 EPILOG = """\
 Examples (run from the repo root):
   # Fixed-layout review of the main flashcard deck
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json
 
   # Shuffle and cap the session at 20 random cards
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --shuffle --num 20
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --shuffle --num 20
 
   # Drill just one domain or task statement
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --domain 1
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --task 4.3
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --domain 1
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --task 4.3
 
   # Re-drill only cards you've marked "missed" before (shared history with flashcards.py)
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --review-missed
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --review-missed
 
   # View cumulative recall stats or list domains/tasks without reviewing
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --stats
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --list
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --stats
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --list
 
   # Use a separate history file
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --history .working/my_history.json
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --history .working/my_history.json
 
   # Disable color (front/back text still appears above the input line)
-  uv run study/tools/flashcards_tui.py study/data/flashcards.json --no-color
+  uv run study/tools/flashcards_tui.py study/content/ccarf-flashcards.json --no-color
 
   # Show the script version
   uv run study/tools/flashcards_tui.py --version

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Exam manifest",
+  "description": "One certification exam: identity, guide, domains + weights, task statements (with their labs), and the content components each section pins.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slug", "code", "name", "guide", "config", "domains", "task_statements", "sections"],
+  "properties": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+$" },
+    "code": { "type": "string", "pattern": "^[A-Z]+-[A-Z]$" },
+    "name": { "type": "string", "minLength": 1 },
+    "guide": { "description": "Exam-guide Markdown file, relative to this exam's directory.", "type": "string", "pattern": "^[a-z0-9-]+\\.md$" },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questions_per_task_target", "coverage_component", "pass_threshold"],
+      "properties": {
+        "questions_per_task_target": { "type": "integer", "minimum": 1 },
+        "coverage_component": { "description": "The questions component the per-task target applies to.", "type": "string" },
+        "pass_threshold": { "description": "Readiness % shown as the pass cue.", "type": "integer", "minimum": 1, "maximum": 100 }
+      }
+    },
+    "domains": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "weight"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "weight": { "type": "integer", "minimum": 1, "maximum": 100 }
+        }
+      }
+    },
+    "task_statements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "domain", "title", "labs"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+          "domain": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "labs": { "type": "array", "items": { "type": "string", "pattern": "^lab-[0-9]{2}-" } }
+        }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questions", "flashcards", "concepts", "labs"],
+      "properties": {
+        "questions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/labeled_pin" } },
+        "flashcards": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/labeled_pin" } },
+        "concepts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/pin" } },
+        "labs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/pin" } }
+      }
+    }
+  },
+  "$defs": {
+    "version_range": {
+      "description": "Exact version (1.2.3) or caret range (^1, ^1.2, ^1.2.3: same major, at least the given version).",
+      "type": "string",
+      "pattern": "^([0-9]+\\.[0-9]+\\.[0-9]+|\\^[0-9]+(\\.[0-9]+){0,2})$"
+    },
+    "pin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "version"],
+      "properties": {
+        "component": { "type": "string" },
+        "version": { "$ref": "#/$defs/version_range" }
+      }
+    },
+    "labeled_pin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "version", "label"],
+      "properties": {
+        "component": { "type": "string" },
+        "version": { "$ref": "#/$defs/version_range" },
+        "label": { "description": "Set-picker label in the UI.", "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,14 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "CCAF concept explainers",
+  "title": "Concept-explainer component",
   "type": "array",
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["task_statement", "domain", "title", "concept", "why_it_matters", "common_trap"],
+    "required": ["id", "task_statement", "domain", "title", "concept", "why_it_matters", "common_trap"],
     "properties": {
-      "task_statement": { "type": "string", "pattern": "^[1-5]\\.[0-9]+$" },
-      "domain": { "type": "integer", "minimum": 1, "maximum": 5 },
+      "id": { "type": "string", "pattern": "^[a-z0-9]+-concept-[0-9]+\\.[0-9]+$" },
+      "task_statement": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+      "domain": { "type": "integer", "minimum": 1 },
       "title": { "type": "string", "minLength": 1 },
       "concept": { "type": "string", "minLength": 1 },
       "why_it_matters": { "type": "string", "minLength": 1 },

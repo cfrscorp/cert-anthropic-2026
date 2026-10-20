@@ -1,6 +1,6 @@
 [
   {
-    "id": "q-1.1-101",
+    "id": "ccarf-q-1.1-101",
     "domain": 1,
     "task_statement": "1.1",
     "scenario": "Your agent's loop is correct in shape: it checks `stop_reason`, and while it is `\"tool_use\"` it executes tools and iterates. In one turn Claude emits three `tool_use` blocks in a single assistant message. Your executor runs them, then appends three separate `user` messages, each containing one `tool_result`, before making the next API call. The API rejects the request.",
@@ -43,7 +43,7 @@
     ]
   },
   {
-    "id": "q-1.1-102",
+    "id": "ccarf-q-1.1-102",
     "domain": 1,
     "task_statement": "1.1",
     "scenario": "An extraction agent occasionally returns a truncated answer and stops. Your loop treats any `stop_reason` other than `\"tool_use\"` as completion and returns the last assistant message to the caller. Reviewing failed runs, you find the responses that were cut short all carry `stop_reason: \"max_tokens\"`, and several were cut off partway through emitting a `tool_use` block.",
@@ -86,7 +86,7 @@
     ]
   },
   {
-    "id": "q-1.1-103",
+    "id": "ccarf-q-1.1-103",
     "domain": 1,
     "task_statement": "1.1",
     "scenario": "A support agent's loop appends tool results as plain text lines appended to the running conversation, in the form `Result: {json}`, rather than as structured `tool_result` content correlated by `tool_use_id`. It works in single-tool turns. Once the agent begins issuing two lookups per turn, it starts attributing one order's shipping status to the other order.",
@@ -129,7 +129,7 @@
     ]
   },
   {
-    "id": "q-1.2-102",
+    "id": "ccarf-q-1.2-102",
     "domain": 1,
     "task_statement": "1.2",
     "scenario": "In a hub-and-spoke research system, the analysis subagent regularly needs one clarifying lookup from the search subagent. Each round trip through the coordinator adds latency, and an engineer proposes letting the two subagents call each other directly to cut it. Your operations team relies on coordinator logs as the single audit trail of what each subagent did and why.",
@@ -172,7 +172,7 @@
     ]
   },
   {
-    "id": "q-1.2-103",
+    "id": "ccarf-q-1.2-103",
     "domain": 1,
     "task_statement": "1.2",
     "scenario": "Every query entering your research system runs the full pipeline: web search, document analysis, synthesis, report generation. Telemetry shows 60% of queries are simple factual lookups that the search subagent alone fully answers; the remaining stages add cost and latency without changing those answers.",
@@ -214,7 +214,7 @@
     ]
   },
   {
-    "id": "q-1.3-102",
+    "id": "ccarf-q-1.3-102",
     "domain": 1,
     "task_statement": "1.3",
     "scenario": "A coordinator delegates to four independent subagents whose work has no ordering dependency. Wall-clock time scales linearly with the number of subagents. Traces show the coordinator emits one Task call, waits for its result, reasons briefly, then emits the next Task call, and so on.",
@@ -257,7 +257,7 @@
     ]
   },
   {
-    "id": "q-1.3-103",
+    "id": "ccarf-q-1.3-103",
     "domain": 1,
     "task_statement": "1.3",
     "scenario": "Your coordinator passes upstream findings to the synthesis subagent by concatenating each agent's prose output into one text block. Synthesis quality is good, but the final reports cite sources inconsistently: some claims carry a URL, most carry none, and two citations are attached to the wrong claim.",
@@ -300,7 +300,7 @@
     ]
   },
   {
-    "id": "q-1.4-101",
+    "id": "ccarf-q-1.4-101",
     "domain": 1,
     "task_statement": "1.4",
     "scenario": "A prerequisite gate blocks `process_refund` until `get_customer` returns a verified customer ID. It has eliminated misidentified refunds. It has also broken a legitimate flow: for in-store returns, staff verify identity at the counter and pass a signed attestation token, and no `get_customer` call is made. Those refunds are now rejected, and the volume is material.",
@@ -342,7 +342,7 @@
     ]
   },
   {
-    "id": "q-1.5-101",
+    "id": "ccarf-q-1.5-101",
     "domain": 1,
     "task_statement": "1.5",
     "scenario": "Your agent reads from three MCP tools that report time differently: one returns Unix epoch seconds, one ISO 8601 strings, and one a numeric status code paired with a locale-formatted date. The agent frequently miscompares dates across tools and occasionally reports an event as occurring before another that actually preceded it.",
@@ -384,7 +384,7 @@
     ]
   },
   {
-    "id": "q-1.5-102",
+    "id": "ccarf-q-1.5-102",
     "domain": 1,
     "task_statement": "1.5",
     "scenario": "To enforce a policy that refunds above $500 must go to a human, an engineer implements a `PostToolUse` hook on `process_refund` that inspects the amount and, when it exceeds $500, replaces the tool result with an escalation message. Audit logs show refunds over $500 are still being issued against the payments system, even though the conversation shows the agent escalating.",
@@ -427,7 +427,7 @@
     ]
   },
   {
-    "id": "q-1.5-103",
+    "id": "ccarf-q-1.5-103",
     "domain": 1,
     "task_statement": "1.5",
     "scenario": "A `PostToolUse` hook trims order-lookup results down to five fields to control context growth. Context usage improved. Since deployment, the agent has stopped correctly handling gift orders, because it can no longer tell that an order was a gift — that flag is not among the five retained fields, and it appears in roughly 4% of orders.",
@@ -469,7 +469,7 @@
     ]
   },
   {
-    "id": "q-1.6-101",
+    "id": "ccarf-q-1.6-101",
     "domain": 1,
     "task_statement": "1.6",
     "scenario": "You must choose a decomposition strategy for two workflows. Workflow A is a nightly review that always checks the same five aspects of every changed file in a fixed order. Workflow B is an on-call investigation of a production incident, where each finding determines what to examine next and the shape of the investigation is unknown at the start.",
@@ -510,7 +510,7 @@
     ]
   },
   {
-    "id": "q-1.6-102",
+    "id": "ccarf-q-1.6-102",
     "domain": 1,
     "task_statement": "1.6",
     "scenario": "A team splits its 14-file review into 14 per-file passes to fix attention dilution. Per-file feedback is now consistent and detailed. Two regressions ship anyway: a caller was not updated after a function's return type changed in another file, and a value is serialized in one module and deserialized with a mismatched schema in another.",
@@ -553,7 +553,7 @@
     ]
   },
   {
-    "id": "q-1.6-103",
+    "id": "ccarf-q-1.6-103",
     "domain": 1,
     "task_statement": "1.6",
     "scenario": "You ask an agent to add comprehensive test coverage to a large untested legacy codebase. It begins writing tests for the first files it encounters alphabetically, produces many tests for trivial getters, and never reaches the payment and auth modules where the risk actually is.",
@@ -595,7 +595,7 @@
     ]
   },
   {
-    "id": "q-1.7-101",
+    "id": "ccarf-q-1.7-101",
     "domain": 1,
     "task_statement": "1.7",
     "scenario": "Two weeks ago an agent session mapped a service's architecture through roughly 60 tool calls. Since then the team has completed a refactor that renamed several modules and moved three directories. You need to continue the architectural work today.",
@@ -637,7 +637,7 @@
     ]
   },
   {
-    "id": "q-1.7-102",
+    "id": "ccarf-q-1.7-102",
     "domain": 1,
     "task_statement": "1.7",
     "scenario": "An agent has spent a long session building an accurate model of a data-access layer. You now want to evaluate two mutually exclusive refactoring strategies — introducing a repository abstraction versus adopting a query builder — and compare the resulting designs side by side. Both evaluations should start from the same understanding of the current code.",
@@ -679,7 +679,7 @@
     ]
   },
   {
-    "id": "q-1.7-103",
+    "id": "ccarf-q-1.7-103",
     "domain": 1,
     "task_statement": "1.7",
     "scenario": "You resume a named session from yesterday to continue a bug investigation. Overnight, a teammate modified two of the roughly 40 files the agent had already read. The rest of the codebase is unchanged and the agent's earlier conclusions remain sound.",
@@ -721,7 +721,7 @@
     ]
   },
   {
-    "id": "q-2.1-101",
+    "id": "ccarf-q-2.1-101",
     "domain": 2,
     "task_statement": "2.1",
     "scenario": "Your agent has two well-written, clearly differentiated tools: `search_knowledge_base` and `search_tickets`. Descriptions are detailed and non-overlapping. Despite this, the agent calls `search_tickets` for knowledge-base questions about 30% of the time. The system prompt opens with: \"You are a support agent. Your primary job is to resolve customer tickets.\"",
@@ -763,7 +763,7 @@
     ]
   },
   {
-    "id": "q-2.1-102",
+    "id": "ccarf-q-2.1-102",
     "domain": 2,
     "task_statement": "2.1",
     "scenario": "A document agent exposes one `analyze_document` tool described as \"Analyzes a document and returns insights.\" Callers use it for three different purposes: pulling specific numeric data points, producing a summary, and checking whether a stated claim is supported by the source. Output shape varies unpredictably by call, and downstream parsing is brittle.",
@@ -805,7 +805,7 @@
     ]
   },
   {
-    "id": "q-2.2-101",
+    "id": "ccarf-q-2.2-101",
     "domain": 2,
     "task_statement": "2.2",
     "scenario": "Your MCP tools return `{\"isError\": true, \"message\": \"Operation failed\"}` for every failure. Observed behavior: the agent retries a refund rejected for violating the 30-day policy eleven times in a row, and separately gives up immediately on a lookup that failed due to a two-second network blip.",
@@ -847,7 +847,7 @@
     ]
   },
   {
-    "id": "q-2.2-102",
+    "id": "ccarf-q-2.2-102",
     "domain": 2,
     "task_statement": "2.2",
     "scenario": "A `search_customers` tool returns `{\"isError\": true, \"errorCategory\": \"transient\", \"isRetryable\": true}` in two distinct situations: when the customer database is unreachable, and when the query executes successfully but matches no customers. The agent retries fruitlessly on no-match queries and eventually tells customers their account does not exist when the database was merely down.",
@@ -889,7 +889,7 @@
     ]
   },
   {
-    "id": "q-2.2-103",
+    "id": "ccarf-q-2.2-103",
     "domain": 2,
     "task_statement": "2.2",
     "scenario": "A `submit_refund` MCP tool rejects a request because the order falls outside the 30-day window — a firm company policy with no exceptions at the agent's tier. The agent is customer-facing and currently responds to the rejection with \"The refund could not be processed due to an error. Let me try again.\"",
@@ -931,7 +931,7 @@
     ]
   },
   {
-    "id": "q-2.3-102",
+    "id": "ccarf-q-2.3-102",
     "domain": 2,
     "task_statement": "2.3",
     "scenario": "Your synthesis subagent was given the full 18-tool set shared across the research system so it would never be blocked. It now spends turns running its own web searches and document fetches, duplicating the search subagent's work, and its synthesis quality has declined. Around 85% of its tool use is simple fact verification; the rest is genuinely complex research.",
@@ -973,7 +973,7 @@
     ]
   },
   {
-    "id": "q-2.4-101",
+    "id": "ccarf-q-2.4-101",
     "domain": 2,
     "task_statement": "2.4",
     "scenario": "You add a well-built Jira MCP server to a project. Its `search_issues` tool is far more capable than local search for finding issue history. In practice the agent keeps using Grep against the repo to hunt for issue references and rarely calls `search_issues`, whose description reads \"Searches Jira issues.\"",
@@ -1015,7 +1015,7 @@
     ]
   },
   {
-    "id": "q-2.4-102",
+    "id": "ccarf-q-2.4-102",
     "domain": 2,
     "task_statement": "2.4",
     "scenario": "Your team needs a shared GitHub MCP server available to everyone on the project, authenticated with a token that must not be committed. One engineer also wants to experiment with a prototype MCP server that nobody else should be affected by. A third engineer worries that having both configured at once will cause the agent to see conflicting tool sets.",
@@ -1057,7 +1057,7 @@
     ]
   },
   {
-    "id": "q-2.4-103",
+    "id": "ccarf-q-2.4-103",
     "domain": 2,
     "task_statement": "2.4",
     "scenario": "An agent working against an internal wiki through MCP burns many turns on exploratory calls — listing sections, fetching candidate pages, discarding most — before finding relevant content. The wiki has a stable hierarchy of roughly 400 documents with titles and one-line summaries.",
@@ -1099,7 +1099,7 @@
     ]
   },
   {
-    "id": "q-2.5-101",
+    "id": "ccarf-q-2.5-101",
     "domain": 2,
     "task_statement": "2.5",
     "scenario": "An agent must update a call to `formatCurrency` inside a large utilities file. The exact call text `formatCurrency(amount)` appears in nine places in that file, and only the one on line 412 should change. The agent's Edit call fails.",
@@ -1141,7 +1141,7 @@
     ]
   },
   {
-    "id": "q-2.5-102",
+    "id": "ccarf-q-2.5-102",
     "domain": 2,
     "task_statement": "2.5",
     "scenario": "You need to find every caller of `calculateTax` across an unfamiliar monorepo. Complicating this, `calculateTax` is re-exported through two wrapper modules under different names (`computeTax` and `taxFor`), and callers use all three names.",
@@ -1183,7 +1183,7 @@
     ]
   },
   {
-    "id": "q-2.5-103",
+    "id": "ccarf-q-2.5-103",
     "domain": 2,
     "task_statement": "2.5",
     "scenario": "An agent is asked to understand how a refund is processed in an unfamiliar 200k-line service before proposing a change. It begins by Reading every file under `src/payments/` — 90 files — and exhausts most of its context window before reaching any conclusion.",
@@ -1225,7 +1225,7 @@
     ]
   },
   {
-    "id": "q-3.1-101",
+    "id": "ccarf-q-3.1-101",
     "domain": 3,
     "task_statement": "3.1",
     "scenario": "A senior engineer documented the team's error-handling conventions and confirms Claude follows them perfectly on her machine. A new hire clones the repo and Claude ignores those conventions entirely. Both are on the same Claude Code version, and the repo contains a root `CLAUDE.md` covering unrelated build instructions.",
@@ -1267,7 +1267,7 @@
     ]
   },
   {
-    "id": "q-3.1-102",
+    "id": "ccarf-q-3.1-102",
     "domain": 3,
     "task_statement": "3.1",
     "scenario": "A monorepo has eight packages. Its root `CLAUDE.md` has grown to about 900 lines covering universal standards plus package-specific GraphQL, mobile, and data-pipeline conventions. Maintainers report that Claude applies mobile conventions to backend code and that nobody wants to edit the file because changes affect every package.",
@@ -1309,7 +1309,7 @@
     ]
   },
   {
-    "id": "q-3.2-102",
+    "id": "ccarf-q-3.2-102",
     "domain": 3,
     "task_statement": "3.2",
     "scenario": "Your team's shared `/scaffold-service` skill generates a new service directory. You want a personal variant that also wires in your preferred logging library, and you must not change behavior for teammates. You also want the variant restricted to file-write operations so it cannot invoke shell commands, and you want it to hint for the service name when you invoke it bare.",
@@ -1351,7 +1351,7 @@
     ]
   },
   {
-    "id": "q-3.2-103",
+    "id": "ccarf-q-3.2-103",
     "domain": 3,
     "task_statement": "3.2",
     "scenario": "You are deciding where two things belong. The first is a naming convention every file in the repository must follow, with no exceptions. The second is a multi-step release-checklist procedure that engineers run a few times per month and that involves roughly 400 lines of instructions.",
@@ -1393,7 +1393,7 @@
     ]
   },
   {
-    "id": "q-3.3-101",
+    "id": "ccarf-q-3.3-101",
     "domain": 3,
     "task_statement": "3.3",
     "scenario": "Your repo has Terraform under `infra/`, React components under `src/components/`, and test files colocated beside the code they test throughout the entire tree (`Button.test.tsx` next to `Button.tsx`, `handler.test.ts` next to `handler.ts`). Each category has distinct conventions. You want the right conventions applied automatically based on what is being edited.",
@@ -1435,7 +1435,7 @@
     ]
   },
   {
-    "id": "q-3.3-102",
+    "id": "ccarf-q-3.3-102",
     "domain": 3,
     "task_statement": "3.3",
     "scenario": "A team adds `.claude/rules/security.md` with `paths: [\"src/auth/**/*\"]` containing critical rules: never log credentials, always use the constant-time comparison helper. A month later, a developer adds a new authentication flow under `src/api/login/` and Claude generates code that logs the raw password. The rule file is correct and loads properly when editing files under `src/auth/`.",
@@ -1477,7 +1477,7 @@
     ]
   },
   {
-    "id": "q-3.3-103",
+    "id": "ccarf-q-3.3-103",
     "domain": 3,
     "task_statement": "3.3",
     "scenario": "A team is deciding between a `CLAUDE.md` inside `src/api/` and a `.claude/rules/` file scoped with `paths: [\"src/api/**/*\"]` for their API conventions. Today all API code lives under `src/api/`. They anticipate extracting some API handlers into `packages/edge-api/` next quarter.",
@@ -1519,7 +1519,7 @@
     ]
   },
   {
-    "id": "q-3.4-102",
+    "id": "ccarf-q-3.4-102",
     "domain": 3,
     "task_statement": "3.4",
     "scenario": "You must migrate a library used in 45 files. Two migration paths exist with different infrastructure requirements. You enter plan mode; the agent begins reading files to map usage, and after roughly 30 files its answers grow inconsistent and it starts referring to \"typical patterns\" instead of the specific call sites it found earlier.",
@@ -1561,7 +1561,7 @@
     ]
   },
   {
-    "id": "q-3.5-102",
+    "id": "ccarf-q-3.5-102",
     "domain": 3,
     "task_statement": "3.5",
     "scenario": "A generated migration script has three defects. First, it does not handle null values in the `phone` column. Second, its batch size causes timeouts on large tables. Third, its rollback path assumes the batch size, so changing the batch size also changes what rollback must undo.",
@@ -1602,7 +1602,7 @@
     ]
   },
   {
-    "id": "q-3.6-101",
+    "id": "ccarf-q-3.6-101",
     "domain": 3,
     "task_statement": "3.6",
     "scenario": "Your CI review job runs `claude -p \"Review this diff\"` and a downstream step posts findings as inline comments on specific files and lines. The parser breaks whenever Claude's prose wording shifts. An engineer proposes a more robust regex parser.",
@@ -1644,7 +1644,7 @@
     ]
   },
   {
-    "id": "q-3.6-103",
+    "id": "ccarf-q-3.6-103",
     "domain": 3,
     "task_statement": "3.6",
     "scenario": "A CI job generates tests for changed modules. The output is voluminous and low value: it asserts framework behavior, re-tests scenarios the existing suite already covers, and builds its own mocks instead of using the project's established fixtures. The job passes only the changed files to Claude Code.",
@@ -1686,7 +1686,7 @@
     ]
   },
   {
-    "id": "q-4.1-101",
+    "id": "ccarf-q-4.1-101",
     "domain": 4,
     "task_statement": "4.1",
     "scenario": "Your automated review flags outdated comments with a 60% false positive rate. The current instruction is \"check that comments are accurate.\" An engineer proposes appending \"be conservative and only report high-confidence findings.\"",
@@ -1728,7 +1728,7 @@
     ]
   },
   {
-    "id": "q-4.2-101",
+    "id": "ccarf-q-4.2-101",
     "domain": 4,
     "task_statement": "4.2",
     "scenario": "Your extraction prompt handles the three document layouts you supplied few-shot examples for. A fourth layout appears in production — a scanned form with a two-column body — and extraction produces empty required fields. You could add a fourth example for this layout, but new layouts keep appearing.",
@@ -1770,7 +1770,7 @@
     ]
   },
   {
-    "id": "q-4.2-102",
+    "id": "ccarf-q-4.2-102",
     "domain": 4,
     "task_statement": "4.2",
     "scenario": "Your code review flags every use of a bare `except:` clause as a bug. In your codebase, bare excepts inside the retry decorator and the plugin loader are deliberate and documented; everywhere else they are genuine defects. Developers are dismissing the retry and plugin findings each week.",
@@ -1812,7 +1812,7 @@
     ]
   },
   {
-    "id": "q-4.2-103",
+    "id": "ccarf-q-4.2-103",
     "domain": 4,
     "task_statement": "4.2",
     "scenario": "A support agent handles clear requests well but responds inconsistently to ambiguous ones — for example, \"my order is wrong\" with no order number, which could mean a wrong item, wrong quantity, or wrong address. Sometimes it asks a clarifying question, sometimes it guesses, sometimes it escalates.",
@@ -1854,7 +1854,7 @@
     ]
   },
   {
-    "id": "q-4.3-101",
+    "id": "ccarf-q-4.3-101",
     "domain": 4,
     "task_statement": "4.3",
     "scenario": "You moved invoice extraction to `tool_use` with a strict JSON schema. JSON syntax errors and missing required fields are gone. Downstream accounting still rejects about 4% of records: line items that do not sum to the stated total, and tax amounts appearing in the shipping field.",
@@ -1896,7 +1896,7 @@
     ]
   },
   {
-    "id": "q-4.3-102",
+    "id": "ccarf-q-4.3-102",
     "domain": 4,
     "task_statement": "4.3",
     "scenario": "Your contract-extraction schema marks `governing_law` as required. Roughly 15% of contracts do not state a governing law. For those, the model returns plausible but fabricated values such as \"State of Delaware,\" which pass validation and reach downstream systems.",
@@ -1938,7 +1938,7 @@
     ]
   },
   {
-    "id": "q-4.3-103",
+    "id": "ccarf-q-4.3-103",
     "domain": 4,
     "task_statement": "4.3",
     "scenario": "Your pipeline receives four document types and has a distinct extraction schema for each. Document type is not known before processing, and there is no reliable classifier upstream. Occasionally the model returns a conversational reply — \"This appears to be an invoice, would you like me to extract it?\" — instead of calling any extraction tool, which breaks the pipeline.",
@@ -1979,7 +1979,7 @@
     ]
   },
   {
-    "id": "q-4.4-101",
+    "id": "ccarf-q-4.4-101",
     "domain": 4,
     "task_statement": "4.4",
     "scenario": "Your extraction pipeline retries on any validation failure by resubmitting the same document and prompt. Analysis of retry outcomes: failures where a date was returned as `03/04/2024` instead of ISO 8601 succeed on retry about 80% of the time; failures where `beneficiary_ssn` is missing never succeed, because the SSN lives in a separate document the pipeline does not supply.",
@@ -2021,7 +2021,7 @@
     ]
   },
   {
-    "id": "q-4.4-102",
+    "id": "ccarf-q-4.4-102",
     "domain": 4,
     "task_statement": "4.4",
     "scenario": "A Pydantic validator rejects an extracted purchase order because `line_items` sum to $4,820 while `stated_total` is $5,102. The source document is legible and contains both figures; the discrepancy exists in the original because a freight surcharge was omitted from the itemization.",
@@ -2063,7 +2063,7 @@
     ]
   },
   {
-    "id": "q-4.4-103",
+    "id": "ccarf-q-4.4-103",
     "domain": 4,
     "task_statement": "4.4",
     "scenario": "Developers dismiss roughly 40% of your review bot's findings. You have the dismissal counts per category but no insight into what the dismissed findings have in common, so prompt improvements have been guesswork.",
@@ -2105,7 +2105,7 @@
     ]
   },
   {
-    "id": "q-4.5-101",
+    "id": "ccarf-q-4.5-101",
     "domain": 4,
     "task_statement": "4.5",
     "scenario": "A compliance workflow must return results within 30 hours of document arrival. Documents arrive continuously. You want the Message Batches API for its 50% savings, and batch processing can take up to 24 hours with no guaranteed latency.",
@@ -2147,7 +2147,7 @@
     ]
   },
   {
-    "id": "q-4.5-102",
+    "id": "ccarf-q-4.5-102",
     "domain": 4,
     "task_statement": "4.5",
     "scenario": "You submit 500 documents to the Message Batches API. Twelve fail: eight because the document exceeded the context limit, four due to a transient service error. You have the batch results file and each request's `custom_id`.",
@@ -2189,7 +2189,7 @@
     ]
   },
   {
-    "id": "q-4.5-103",
+    "id": "ccarf-q-4.5-103",
     "domain": 4,
     "task_statement": "4.5",
     "scenario": "A proposed workflow uses the Message Batches API to run a multi-step research task: for each of 2,000 topics, search the web, read the top results, and produce a summary. The team's reasoning is that the work is latency-tolerant and runs overnight, so batching is the obvious cost win.",
@@ -2231,7 +2231,7 @@
     ]
   },
   {
-    "id": "q-4.6-102",
+    "id": "ccarf-q-4.6-102",
     "domain": 4,
     "task_statement": "4.6",
     "scenario": "Your review produces useful findings, but reviewers cannot tell which deserve careful attention and which are speculative, so they read all of them at equal depth and the bot's throughput advantage is lost.",
@@ -2273,7 +2273,7 @@
     ]
   },
   {
-    "id": "q-4.6-103",
+    "id": "ccarf-q-4.6-103",
     "domain": 4,
     "task_statement": "4.6",
     "scenario": "You are designing review for a service where an agent both generates migration scripts and must catch defects before they run against production. You have budget for two model passes per script.",
@@ -2315,7 +2315,7 @@
     ]
   },
   {
-    "id": "q-5.1-102",
+    "id": "ccarf-q-5.1-102",
     "domain": 5,
     "task_statement": "5.1",
     "scenario": "A synthesis agent receives aggregated findings from four subagents as one long input. Its reports consistently reflect the first and last subagents' contributions well, while the middle two are underrepresented — even though all four returned substantive, comparable findings. Rotating which subagent appears in which position moves the problem rather than fixing it.",
@@ -2357,7 +2357,7 @@
     ]
   },
   {
-    "id": "q-5.1-103",
+    "id": "ccarf-q-5.1-103",
     "domain": 5,
     "task_statement": "5.1",
     "scenario": "A downstream report-generation agent has a tight context budget. Its upstream analysis agent currently returns full reasoning chains and long verbatim excerpts. The report agent needs the conclusions, the supporting citations, and a sense of how well-supported each conclusion is.",
@@ -2399,7 +2399,7 @@
     ]
   },
   {
-    "id": "q-5.2-102",
+    "id": "ccarf-q-5.2-102",
     "domain": 5,
     "task_statement": "5.2",
     "scenario": "A customer asks you to match a competitor's lower price. Your published policy covers price adjustments for items that drop in price on your own site within 14 days. It says nothing at all about competitor pricing — the situation is neither permitted nor prohibited. The agent currently declines, citing the 14-day own-site policy.",
@@ -2441,7 +2441,7 @@
     ]
   },
   {
-    "id": "q-5.3-101",
+    "id": "ccarf-q-5.3-101",
     "domain": 5,
     "task_statement": "5.3",
     "scenario": "Your document-analysis subagent catches all exceptions and returns `{\"findings\": []}` so the pipeline never halts. A coordinator run recently produced a confident report concluding \"no regulatory filings were found for this entity,\" when in fact the filings database had been unreachable for the entire run.",
@@ -2483,7 +2483,7 @@
     ]
   },
   {
-    "id": "q-5.3-103",
+    "id": "ccarf-q-5.3-103",
     "domain": 5,
     "task_statement": "5.3",
     "scenario": "Your subagents currently report failures as short status strings: \"search unavailable,\" \"fetch failed,\" \"timeout.\" The coordinator receives these and can only choose between aborting and skipping the subagent, because it has nothing to reason about.",
@@ -2525,7 +2525,7 @@
     ]
   },
   {
-    "id": "q-5.4-102",
+    "id": "ccarf-q-5.4-102",
     "domain": 5,
     "task_statement": "5.4",
     "scenario": "A long-running multi-agent codebase analysis crashes partway through. On restart, every agent begins from nothing and the several hours of prior analysis are lost. You need the system to resume near where it stopped.",
@@ -2567,7 +2567,7 @@
     ]
   },
   {
-    "id": "q-5.4-103",
+    "id": "ccarf-q-5.4-103",
     "domain": 5,
     "task_statement": "5.4",
     "scenario": "A main agent coordinating a multi-phase codebase analysis must answer several narrow questions — which files contain tests, what the refund flow's dependencies are, where feature flags are read. Answering each directly would flood its context with search output and file contents, and it still needs room to hold the overall architectural picture.",
@@ -2609,7 +2609,7 @@
     ]
   },
   {
-    "id": "q-5.5-101",
+    "id": "ccarf-q-5.5-101",
     "domain": 5,
     "task_statement": "5.5",
     "scenario": "Your extraction pipeline reports 97% overall accuracy on a 5,000-document validation set, and leadership wants to cut human review. The set contains eight document types in very uneven proportions: one type accounts for 71% of volume.",
@@ -2651,7 +2651,7 @@
     ]
   },
   {
-    "id": "q-5.5-102",
+    "id": "ccarf-q-5.5-102",
     "domain": 5,
     "task_statement": "5.5",
     "scenario": "You have automated the extractions the model marks high confidence and route the rest to reviewers. Six months on, you want ongoing assurance that the automated tier is still performing and that no new failure mode has emerged. Reviewer capacity is fixed and fully committed to the low-confidence queue.",
@@ -2693,7 +2693,7 @@
     ]
   },
   {
-    "id": "q-5.5-103",
+    "id": "ccarf-q-5.5-103",
     "domain": 5,
     "task_statement": "5.5",
     "scenario": "Your reviewers can handle about 15% of daily extraction volume. You want that capacity spent where it does the most good. The model can emit per-field confidence, and you have a labeled validation set available.",
@@ -2735,7 +2735,7 @@
     ]
   },
   {
-    "id": "q-1.1-104",
+    "id": "ccarf-q-1.1-104",
     "domain": 1,
     "task_statement": "1.1",
     "scenario": "A production agent's loop correctly checks `stop_reason` and iterates only while it is `\"tool_use\"`, appending each tool result before the next request. Two separate incidents surface in the same week. First: the agent calls a failing lookup tool with identical arguments repeatedly — 41 times in one run — before a hard iteration cap of 50 finally ends the run, burning cost with no progress. Second: in a long research session, the loop appends each tool's full raw result text to the conversation on every iteration; by iteration 30, the growing history pushes the request over the context limit and the API starts rejecting calls. You want to fix both without touching the `stop_reason` logic, which is already correct.",
@@ -2785,7 +2785,7 @@
     ]
   },
   {
-    "id": "q-1.5-104",
+    "id": "ccarf-q-1.5-104",
     "domain": 1,
     "task_statement": "1.5",
     "scenario": "A finance-facing agent must satisfy two requirements simultaneously: (1) any `process_refund` call requesting more than $500 must be blocked before it reaches the payments backend, with no exceptions, and (2) compliance needs an audit record of every refund attempt — including ones that get blocked — for a quarterly review, since regulators specifically ask about attempted-but-refused transactions, not just completed ones.",
@@ -2835,7 +2835,7 @@
     ]
   },
   {
-    "id": "q-2.2-104",
+    "id": "ccarf-q-2.2-104",
     "domain": 2,
     "task_statement": "2.2",
     "scenario": "You are designing the error contract for a payments MCP tool that can fail in several distinct ways: a timed-out connection to the processor, a request rejected because the account is frozen, and a refund rejected because it falls outside a 30-day policy window. The tool is called by an agent that must both decide programmatically what to do next and, in some cases, explain the outcome to a customer in plain language.",
@@ -2885,7 +2885,7 @@
     ]
   },
   {
-    "id": "q-2.4-104",
+    "id": "ccarf-q-2.4-104",
     "domain": 2,
     "task_statement": "2.4",
     "scenario": "Your team configures two MCP servers: a read-only reporting server backed by a Postgres replica, and a write-capable order-management server that can modify live orders. Every agent session — including customer-support sessions that only ever need to read order status — currently connects to both servers. Two problems have emerged: support sessions occasionally issue a write-capable call they didn't need and shouldn't have had access to, and the combined tool list from both servers has grown large enough that tool selection has noticeably slowed down across every session.",
@@ -2935,7 +2935,7 @@
     ]
   },
   {
-    "id": "q-3.3-104",
+    "id": "ccarf-q-3.3-104",
     "domain": 3,
     "task_statement": "3.3",
     "scenario": "A repository stores SQL migration files at `db/migrations/*.sql` for the main application, and at `packages/*/migrations/*.sql` for each of several independently versioned sub-packages (for example `packages/billing/migrations/003_add_index.sql`). The same tree also contains unrelated `.sql` files elsewhere — seed data at `db/seeds/seed.sql` and a schema dump at `packages/billing/src/schema.sql` — that must not trigger the migration-writing conventions. A team is choosing the `paths` glob list for `.claude/rules/migrations.md`.",
@@ -2984,7 +2984,7 @@
     ]
   },
   {
-    "id": "q-3.6-104",
+    "id": "ccarf-q-3.6-104",
     "domain": 3,
     "task_statement": "3.6",
     "scenario": "A GitHub Actions workflow reviews every incoming pull request, including ones opened from external contributors' forks, by triggering on `pull_request_target` so the job can access a write-scoped deploy token and post inline comments. The invocation builds its prompt by interpolating the PR title directly into a shell string: `claude -p \"Review PR titled: ${{ github.event.pull_request.title }}\"`. A fork contributor fully controls that title text and could set it to anything.",
@@ -3034,7 +3034,7 @@
     ]
   },
   {
-    "id": "q-4.3-104",
+    "id": "ccarf-q-4.3-104",
     "domain": 4,
     "task_statement": "4.3",
     "scenario": "An extraction pipeline classifies incoming documents using a strict `enum` of 12 known categories in its tool schema. New categories appear in production roughly monthly as the business expands, and each time the enum must be hand-patched and redeployed before those documents can be classified at all. Separately, when a document sits ambiguously between two known categories, the model silently picks one, and there is currently no way for downstream systems to tell that the classification was uncertain rather than confident.",
@@ -3084,7 +3084,7 @@
     ]
   },
   {
-    "id": "q-4.6-104",
+    "id": "ccarf-q-4.6-104",
     "domain": 4,
     "task_statement": "4.6",
     "scenario": "A team runs three independent review passes over each pull request and flags an issue only when at least two of the three passes agree on it, to filter out any single instance's idiosyncratic false positives. Two problems have emerged. First, subtle defects that only one of the three passes happens to notice are being silently dropped by the majority rule. Second, reviewers are spending significant time manually reconciling reports where two passes plainly describe the same underlying bug but in different files, wording, or line references — the voting mechanism treats these as unrelated findings and never credits them as agreement.",
@@ -3134,7 +3134,7 @@
     ]
   },
   {
-    "id": "q-5.5-104",
+    "id": "ccarf-q-5.5-104",
     "domain": 5,
     "task_statement": "5.5",
     "scenario": "Your extraction pipeline currently automates eight document types with thousands of labeled examples each. The team wants to add a ninth type to the automated tier. It has only 40 historical labeled examples, versus thousands for the existing types, and its schema includes three fields that were added specifically for this new type and have no historical error data at all.",
@@ -3184,7 +3184,7 @@
     ]
   },
   {
-    "id": "q-5.6-101",
+    "id": "ccarf-q-5.6-101",
     "domain": 5,
     "task_statement": "5.6",
     "scenario": "A financial-research pipeline has two defects surfacing in the same report. First: the synthesis agent describes two quarterly revenue figures for the same company as 'contradictory,' when one figure is from the original filing and the other is from a later restatement — neither the subagent's structured output nor the synthesis prompt carries which version each figure came from. Second: a document-analysis subagent, on finding two internally conflicting compliance-cost figures within one filing, silently averages them into a single number before passing it to the coordinator, so the coordinator never learns a conflict existed.",

@@ -5,7 +5,7 @@
 # ///
 """A colorful, offline terminal flashcard runner for CCAF-style flashcard sets.
 
-Reads one or more JSON files matching the schema of study/data/flashcards.json
+Reads one or more JSON files matching the schema of study/content/ccarf-flashcards.json
 (front, back, domain, task_statement, tags), runs an interactive self-graded
 review session in the terminal ("Got it" / "Missed it"), and tracks personal
 recall results across sessions in a small local JSON history file so you can
@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # Personal progress is scratch state, not project content, so it defaults into
 # the repo's gitignored .working/ directory (study/tools/ -> study/ -> repo root)
@@ -425,35 +425,35 @@ def print_list(cards):
 EPILOG = """\
 Examples (run from the repo root):
   # Review the main flashcard deck, cards in file order
-  uv run study/tools/flashcards.py study/data/flashcards.json
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json
 
   # Shuffle and cap the session at 20 random cards
-  uv run study/tools/flashcards.py study/data/flashcards.json --shuffle --num 20
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --shuffle --num 20
 
   # Drill just one domain or task statement
-  uv run study/tools/flashcards.py study/data/flashcards.json --domain 1
-  uv run study/tools/flashcards.py study/data/flashcards.json --task 4.3
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --domain 1
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --task 4.3
 
   # Re-drill only cards you've marked "missed" before
-  uv run study/tools/flashcards.py study/data/flashcards.json --review-missed
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --review-missed
 
   # Reproducible shuffle order (useful for comparing runs)
-  uv run study/tools/flashcards.py study/data/flashcards.json --shuffle --seed 42
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --shuffle --seed 42
 
   # View cumulative recall stats without starting a session
-  uv run study/tools/flashcards.py study/data/flashcards.json --stats
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --stats
 
   # See what's available (domains/tasks/tags) in a file without reviewing
-  uv run study/tools/flashcards.py study/data/flashcards.json --list
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --list
 
   # Use a separate history file
-  uv run study/tools/flashcards.py study/data/flashcards.json --history .working/my_history.json
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --history .working/my_history.json
 
   # Wipe saved progress for the current history file
-  uv run study/tools/flashcards.py study/data/flashcards.json --reset-history
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --reset-history
 
   # Disable color (e.g. piping output to a file)
-  uv run study/tools/flashcards.py study/data/flashcards.json --no-color
+  uv run study/tools/flashcards.py study/content/ccarf-flashcards.json --no-color
 
   # Show the script version
   uv run study/tools/flashcards.py --version
