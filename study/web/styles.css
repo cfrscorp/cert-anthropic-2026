@@ -130,6 +130,10 @@ a:hover { text-decoration: underline; }
 .brand__text strong { font-size: .98rem; }
 .brand__sub { font-size: .72rem; color: var(--ink-muted); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; }
+/* Exam picker: stands in for .brand__sub when more than one exam exists */
+.exam-picker { font-size: .72rem; padding: .1rem .35rem; border-radius: 6px;
+  margin-top: .15rem; max-width: 22rem; color: var(--ink-muted); }
+.exam-picker[hidden] { display: none; }
 .tabs { display: flex; gap: .15rem; margin-left: auto; flex-wrap: wrap; }
 .tab {
   color: var(--ink-2); padding: .38rem .7rem; border-radius: 999px;
@@ -418,6 +422,10 @@ details.concept[open] > summary::after { content: "－"; }
 
 @media (max-width: 560px) {
   .app-header__inner { flex-wrap: wrap; }
+  /* Brand takes the row's spare width so a long exam picker shrinks instead of
+     pushing the theme toggle onto its own line */
+  .brand { flex: 1 1 0; }
+  .exam-picker { width: 100%; }
   /* Tight, centered nav that fits one line instead of spreading/wrapping */
   .tabs { order: 3; width: 100%; margin-left: 0; justify-content: center; gap: .2rem; }
   .tab { padding: .34rem .5rem; font-size: .82rem; }

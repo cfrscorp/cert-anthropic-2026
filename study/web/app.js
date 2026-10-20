@@ -7,8 +7,18 @@
 (function () {
   "use strict";
 
-  var PROGRESS_KEY = "ccaf-study-progress-v1";
-  var THEME_KEY = "ccaf-study-theme";
+  // Storage keys. Engine-level keys are shared by every exam; everything else
+  // is namespaced per exam ("study-<slug>-…") and assigned in useExamKeys()
+  // once boot has picked the exam.
+  var THEME_KEY = "study-theme";
+  var EXAM_KEY = "study-exam";
+  var PROGRESS_KEY, FC_PROGRESS_KEY, QUESTION_SET_KEY, FLASHCARD_SET_KEY;
+  function useExamKeys(slug) {
+    PROGRESS_KEY = "study-" + slug + "-progress-v1";
+    FC_PROGRESS_KEY = "study-" + slug + "-flashcard-progress-v1";
+    QUESTION_SET_KEY = "study-" + slug + "-question-set";
+    FLASHCARD_SET_KEY = "study-" + slug + "-flashcard-set";
+  }
   var PASS_THRESHOLD = 72; // readiness pass cue; replaced at boot by the exam's config.pass_threshold
 
   var DATA = { meta: null, questions: [], flashcards: [], concepts: [], labs: [] };
@@ -94,7 +104,6 @@
   }
 
   /* ---- flashcard self-graded progress (separate store; not part of exam readiness) ---- */
-  var FC_PROGRESS_KEY = "ccaf-study-flashcard-progress-v1";
   function loadFcProgress() {
     try {
       var p = JSON.parse(localStorage.getItem(FC_PROGRESS_KEY));
@@ -112,6 +121,60 @@
     c.ts = Date.now();
     p.cards[cid] = c;
     saveFcProgress(p);
+  }
+
+  /* ---- one-time migration from single-exam (pre-BL-045) storage --------- */
+  // Before multi-exam support, CCAR-F progress lived under ccaf-study-* keys
+  // with unprefixed item IDs (q-1.1-001, fc-1.1-001) and tier-name set IDs.
+  // Copy it into the ccarf namespace once — only while the new key is still
+  // empty — re-keying IDs to the prefixed form. Records saved under both forms
+  // (possible from the interim multi-exam branch) are merged. Legacy keys are
+  // left in place so an older checkout still sees its data.
+  var LEGACY = {
+    exam: "ccarf",
+    theme: "ccaf-study-theme",
+    progress: "ccaf-study-progress-v1",
+    flashcards: "ccaf-study-flashcard-progress-v1",
+    questionSet: "ccaf-study-question-set",
+    flashcardSet: "ccaf-study-flashcard-set",
+    questionSetIds: { standard: "ccarf-questions-standard", intermediate: "ccarf-questions-intermediate", hard: "ccarf-questions-hard" },
+    flashcardSetIds: { standard: "ccarf-flashcards" },
+  };
+  function mergeRecord(a, b) {
+    if (!a) return b;
+    var newer = (b.ts || 0) > (a.ts || 0) ? b : a;
+    return { seen: a.seen + b.seen, correct: a.correct + b.correct, last: newer.last, ts: newer.ts };
+  }
+  function prefixIds(records, slug) {
+    var out = {};
+    Object.keys(records || {}).forEach(function (id) {
+      var key = id.indexOf(slug + "-") === 0 ? id : slug + "-" + id;
+      out[key] = mergeRecord(out[key], records[id]);
+    });
+    return out;
+  }
+  function readJSON(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+  }
+  function migrateLegacyTheme() {
+    var old = localStorage.getItem(LEGACY.theme);
+    if (old && !localStorage.getItem(THEME_KEY)) localStorage.setItem(THEME_KEY, old);
+  }
+  function migrateLegacyStorage(slug) {
+    if (slug !== LEGACY.exam) return;
+    var p = readJSON(LEGACY.progress);
+    if (p && p.questions && !localStorage.getItem(PROGRESS_KEY)) {
+      saveProgress({ version: 1, questions: prefixIds(p.questions, slug), sessions: p.sessions || [] });
+    }
+    var fc = readJSON(LEGACY.flashcards);
+    if (fc && fc.cards && !localStorage.getItem(FC_PROGRESS_KEY)) {
+      saveFcProgress({ version: 1, cards: prefixIds(fc.cards, slug) });
+    }
+    [[LEGACY.questionSet, QUESTION_SET_KEY, LEGACY.questionSetIds],
+     [LEGACY.flashcardSet, FLASHCARD_SET_KEY, LEGACY.flashcardSetIds]].forEach(function (m) {
+      var old = localStorage.getItem(m[0]);
+      if (old && !localStorage.getItem(m[1])) localStorage.setItem(m[1], m[2][old] || old);
+    });
   }
 
   /* ---- readiness math --------------------------------------------------- */
@@ -719,10 +782,11 @@
       '<span class="spacer"></span><button class="btn btn--ghost" id="pg-reset">Reset Progress</button></div></div>');
 
     document.getElementById("pg-export").addEventListener("click", function () {
-      var blob = new Blob([JSON.stringify(loadProgress(), null, 2)], { type: "application/json" });
+      var exported = Object.assign({ exam: DATA.meta.slug }, loadProgress());
+      var blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" });
       var a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "ccaf-progress.json";
+      a.download = "study-" + DATA.meta.slug + "-progress.json";
       a.click();
       URL.revokeObjectURL(a.href);
     });
@@ -736,14 +800,20 @@
         try {
           var obj = JSON.parse(reader.result);
           if (!obj || obj.version !== 1 || !obj.questions || !obj.sessions) throw new Error("bad shape");
-          saveProgress(obj);
+          // Exports from before multi-exam support carry no exam tag; they're CCAR-F.
+          var from = obj.exam || LEGACY.exam;
+          if (from !== DATA.meta.slug) {
+            alert("That export is for a different exam (" + from + "). Switch to it in the header, then import.");
+            return;
+          }
+          saveProgress({ version: 1, questions: prefixIds(obj.questions, from), sessions: obj.sessions });
           router();
-        } catch (err) { alert("That file doesn't look like a CCAF progress export."); }
+        } catch (err) { alert("That file doesn't look like a " + DATA.meta.code + " progress export."); }
       };
       reader.readAsText(file);
     });
     document.getElementById("pg-reset").addEventListener("click", function () {
-      if (confirm("Erase all saved progress in this browser? This cannot be undone.")) {
+      if (confirm("Erase all saved " + DATA.meta.code + " quiz progress in this browser? This cannot be undone.")) {
         localStorage.removeItem(PROGRESS_KEY); router();
       }
     });
@@ -856,6 +926,7 @@
 
   /* ---- theme ------------------------------------------------------------ */
   function initTheme() {
+    migrateLegacyTheme();
     var saved = localStorage.getItem(THEME_KEY);
     var theme = saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     document.documentElement.setAttribute("data-theme", theme);
@@ -870,8 +941,6 @@
   // Every set the exam pins is eager-loaded at boot (small files, no
   // per-selection fetch/loading-state complexity); switching sets just swaps
   // which already-loaded array DATA.questions/DATA.flashcards points at.
-  var QUESTION_SET_KEY = "ccaf-study-question-set";
-  var FLASHCARD_SET_KEY = "ccaf-study-flashcard-set";
 
   function pickInitialSetId(kind, key) {
     var entries = DATA.sets[kind];
@@ -914,6 +983,25 @@
     return Promise.all(entries.map(function (e) { return fetchJSON("../content/" + e.file); }));
   }
   function concatAll(lists) { return [].concat.apply([], lists); }
+  // Header brand reflects the active exam; the picker only appears when
+  // there's more than one exam. Switching saves the choice and reloads, so
+  // each exam's data and storage namespace are loaded cleanly.
+  function initExamChrome(exam, exams) {
+    document.getElementById("brand-title").textContent = exam.code + " Study";
+    document.getElementById("brand-sub").textContent = exam.name;
+    document.title = exam.code + " Study";
+    var picker = document.getElementById("exam-picker");
+    if (exams.length < 2) return;
+    picker.innerHTML = exams.map(function (e) {
+      return '<option value="' + esc(e.slug) + '"' + (e.slug === exam.slug ? " selected" : "") + ">" + esc(e.code + " · " + e.name) + "</option>";
+    }).join("");
+    picker.hidden = false;
+    document.getElementById("brand-sub").hidden = true;
+    picker.addEventListener("change", function () {
+      localStorage.setItem(EXAM_KEY, picker.value);
+      location.reload();
+    });
+  }
   function boot() {
     initTheme();
     var registry = {}, appMeta;
@@ -921,10 +1009,16 @@
       .then(function (res) {
         appMeta = res[0];
         res[2].components.forEach(function (c) { registry[c.id] = c; });
-        return fetchJSON("../exams/" + res[1].exams[0] + "/exam.json"); // exam picker: BL-045
+        // Every exam manifest is small; load them all so the picker can label them.
+        return Promise.all(res[1].exams.map(function (slug) { return fetchJSON("../exams/" + slug + "/exam.json"); }));
       })
-      .then(function (exam) {
+      .then(function (exams) {
+        var saved = localStorage.getItem(EXAM_KEY);
+        var exam = exams.filter(function (e) { return e.slug === saved; })[0] || exams[0];
         DATA.meta = exam;
+        useExamKeys(exam.slug);
+        migrateLegacyStorage(exam.slug);
+        initExamChrome(exam, exams);
         if (exam.config && exam.config.pass_threshold) PASS_THRESHOLD = exam.config.pass_threshold;
         DATA.sets = {
           questions: resolvePins(exam.sections.questions, registry),
