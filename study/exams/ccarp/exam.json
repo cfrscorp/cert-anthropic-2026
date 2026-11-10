@@ -347,6 +347,11 @@
         "component": "questions-hard",
         "version": "^1.0",
         "label": "Hard"
+      },
+      {
+        "component": "questions-expert",
+        "version": "^1.0",
+        "label": "Expert"
       }
     ],
     "flashcards": [

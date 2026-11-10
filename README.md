@@ -23,8 +23,8 @@ model and prompt choices, integration (RAG, MCP, auth, observability), evaluatio
 governance and compliance, stakeholder communication, and team enablement. This repo
 pairs each exam's official guide with two ways to prepare: a buildable, testable
 **lab curriculum** and a polished, fully offline **study app** (a three-tier practice
-quiz with real "Select N" multi-response items, flashcards, concept explainers,
-browsable labs, and a readiness dashboard) — so you gain hands-on experience with
+quiz — four tiers for CCAR-P — with real "Select N" multi-response items, flashcards,
+concept explainers, browsable labs, and a readiness dashboard) — so you gain hands-on experience with
 *every* feature, concept, and topic the exams cover, not just read about them.
 
 ## By the Numbers
@@ -33,15 +33,16 @@ browsable labs, and a readiness dashboard) — so you gain hands-on experience w
 |:--|:--:|:--:|:--:|:--:|
 | **CCAR-F** | **435** | **135** | **30** | **25** |
 | **CCDV-F** | **322** | **93** | **25** | **19** linked |
-| **CCAR-P** | **457** | **114** | **38** | **22** linked |
+| **CCAR-P** | **533** | **114** | **38** | **22** linked |
 
-All exams draw from one shared content pool (**921** questions, **249** flashcards,
+All exams draw from one shared content pool (**997** questions, **249** flashcards,
 **86** concept explainers; 362 items serve more than one exam), each through its own item map.
-Questions span three difficulty tiers — CCAR-F: **Standard** (240), **Intermediate**
+Questions span three difficulty tiers (four for CCAR-P) — CCAR-F: **Standard** (240), **Intermediate**
 (120), and **Hard** (75, including 10 multi-response "Select N" items calibrated to the
 real exam's format); CCDV-F: Standard (192), Intermediate (65), and Hard (65, including
-18 "Select N"); CCAR-P: Standard (229), Intermediate (114), and Hard (114, including
-30 "Select N") — dynamically selectable in the Web UI, or chosen with `--set` (any
+18 "Select N"); CCAR-P: Standard (229), Intermediate (114), Hard (114, including
+30 "Select N"), and **Expert** (76, difficulty 9–10: close distractors, multi-constraint
+cases, 37 "Select N", and 25 root-cause-from-evidence items) — dynamically selectable in the Web UI, or chosen with `--set` (any
 combination) in the CLI/TUI. CCAR-F covers all **5 exam domains** and **30 task
 statements** (40 syntax-highlighted code samples across its concept explainers);
 CCDV-F covers all **8 domains** and **25 skills**, with Standard-tier questions per
@@ -60,7 +61,7 @@ and offline, with zero runtime dependencies.
 | [`labs/`](labs/) | 25 hands-on CCAR-F labs + a shared test harness. Start at [`labs/README.md`](labs/README.md). |
 | [`labs/README.md`](labs/README.md) | Master matrix: labs by dependency tier & difficulty, with effort estimates and a full task-statement → lab / scenario → capstone traceability map. |
 | [`labs/_shared/`](labs/_shared/) | Reusable test harness (deterministic mock Claude client, `starter`/`solution` switching, opt-in LLM grading). See [`labs/_shared/README.md`](labs/_shared/README.md). |
-| [`study/`](study/) | A local, offline, multi-exam study app — a 3-tier practice quiz (Standard/Intermediate/Hard, with multi-select items), flashcards with self-graded recall tracking, concept explainers (with code samples), browsable labs, and a readiness dashboard. Web UI (`uv run study/serve.py`) plus standalone CLI/TUI quiz and flashcard tools. See [`study/README.md`](study/README.md). |
+| [`study/`](study/) | A local, offline, multi-exam study app — a 3-tier practice quiz (Standard/Intermediate/Hard, plus Expert for CCAR-P, with multi-select items), flashcards with self-graded recall tracking, concept explainers (with code samples), browsable labs, and a readiness dashboard. Web UI (`uv run study/serve.py`) plus standalone CLI/TUI quiz and flashcard tools. See [`study/README.md`](study/README.md). |
 | `.claude/` | Project Claude Code config (enables the `pyright-lsp` and `agent-sdk-dev` plugins). |
 
 ## Labs At A Glance
@@ -120,6 +121,6 @@ into the six CCAR-F exam scenarios.
 - Certification content is derived from the publicly distributed exam guides.
 - Test suite status: labs (`cd labs && LAB_TARGET=solution uv run pytest`) → 376 passed,
   3 `llm`-marked tests deselected (they run only with an API key); study content and
-  app (`cd study && uv run pytest`) → 83 passed.
+  app (`cd study && uv run pytest`) → 85 passed.
 
 <!-- EOF -->

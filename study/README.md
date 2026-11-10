@@ -4,8 +4,9 @@ A **local, offline, single-user**, **multi-exam** study app for Claude certifica
 exams. It covers the **Claude Certified Architect – Foundations (CCAR-F)**,
 **Claude Certified Developer – Foundations (CCDV-F)**, and **Claude Certified
 Architect – Professional (CCAR-P)** exams: a **3-tier practice-question bank**
-(CCAR-F 435 questions, CCDV-F 322, CCAR-P 457 —
-Standard/Intermediate/Hard, including real multi-response "Select N" items),
+(CCAR-F 435 questions, CCDV-F 322, CCAR-P 533 —
+Standard/Intermediate/Hard, plus an Expert tier for CCAR-P, including real
+multi-response "Select N" items),
 **flashcards** (135 / 93 / 114 cards, with self-graded recall tracking), **concept
 explainers** (30 / 25 / 38), **browsable labs**, and a **readiness dashboard** that tracks
 your progress over time.
@@ -130,8 +131,9 @@ stays in their own browser).
 ## Features
 
 - **Quiz** — scenario multiple-choice (the exam's format), across three difficulty
-  tiers (**Standard**, **Intermediate**, **Hard** — pick a set from the dropdown, or
-  combine files on the CLI/TUI). Includes real multi-response **"Select N"** items,
+  tiers (**Standard**, **Intermediate**, **Hard**; CCAR-P adds **Expert** — difficulty
+  9–10, close distractors, multi-constraint and root-cause-from-evidence cases) — pick
+  a set from the dropdown, or combine files on the CLI/TUI. Includes real multi-response **"Select N"** items,
   matching the exam's mixed single-/multi-answer format. Each question's answer
   options are reshuffled and relabeled every time it's shown, so repeat practice
   doesn't let you memorize a position instead of the content. Filter by domain / task
@@ -175,7 +177,7 @@ toward. One item can serve several exams, each under its own task.
 | `exams/ccarp/exam.json`, `exams/ccarp/map.json` | The CCAR-P exam (7 domains with the guide's weights, 38 objectives numbered 1.1–7.3 in guide order — the guide doesn't number them) and its item map. Its `config` uses a flat target of 6 Standard questions per objective (`questions_per_task_target`). Guide: `exams/ccarp/anthropic-ccarp-exam-guide-2026-07.md`. |
 | `exams/ccarf/anthropic-ccarf-exam-guide-2026-07.md` | The CCAR-F exam guide — source of truth for its content (`-2026-06` is the prior edition). |
 | `content/components.json` | Registry of every pool component: `{id, kind, version, file}`. |
-| `content/questions-standard.json` (506), `content/questions-intermediate.json` (235), `content/questions-hard.json` (180, incl. 44 multi-response) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All three are schema-identical and interchangeable across every surface. |
+| `content/questions-standard.json` (506), `content/questions-intermediate.json` (235), `content/questions-hard.json` (180, incl. 44 multi-response), `content/questions-expert.json` (76, incl. 37 multi-response; pinned by CCAR-P only) | Scenario multiple-choice questions by difficulty tier: stem, 4-5 options (A-E), a `correct` key (a single letter, or a 2+-letter array for a "Select N" item), per-distractor rationale, lab link. All tiers are schema-identical and interchangeable across every surface. Scenario line breaks are preserved (Expert's evidence items put each log line or metric on its own line). |
 | `content/flashcards.json` | Front/back fact-recall cards (249), each testing a single concept. |
 | `content/concepts.json` | Concept explainers (86; each exam maps one to each of its task statements). |
 | `content/labs.json` | The labs catalog, generated from `../labs/` by `tools/build_labs.py`. |

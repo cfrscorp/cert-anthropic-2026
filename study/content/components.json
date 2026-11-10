@@ -19,6 +19,12 @@
       "file": "questions-hard.json"
     },
     {
+      "id": "questions-expert",
+      "kind": "questions",
+      "version": "1.0.0",
+      "file": "questions-expert.json"
+    },
+    {
       "id": "flashcards",
       "kind": "flashcards",
       "version": "1.2.1",
